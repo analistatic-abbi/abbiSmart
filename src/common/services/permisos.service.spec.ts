@@ -8,18 +8,15 @@ describe('PermisosService', () => {
     service = new PermisosService();
   });
 
-  it('Visitante es solo lectura', () => {
+  it('Visitante y Validador son solo lectura', () => {
     expect(service.esSoloLectura(Rol.VISITANTE)).toBe(true);
+    expect(service.esSoloLectura(Rol.VALIDADOR)).toBe(true);
     expect(service.puedeEscribir(Rol.VISITANTE)).toBe(false);
+    expect(service.puedeEscribir(Rol.VALIDADOR)).toBe(false);
   });
 
   it('roles operativos pueden escribir', () => {
-    const roles = [
-      Rol.ADMINISTRADOR,
-      Rol.SUPERVISOR_SISTEMA,
-      Rol.OPERADOR,
-      Rol.VALIDADOR,
-    ];
+    const roles = [Rol.ADMINISTRADOR, Rol.SUPERVISOR_SISTEMA, Rol.OPERADOR];
 
     for (const rol of roles) {
       expect(service.puedeEscribir(rol)).toBe(true);
@@ -42,9 +39,9 @@ describe('PermisosService', () => {
     expect(service.puedeAccederModuloValidacion(Rol.VISITANTE)).toBe(false);
   });
 
-  it('solo Validador ejecuta validación', () => {
+  it('Validador y Admin ejecutan validación', () => {
     expect(service.puedeEjecutarValidacion(Rol.VALIDADOR)).toBe(true);
-    expect(service.puedeEjecutarValidacion(Rol.ADMINISTRADOR)).toBe(false);
+    expect(service.puedeEjecutarValidacion(Rol.ADMINISTRADOR)).toBe(true);
   });
 
   it('gestión de procesos excluye Visitante y Validador', () => {

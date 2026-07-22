@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
-import { AlertaEnviada } from '../../database/entities/alerta-enviada.entity';
-import { Proceso } from '../../database/entities/proceso.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { AlertasControlService } from '../../common/services/alertas-control.service';
 import { SesionService } from '../auth/sesion.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
@@ -17,10 +15,9 @@ export class ScheduledTasksService {
     private readonly proyeccionesService: ProyeccionesService,
     private readonly notificacionesService: NotificacionesService,
     private readonly sesionService: SesionService,
-    @InjectRepository(AlertaEnviada)
-    private readonly alertaRepository: Repository<AlertaEnviada>,
-    @InjectRepository(Proceso)
-    private readonly procesoRepository: Repository<Proceso>,
+    private readonly alertasControlService: AlertasControlService,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -49,11 +46,7 @@ export class ScheduledTasksService {
     estadosActualizados: number;
     notificacionesEnviadas: number;
   }> {
-    const estadosActualizados =
-      await this.proyeccionesService.actualizarEstadosAutomaticos();
-    const notificacionesEnviadas = await this.notificarProyeccionesUrgentes();
-
-    return { estadosActualizados, notificacionesEnviadas };
+    return this.proyeccionesService.actualizarEstadosYNotificar();
   }
 
   async runRelacionamientoVencidoJob(): Promise<{
@@ -70,77 +63,8 @@ export class ScheduledTasksService {
     return { sesionesEliminadas };
   }
 
-  private async notificarProyeccionesUrgentes(): Promise<number> {
-    const rows = await this.proyeccionRepositoryQuery();
-
-    let enviadas = 0;
-
-    for (const row of rows) {
-      const umbral =
-        row.estado === EstadoProyeccion.PROXIMO ? 'Proximo' : 'SaleEsteMes';
-
-      const yaEnviada = await this.alertaRepository.findOne({
-        where: { proyeccionId: row.id, umbral },
-      });
-
-      if (yaEnviada) {
-        continue;
-      }
-
-      const usuarioId = await this.resolveUsuarioProyeccion(row.id);
-
-      if (!usuarioId) {
-        continue;
-      }
-
-      await this.notificacionesService.crear({
-        usuarioId,
-        tipo: 'proyeccion_proxima',
-        mensaje: `La proyección #${row.id} está en estado "${row.estado}"`,
-        entidadTipo: 'proyeccion',
-        entidadId: row.id,
-      });
-
-      await this.alertaRepository.save(
-        this.alertaRepository.create({
-          proyeccionId: row.id,
-          umbral,
-        }),
-      );
-
-      enviadas += 1;
-    }
-
-    return enviadas;
-  }
-
-  private async proyeccionRepositoryQuery(): Promise<
-    Array<{ id: number; estado: EstadoProyeccion }>
-  > {
-    return this.alertaRepository.query(
-      `SELECT id, estado
-       FROM proyecciones
-       WHERE eliminado = FALSE
-         AND estado IN ('Proximo', 'Sale este mes')`,
-    );
-  }
-
-  private async resolveUsuarioProyeccion(
-    proyeccionId: number,
-  ): Promise<number | null> {
-    const rows = await this.procesoRepository.query(
-      `SELECT p.usuario_creador_id AS usuarioId
-       FROM proyecciones py
-       INNER JOIN procesos p ON p.id = py.proceso_origen_id
-       WHERE py.id = ?`,
-      [proyeccionId],
-    );
-
-    return rows[0]?.usuarioId ? Number(rows[0].usuarioId) : null;
-  }
-
   private async notificarRelacionamientosVencidos(): Promise<number> {
-    const rows = await this.alertaRepository.query(
+    const rows = await this.dataSource.query(
       `SELECT r.id, r.emisor_usuario_id AS emisorUsuarioId
        FROM vista_relacionamientos_vencidos v
        INNER JOIN relacionamientos r ON r.id = v.id`,
@@ -149,9 +73,9 @@ export class ScheduledTasksService {
     let enviadas = 0;
 
     for (const row of rows as Array<{ id: number; emisorUsuarioId: number }>) {
-      const yaEnviada = await this.alertaRepository.findOne({
-        where: { relacionamientoId: row.id, umbral: 'vencimiento' },
-      });
+      const yaEnviada = await this.alertasControlService.yaEnviadaRelacionamiento(
+        row.id,
+      );
 
       if (yaEnviada) {
         continue;
@@ -165,12 +89,7 @@ export class ScheduledTasksService {
         entidadId: row.id,
       });
 
-      await this.alertaRepository.save(
-        this.alertaRepository.create({
-          relacionamientoId: row.id,
-          umbral: 'vencimiento',
-        }),
-      );
+      await this.alertasControlService.registrarRelacionamiento(row.id);
 
       enviadas += 1;
     }

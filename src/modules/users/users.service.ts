@@ -17,6 +17,7 @@ import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UsersQueryDto } from './dto/users-query.dto';
 
 export interface CreateUserResult {
   usuario: UserResponseDto;
@@ -26,6 +27,13 @@ export interface CreateUserResult {
 export interface PasswordResetRequestResult {
   message: string;
   devResetToken?: string;
+}
+
+export interface UsersPage {
+  data: UserResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 @Injectable()
@@ -39,6 +47,42 @@ export class UsersService {
     private readonly mailService: MailService,
     private readonly auditService: AuditService,
   ) {}
+
+  async findAll(query: UsersQueryDto = {}): Promise<UsersPage> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const qb = this.usuarioRepository
+      .createQueryBuilder('u')
+      .where('u.eliminado = false');
+
+    if (query.search) {
+      qb.andWhere('(u.nombre LIKE :search OR u.correo LIKE :search)', {
+        search: `%${query.search}%`,
+      });
+    }
+
+    if (query.rol) {
+      qb.andWhere('u.rol = :rol', { rol: query.rol });
+    }
+
+    if (query.paisId) {
+      qb.andWhere('u.pais_id = :paisId', { paisId: query.paisId });
+    }
+
+    qb.orderBy('u.fecha_creacion', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [usuarios, total] = await qb.getManyAndCount();
+
+    return {
+      data: usuarios.map((usuario) => UserResponseDto.fromEntity(usuario)),
+      total,
+      page,
+      limit,
+    };
+  }
 
   async findById(id: number): Promise<Usuario | null> {
     return this.usuarioRepository.findOne({
@@ -70,10 +114,10 @@ export class UsersService {
     dto: CreateUserDto,
     actorUserId?: number,
   ): Promise<CreateUserResult> {
-    if (dto.rol === Rol.OPERADOR && !dto.paisId) {
+    if (!dto.paisId) {
       throw new BusinessException(
-        ErrorCode.PAIS_REQUERIDO_OPERADOR,
-        'El país es obligatorio para el rol Operador',
+        ErrorCode.PAIS_REQUERIDO,
+        'El país es obligatorio',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -86,15 +130,13 @@ export class UsersService {
       );
     }
 
-    if (dto.paisId) {
-      await this.validatePaisActivo(dto.paisId);
-    }
+    await this.validatePaisActivo(dto.paisId);
 
     const usuario = this.usuarioRepository.create({
       nombre: dto.nombre,
       correo: dto.correo,
       rol: dto.rol,
-      paisId: dto.paisId ?? null,
+      paisId: dto.paisId,
       estado: EstadoUsuario.INACTIVO,
       passwordHash: null,
       eliminado: false,
@@ -144,24 +186,22 @@ export class UsersService {
     const nextPaisId =
       dto.paisId !== undefined ? dto.paisId : usuario.paisId;
 
-    if (nextRol === Rol.OPERADOR && !nextPaisId) {
+    if (!nextPaisId) {
       throw new BusinessException(
-        ErrorCode.PAIS_REQUERIDO_OPERADOR,
-        'El país es obligatorio para el rol Operador',
+        ErrorCode.PAIS_REQUERIDO,
+        'El país es obligatorio',
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (nextPaisId) {
-      await this.validatePaisActivo(nextPaisId);
-    }
+    await this.validatePaisActivo(nextPaisId);
 
     if (dto.nombre !== undefined) {
       usuario.nombre = dto.nombre;
     }
 
     usuario.rol = nextRol;
-    usuario.paisId = nextRol === Rol.OPERADOR ? nextPaisId : null;
+    usuario.paisId = nextPaisId;
 
     const saved = await this.usuarioRepository.save(usuario);
 
@@ -213,13 +253,10 @@ export class UsersService {
   ): Promise<PasswordResetRequestResult> {
     const usuario = await this.getUsuarioOrThrow(id);
 
-    if (usuario.estado !== EstadoUsuario.ACTIVO) {
-      throw new BusinessException(
-        ErrorCode.USUARIO_NO_ACTIVO,
-        'Solo se puede restablecer la contraseña de usuarios activos',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    usuario.passwordHash = null;
+    usuario.estado = EstadoUsuario.INACTIVO;
+    usuario.intentosFallidos = 0;
+    await this.usuarioRepository.save(usuario);
 
     const rawToken = await this.activationService.createActivationToken(
       usuario.id,
@@ -246,10 +283,56 @@ export class UsersService {
     };
   }
 
+  async reenviarActivacion(
+    id: number,
+    actorUserId?: number,
+  ): Promise<PasswordResetRequestResult> {
+    const usuario = await this.getUsuarioOrThrow(id);
+
+    if (usuario.estado === EstadoUsuario.ACTIVO) {
+      throw new BusinessException(
+        ErrorCode.USUARIO_YA_ACTIVO,
+        'El usuario ya está activo',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    usuario.passwordHash = null;
+    usuario.estado = EstadoUsuario.INACTIVO;
+    usuario.intentosFallidos = 0;
+    await this.usuarioRepository.save(usuario);
+
+    const rawToken = await this.activationService.createActivationToken(
+      usuario.id,
+    );
+
+    await this.mailService.sendActivationEmail(
+      usuario.correo,
+      usuario.nombre,
+      rawToken,
+    );
+
+    await this.auditService.log({
+      usuarioId: actorUserId ?? null,
+      accion: AuditAccion.USUARIO_EDITAR,
+      entidadTipo: AuditEntidadTipo.USUARIO,
+      entidadId: usuario.id,
+      campo: 'activacion',
+      valorNuevo: 'reenvio',
+    });
+
+    return {
+      message: 'Se envió un nuevo enlace de activación',
+      ...(this.mailService.shouldExposeDevTokens()
+        ? { devResetToken: rawToken }
+        : {}),
+    };
+  }
+
   async unlockUser(
     id: number,
     actorUserId?: number,
-  ): Promise<UserResponseDto> {
+  ): Promise<PasswordResetRequestResult> {
     const usuario = await this.getUsuarioOrThrow(id);
 
     if (usuario.estado !== EstadoUsuario.BLOQUEADA) {
@@ -260,16 +343,37 @@ export class UsersService {
       );
     }
 
-    usuario.estado = EstadoUsuario.ACTIVO;
-    usuario.intentosFallidos = 0;
-
-    const saved = await this.usuarioRepository.save(usuario);
-
     await this.auditService.log({
       usuarioId: actorUserId ?? null,
       accion: AuditAccion.USUARIO_DESBLOQUEAR,
       entidadTipo: AuditEntidadTipo.USUARIO,
+      entidadId: usuario.id,
+    });
+
+    return this.reenviarActivacion(id, actorUserId);
+  }
+
+  async deactivateUser(
+    id: number,
+    actorUserId?: number,
+  ): Promise<UserResponseDto> {
+    const usuario = await this.getUsuarioOrThrow(id);
+    const estadoAnterior = usuario.estado;
+
+    if (usuario.estado === EstadoUsuario.INACTIVO) {
+      return UserResponseDto.fromEntity(usuario);
+    }
+
+    usuario.estado = EstadoUsuario.INACTIVO;
+    const saved = await this.usuarioRepository.save(usuario);
+
+    await this.auditService.log({
+      usuarioId: actorUserId ?? null,
+      accion: AuditAccion.USUARIO_DESACTIVAR,
+      entidadTipo: AuditEntidadTipo.USUARIO,
       entidadId: saved.id,
+      valorAnterior: estadoAnterior,
+      valorNuevo: EstadoUsuario.INACTIVO,
     });
 
     return UserResponseDto.fromEntity(saved);

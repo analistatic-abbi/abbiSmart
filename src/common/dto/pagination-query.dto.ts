@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { SegmentoCliente } from '../enums/segmento-cliente.enum';
 
 export class PaginationQueryDto {
   @ApiPropertyOptional({ default: 1 })
@@ -24,4 +25,15 @@ export class ClientesQueryDto extends PaginationQueryDto {
   @IsString()
   @MaxLength(255)
   search?: string;
+
+  @ApiPropertyOptional({ enum: SegmentoCliente })
+  @IsOptional()
+  @IsEnum(SegmentoCliente)
+  segmento?: SegmentoCliente;
+
+  @ApiPropertyOptional({ description: 'Incluir registros eliminados (Admin/Supervisor)' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  incluirEliminados?: boolean;
 }

@@ -8,9 +8,39 @@ import {
   IsPositive,
   IsString,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { CanalRelacionamiento } from '../../../common/enums/canal-relacionamiento.enum';
 import { ResultadoRelacionamiento } from '../../../common/enums/resultado-relacionamiento.enum';
+
+export class ContactoReferidoDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nombre: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  cargo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  correo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  ubicacionId?: number;
+}
 
 export class CreateRelacionamientoDto {
   @ApiProperty({ example: 1 })
@@ -42,4 +72,13 @@ export class CreateRelacionamientoDto {
   )
   @IsDateString()
   fechaReunion?: string;
+
+  @ApiPropertyOptional({ description: 'Requerido si resultado = Referido a tercero (REL-005)' })
+  @ValidateIf(
+    (dto: CreateRelacionamientoDto) =>
+      dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO,
+  )
+  @ValidateNested()
+  @Type(() => ContactoReferidoDto)
+  contactoReferido?: ContactoReferidoDto;
 }

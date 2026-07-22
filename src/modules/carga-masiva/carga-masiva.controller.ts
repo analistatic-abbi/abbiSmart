@@ -55,18 +55,17 @@ export class CargaMasivaController {
   })
   @ApiOperation({
     summary:
-      'Importar clientes desde CSV (empresa,ubicacion_id,segmento,segmento_otro)',
+      'Importar clientes desde CSV o Excel (.xlsx). Columnas: empresa, pais, region/departamento, segmento (CLI-004)',
   })
   async importClientes(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const content = this.readFileContent(file, contentField);
-    const fileName = file?.originalname ?? 'clientes.csv';
+    const { buffer, fileName } = this.readUpload(file, contentField, 'clientes.csv');
     const result = await this.cargaMasivaService.importClientes(
       fileName,
-      content,
+      buffer,
       actor.userId,
       actor.paisSesionId!,
     );
@@ -97,18 +96,17 @@ export class CargaMasivaController {
   })
   @ApiOperation({
     summary:
-      'Importar contactos desde CSV (cliente_id,nombre,ubicacion_id,cargo,telefono,correo,referido_por_contacto_id)',
+      'Importar contactos desde CSV o Excel (.xlsx). Columnas: empresa/cliente_id, nombre, region, referido_por_nombre (CON-003)',
   })
   async importContactos(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const content = this.readFileContent(file, contentField);
-    const fileName = file?.originalname ?? 'contactos.csv';
+    const { buffer, fileName } = this.readUpload(file, contentField, 'contactos.csv');
     const result = await this.cargaMasivaService.importContactos(
       fileName,
-      content,
+      buffer,
       actor.userId,
       actor.paisSesionId!,
     );
@@ -139,18 +137,21 @@ export class CargaMasivaController {
   })
   @ApiOperation({
     summary:
-      'Importar proyecciones desde CSV (anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,mercado,proceso_origen_id)',
+      'Importar proyecciones desde CSV o Excel (.xlsx). Columnas: anio_proyectado, fecha_estimada_publicacion, valor_venta, valor_facturacion, proceso_codigo (opcional) (PRY-014)',
   })
   async importProyecciones(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const content = this.readFileContent(file, contentField);
-    const fileName = file?.originalname ?? 'proyecciones.csv';
+    const { buffer, fileName } = this.readUpload(
+      file,
+      contentField,
+      'proyecciones.csv',
+    );
     const result = await this.cargaMasivaService.importProyecciones(
       fileName,
-      content,
+      buffer,
       actor.userId,
       actor.paisSesionId!,
     );
@@ -161,25 +162,32 @@ export class CargaMasivaController {
     };
   }
 
-  private readFileContent(
+  private readUpload(
     file: Express.Multer.File | undefined,
-    contentField?: string,
-  ): string {
+    contentField: string | undefined,
+    defaultFileName: string,
+  ): { buffer: Buffer; fileName: string } {
     if (file?.buffer?.length) {
-      return file.buffer.toString('utf8');
+      return {
+        buffer: file.buffer,
+        fileName: file.originalname ?? defaultFileName,
+      };
     }
 
     const inlineContent = contentField?.trim();
 
     if (inlineContent) {
-      return inlineContent;
+      return {
+        buffer: Buffer.from(inlineContent, 'utf8'),
+        fileName: defaultFileName,
+      };
     }
 
     throw new BusinessException(
       ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
       file
-        ? 'El archivo CSV está vacío. En Postman, vuelva a seleccionar el archivo o use el campo content con el texto del CSV.'
-        : 'Debe adjuntar un archivo CSV en el campo file o enviar el contenido en el campo content',
+        ? 'El archivo está vacío. En Postman, vuelva a seleccionar el archivo o use el campo content con el texto del CSV.'
+        : 'Debe adjuntar un archivo CSV/Excel en el campo file o enviar el contenido en el campo content',
       HttpStatus.BAD_REQUEST,
     );
   }

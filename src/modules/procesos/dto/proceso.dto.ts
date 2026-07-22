@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
@@ -34,6 +34,27 @@ export class ProcesosQueryDto extends PaginationQueryDto {
   @IsString()
   @MaxLength(255)
   search?: string;
+
+  @ApiPropertyOptional({ enum: SegmentoProceso })
+  @IsOptional()
+  @IsEnum(SegmentoProceso)
+  segmento?: SegmentoProceso;
+
+  @ApiPropertyOptional({ enum: TipoProceso })
+  @IsOptional()
+  @IsEnum(TipoProceso)
+  tipoProceso?: TipoProceso;
+
+  @ApiPropertyOptional({ enum: TipoInstrumento })
+  @IsOptional()
+  @IsEnum(TipoInstrumento)
+  tipoInstrumento?: TipoInstrumento;
+
+  @ApiPropertyOptional({ description: 'Incluir registros eliminados (Admin/Supervisor)' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  incluirEliminados?: boolean;
 }
 
 export class ProcesoIndicadorInputDto {
@@ -117,48 +138,11 @@ export class CreateProcesoDto {
   @IsString()
   observacion?: string;
 
-  @ApiProperty()
-  @IsDateString()
-  fechaApertura: string;
-
-  @ApiProperty()
-  @IsDateString()
-  fechaCierre: string;
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Vincular proyección al crear el proceso (PRY-015)' })
   @IsOptional()
-  @IsDateString()
-  fechaManifestacionInteres?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaAdquisicionDerecho?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaReunionAclaratoria?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaVisitaTecnica?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaSolicitudesAclaracion?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaRespuestaAclaracion?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  fechaLimitacionMypymes?: string;
+  @Type(() => Number)
+  @IsInt()
+  proyeccionId?: number;
 
   @ApiProperty({ type: [ProcesoIndicadorInputDto] })
   @IsArray()
@@ -171,6 +155,14 @@ export class CreateProcesoDto {
   @IsOptional()
   @IsBoolean()
   confirmarIndicadoresVacios?: boolean;
+
+  @ApiProperty({ description: 'Fecha de apertura (FEC-001)' })
+  @IsDateString()
+  fechaApertura: string;
+
+  @ApiProperty({ description: 'Fecha de cierre (FEC-001)' })
+  @IsDateString()
+  fechaCierre: string;
 }
 
 export class UpdateProcesoDto {
@@ -286,7 +278,7 @@ export class ProcesoResponseDto {
   estado: EstadoProceso;
   usuarioCreadorId: number;
   fechaCreacion: Date;
-  fechaApertura: string;
+  fechaApertura: string | null;
   fechaManifestacionInteres: string | null;
   fechaAdquisicionDerecho: string | null;
   fechaReunionAclaratoria: string | null;
@@ -294,9 +286,16 @@ export class ProcesoResponseDto {
   fechaSolicitudesAclaracion: string | null;
   fechaRespuestaAclaracion: string | null;
   fechaLimitacionMypymes: string | null;
-  fechaCierre: string;
+  fechaCierre: string | null;
   fechaInicioEjecucion: string | null;
   fechaFinalizacion: string | null;
+  empresaMostrar?: string | null;
+  diasRestantesCierre?: number | null;
+  avancePorcentaje?: number | null;
+  diasEspera?: number | null;
+  fechaEsperada?: string | null;
+  mesesEjecucionAnioReporte?: number | null;
+  facturacionEstimadaAnioReporte?: string | null;
   indicadores?: ProcesoIndicadorResponseDto[];
 }
 
@@ -305,6 +304,10 @@ export class CompletarTareaDto {
   @IsString()
   @IsNotEmpty()
   evidencia: string;
+
+  @ApiProperty({ description: 'Confirmación explícita de finalización (SEG-002)' })
+  @IsBoolean()
+  confirmar: boolean;
 }
 
 export class TareaResponseDto {

@@ -46,6 +46,23 @@ export class ParametrosController {
     };
   }
 
+  @Get(':id/historial')
+  @ApiOperation({ summary: 'Historial de cambios del parámetro (PAR-003)' })
+  async getHistorial(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const historial = await this.parametrosService.getHistorial(
+      id,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Historial del parámetro obtenido correctamente',
+      data: historial,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener parámetro financiero por ID' })
   async findById(

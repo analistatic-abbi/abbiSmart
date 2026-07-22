@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Catálogos y configuración (e2e)', () => {
   let app: INestApplication<App>;
@@ -17,22 +17,12 @@ describe('Catálogos y configuración (e2e)', () => {
   async function createUser(
     correo: string,
     rol: Rol,
-    paisId?: number,
+    paisId = 1,
   ): Promise<number> {
-    const payload: Record<string, unknown> = {
-      nombre: 'Usuario E2E Catálogos',
-      correo,
-      rol,
-    };
-
-    if (paisId !== undefined) {
-      payload.paisId = paisId;
-    }
-
     const res = await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send(payload)
+      .send(buildE2eUserPayload('Usuario E2E Catálogos', correo, rol, paisId))
       .expect(201);
 
     return res.body.usuario.id as number;

@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Auth activation (e2e)', () => {
   let app: INestApplication<App>;
@@ -44,11 +44,7 @@ describe('Auth activation (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send({
-        nombre: 'Usuario E2E',
-        correo,
-        rol: Rol.VISITANTE,
-      })
+      .send(buildE2eUserPayload('Usuario E2E', correo, Rol.VISITANTE))
       .expect(201)
       .expect((res) => {
         expect(res.body.usuario.estado).toBe('Inactivo');
@@ -85,11 +81,7 @@ describe('Auth activation (e2e)', () => {
   it('POST /users rejects requests without admin dev key', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/users')
-      .send({
-        nombre: 'Sin Key',
-        correo: `nokey-${Date.now()}@test.local`,
-        rol: Rol.VISITANTE,
-      })
+      .send(buildE2eUserPayload('Sin Key', `nokey-${Date.now()}@test.local`, Rol.VISITANTE))
       .expect(403);
   });
 });

@@ -3,12 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
-import { CONTACTO_GENERICO_NOMBRE } from '../src/common/constants/crm.constants';
 import { ResultadoRelacionamiento } from '../src/common/enums/resultado-relacionamiento.enum';
 import { Rol } from '../src/common/enums/rol.enum';
 import { SegmentoCliente } from '../src/common/enums/segmento-cliente.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('CRM Fase C (e2e)', () => {
   jest.setTimeout(30000);
@@ -21,20 +20,10 @@ describe('CRM Fase C (e2e)', () => {
   let ubicacionId = 0;
 
   async function createUser(correo: string, rol: Rol, paisId?: number) {
-    const payload: Record<string, unknown> = {
-      nombre: 'Usuario CRM E2E',
-      correo,
-      rol,
-    };
-
-    if (paisId !== undefined) {
-      payload.paisId = paisId;
-    }
-
     await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send(payload)
+      .send(buildE2eUserPayload('Usuario CRM E2E', correo, rol, paisId ?? 1))
       .expect(201);
   }
 
@@ -137,7 +126,9 @@ describe('CRM Fase C (e2e)', () => {
       .expect(200);
 
     expect(contactosRes.body.data).toHaveLength(1);
-    expect(contactosRes.body.data[0].nombre).toBe(CONTACTO_GENERICO_NOMBRE);
+    expect(contactosRes.body.data[0].nombre).toBe(
+      `Contacto General - ${clienteRes.body.cliente.empresa}`,
+    );
     expect(contactosRes.body.data[0].esGenerico).toBe(true);
 
     const contactoRes = await request(app.getHttpServer())
@@ -193,6 +184,7 @@ describe('CRM Fase C (e2e)', () => {
 
     await request(app.getHttpServer())
       .delete(`/api/v1/clientes/${clienteId}`)
+      .query({ confirmarDependientes: true })
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
   });
@@ -224,5 +216,63 @@ describe('CRM Fase C (e2e)', () => {
       .delete(`/api/v1/contactos/${genericoId}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(400);
+  });
+
+  it('crea contacto referido al registrar relacionamiento Referido a tercero (REL-005)', async () => {
+    const token = await setupAdminToken();
+    ubicacionId = await resolveUbicacionId(token);
+
+    const clienteRes = await request(app.getHttpServer())
+      .post('/api/v1/clientes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        empresa: `Empresa Referido ${Date.now()}`,
+        ubicacionId,
+        segmento: SegmentoCliente.MINERIA,
+      })
+      .expect(201);
+
+    const clienteId = clienteRes.body.cliente.id as number;
+
+    const contactoRes = await request(app.getHttpServer())
+      .post(`/api/v1/clientes/${clienteId}/contactos`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nombre: 'Contacto Origen',
+        ubicacionId,
+        correo: 'origen@crm.test',
+      })
+      .expect(201);
+
+    const contactoId = contactoRes.body.contacto.id as number;
+
+    await request(app.getHttpServer())
+      .post('/api/v1/relacionamientos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        contactoId,
+        canal: 'Correo',
+        mensaje: 'Derivación a tercero',
+        fechaMensaje: '2026-01-01',
+        resultado: ResultadoRelacionamiento.REFERIDO_TERCERO,
+        contactoReferido: {
+          nombre: 'Referido Externo',
+          correo: 'referido@crm.test',
+          ubicacionId,
+        },
+      })
+      .expect(201);
+
+    const contactosRes = await request(app.getHttpServer())
+      .get(`/api/v1/clientes/${clienteId}/contactos`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const referido = contactosRes.body.data.find(
+      (item: { nombre: string }) => item.nombre === 'Referido Externo',
+    );
+
+    expect(referido).toBeDefined();
+    expect(referido.referidoPorContactoId).toBe(contactoId);
   });
 });

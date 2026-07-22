@@ -10,7 +10,7 @@ import { SegmentoProceso } from '../src/common/enums/segmento-proceso.enum';
 import { TipoInstrumento } from '../src/common/enums/tipo-instrumento.enum';
 import { TipoProceso } from '../src/common/enums/tipo-proceso.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Procesos Fase D (e2e)', () => {
   jest.setTimeout(30000);
@@ -26,7 +26,7 @@ describe('Procesos Fase D (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send({ nombre: 'Usuario Procesos E2E', correo, rol })
+      .send(buildE2eUserPayload('Usuario Procesos E2E', correo, rol))
       .expect(201);
   }
 
@@ -85,6 +85,13 @@ describe('Procesos Fase D (e2e)', () => {
     }));
   }
 
+  function fechasProcesoBase() {
+    return {
+      fechaApertura: '2026-01-01',
+      fechaCierre: '2026-06-30',
+    };
+  }
+
   beforeEach(async () => {
     configureE2eEnvironment();
     process.env.ADMIN_DEV_KEY = adminDevKey;
@@ -116,12 +123,14 @@ describe('Procesos Fase D (e2e)', () => {
     const token = await setupAdminToken();
     ubicacionId = await resolveUbicacionId(token);
 
+    const anioParametro = 2000 + (Date.now() % 101);
+
     await request(app.getHttpServer())
       .post('/api/v1/parametros')
       .set('Authorization', `Bearer ${token}`)
       .send({
         indicadorCodigo: IndicadorCodigo.KTNO,
-        anio: 2026,
+        anio: anioParametro,
         valor: 1.5,
         reglaCumplimiento: ReglaCumplimiento.MAYOR_O_IGUAL,
       })
@@ -152,15 +161,16 @@ describe('Procesos Fase D (e2e)', () => {
         tipoInstrumento: TipoInstrumento.LICITACION,
         plazoEjecucionMeses: 12,
         experiencia: false,
-        fechaApertura: '2026-01-01',
-        fechaCierre: '2026-06-30',
         indicadores: buildIndicadoresVacios(),
         confirmarIndicadoresVacios: true,
+        ...fechasProcesoBase(),
       })
       .expect(201);
 
     const procesoId = procesoRes.body.proceso.id as number;
     expect(procesoRes.body.proceso.codigo).toBeTruthy();
+    expect(procesoRes.body.proceso.fechaApertura).toBe('2026-01-01');
+    expect(procesoRes.body.proceso.fechaCierre).toBe('2026-06-30');
 
     const tareasRes = await request(app.getHttpServer())
       .get(`/api/v1/procesos/${procesoId}/tareas`)
@@ -177,5 +187,103 @@ describe('Procesos Fase D (e2e)', () => {
     expect(
       dashboardRes.body.data.some((item: { id: number }) => item.id === procesoId),
     ).toBe(true);
+  });
+
+  it('requiere confirmar al completar tarea (SEG-002)', async () => {
+    const token = await setupAdminToken();
+    ubicacionId = await resolveUbicacionId(token);
+
+    const clienteRes = await request(app.getHttpServer())
+      .post('/api/v1/clientes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        empresa: `Empresa Tarea ${Date.now()}`,
+        ubicacionId,
+        segmento: 'Minería',
+      })
+      .expect(201);
+
+    const procesoRes = await request(app.getHttpServer())
+      .post('/api/v1/procesos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        idDigitado: `TAREA-${Date.now()}`,
+        empresaClienteId: clienteRes.body.cliente.id,
+        ubicacionId,
+        cuantia: 500000,
+        segmento: SegmentoProceso.GAS_NATURAL,
+        tipoProceso: TipoProceso.PERIODICO,
+        tipoInstrumento: TipoInstrumento.LICITACION,
+        plazoEjecucionMeses: 6,
+        experiencia: false,
+        indicadores: buildIndicadoresVacios(),
+        confirmarIndicadoresVacios: true,
+        ...fechasProcesoBase(),
+      })
+      .expect(201);
+
+    const procesoId = procesoRes.body.proceso.id as number;
+    const tareasRes = await request(app.getHttpServer())
+      .get(`/api/v1/procesos/${procesoId}/tareas`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const tareaAplicable = tareasRes.body.data.find(
+      (item: { aplica: boolean }) => item.aplica,
+    );
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/procesos/${procesoId}/tareas/${tareaAplicable.id}/completar`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ evidencia: 'Evidencia test', confirmar: false })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/procesos/${procesoId}/tareas/${tareaAplicable.id}/completar`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ evidencia: 'Evidencia test', confirmar: true })
+      .expect(200);
+  });
+
+  it('bloquea cambio directo a En Validación (REV-002)', async () => {
+    const token = await setupAdminToken();
+    ubicacionId = await resolveUbicacionId(token);
+
+    const clienteRes = await request(app.getHttpServer())
+      .post('/api/v1/clientes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        empresa: `Empresa Estado ${Date.now()}`,
+        ubicacionId,
+        segmento: 'Minería',
+      })
+      .expect(201);
+
+    const procesoRes = await request(app.getHttpServer())
+      .post('/api/v1/procesos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        idDigitado: `EST-${Date.now()}`,
+        empresaClienteId: clienteRes.body.cliente.id,
+        ubicacionId,
+        cuantia: 500000,
+        segmento: SegmentoProceso.GAS_NATURAL,
+        tipoProceso: TipoProceso.PERIODICO,
+        tipoInstrumento: TipoInstrumento.LICITACION,
+        plazoEjecucionMeses: 6,
+        experiencia: false,
+        indicadores: buildIndicadoresVacios(),
+        confirmarIndicadoresVacios: true,
+        ...fechasProcesoBase(),
+      })
+      .expect(201);
+
+    const procesoId = procesoRes.body.proceso.id as number;
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/procesos/${procesoId}/estado`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ estado: 'En Validación' })
+      .expect(400);
   });
 });

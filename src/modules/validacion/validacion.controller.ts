@@ -8,8 +8,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+  Query,
+} from '@nestjs/common';import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { Rol } from '../../common/enums/rol.enum';
@@ -25,14 +25,55 @@ export class ValidacionController {
 
   @Get('validacion/pendientes')
   @ApiOperation({ summary: 'Bandeja de procesos pendientes por validar (VAL-005)' })
-  async findPendientes(@CurrentUser() user: AuthUserPayload) {
+  @ApiQuery({ name: 'search', required: false })
+  async findPendientes(
+    @CurrentUser() user: AuthUserPayload,
+    @Query('search') search?: string,
+  ) {
     const data = await this.validacionService.findPendientes(
       user.userId,
       user.paisSesionId!,
+      search,
     );
 
     return {
       message: 'Procesos pendientes de validación obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Get('validacion/procesos/:id/revision')
+  @ApiOperation({ summary: 'Revisión completa del proceso para validar (VAL-003)' })
+  async getRevision(
+    @Param('id', ParseIntPipe) procesoId: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.validacionService.getRevisionProceso(
+      procesoId,
+      user.paisSesionId!,
+      user.userId,
+      user.rol as Rol,
+    );
+
+    return {
+      message: 'Revisión del proceso obtenida correctamente',
+      data,
+    };
+  }
+
+  @Get('procesos/:id/validaciones')
+  @ApiOperation({ summary: 'Listar validaciones y comentarios del proceso (VAL-004)' })
+  async getValidacionesProceso(
+    @Param('id', ParseIntPipe) procesoId: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.validacionService.findValidacionesByProceso(
+      procesoId,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Validaciones del proceso obtenidas correctamente',
       data,
     };
   }
@@ -60,7 +101,6 @@ export class ValidacionController {
   }
 
   @Patch('validacion/:id/veredicto')
-  @RequireWriteAccess()
   @ApiOperation({ summary: 'Registrar veredicto de validación (VAL-004)' })
   async registrarVeredicto(
     @Param('id', ParseIntPipe) validacionId: number,

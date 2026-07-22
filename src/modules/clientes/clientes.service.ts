@@ -6,12 +6,15 @@ import {
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
 import { SegmentoCliente } from '../../common/enums/segmento-cliente.enum';
-import { CONTACTO_GENERICO_NOMBRE } from '../../common/constants/crm.constants';
+import { Rol } from '../../common/enums/rol.enum';
 import { ClientesQueryDto } from '../../common/dto/pagination-query.dto';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
+import { PermisosService } from '../../common/services/permisos.service';
 import { Cliente } from '../../database/entities/cliente.entity';
 import { Contacto } from '../../database/entities/contacto.entity';
+import { Proceso } from '../../database/entities/proceso.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClienteResponseDto } from './dto/cliente-response.dto';
@@ -32,28 +35,43 @@ export class ClientesService {
     private readonly clienteRepository: Repository<Cliente>,
     @InjectRepository(Contacto)
     private readonly contactoRepository: Repository<Contacto>,
+    @InjectRepository(Proceso)
+    private readonly procesoRepository: Repository<Proceso>,
     @InjectRepository(UbicacionGeografica)
     private readonly ubicacionRepository: Repository<UbicacionGeografica>,
     private readonly dataSource: DataSource,
     private readonly auditService: AuditService,
+    private readonly eliminacionDependenciasService: EliminacionDependenciasService,
+    private readonly permisosService: PermisosService,
   ) {}
 
   async findAll(
     query: ClientesQueryDto,
     paisSesionId: number,
+    rol: Rol,
   ): Promise<ClientesPage> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    const incluirEliminados =
+      query.incluirEliminados === true &&
+      this.permisosService.puedeVerEliminados(rol);
 
     const qb = this.clienteRepository
       .createQueryBuilder('c')
-      .where('c.eliminado = false')
-      .andWhere('c.pais_id = :paisSesionId', { paisSesionId });
+      .where('c.pais_id = :paisSesionId', { paisSesionId });
+
+    if (!incluirEliminados) {
+      qb.andWhere('c.eliminado = false');
+    }
 
     if (query.search) {
       qb.andWhere('c.empresa LIKE :search', {
         search: `%${query.search}%`,
       });
+    }
+
+    if (query.segmento) {
+      qb.andWhere('c.segmento = :segmento', { segmento: query.segmento });
     }
 
     qb.orderBy('c.empresa', 'ASC')
@@ -117,7 +135,7 @@ export class ClientesService {
 
       const contactoGenerico = manager.create(Contacto, {
         clienteId: clienteGuardado.id,
-        nombre: CONTACTO_GENERICO_NOMBRE,
+        nombre: `Contacto General - ${clienteGuardado.empresa}`,
         ubicacionId: clienteGuardado.ubicacionId,
         esGenerico: true,
         eliminado: false,
@@ -187,8 +205,27 @@ export class ClientesService {
     id: number,
     actorId: number,
     paisSesionId: number,
+    rol: Rol,
+    confirmarDependientes = false,
   ): Promise<void> {
+    if (rol !== Rol.ADMINISTRADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Solo el Administrador puede eliminar clientes directamente',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const cliente = await this.getClienteActivoOrFail(id, paisSesionId);
+    const dependencias =
+      await this.eliminacionDependenciasService.verificarCliente(cliente.id);
+
+    this.eliminacionDependenciasService.assertPuedeEliminar(
+      dependencias,
+      confirmarDependientes,
+      this.permisosService.puedeEliminarDirecto(rol),
+    );
+
     const now = new Date();
 
     await this.dataSource.transaction(async (manager) => {
@@ -214,6 +251,80 @@ export class ClientesService {
       entidadTipo: AuditEntidadTipo.CLIENTE,
       entidadId: cliente.id,
     });
+  }
+
+  async getDependencias(id: number, paisSesionId: number) {
+    await this.getClienteActivoOrFail(id, paisSesionId);
+    return this.eliminacionDependenciasService.verificarCliente(id);
+  }
+
+  async reasignarProcesos(
+    clienteOrigenId: number,
+    nuevoClienteId: number,
+    actorId: number,
+    paisSesionId: number,
+    rol: Rol,
+  ): Promise<{ reasignados: number }> {
+    if (rol !== Rol.ADMINISTRADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Solo el Administrador puede reasignar procesos',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (clienteOrigenId === nuevoClienteId) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'El cliente destino debe ser diferente al origen',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.getClienteActivoOrFail(clienteOrigenId, paisSesionId);
+    await this.getClienteActivoOrFail(nuevoClienteId, paisSesionId);
+
+    const result = await this.procesoRepository.update(
+      {
+        empresaClienteId: clienteOrigenId,
+        paisId: paisSesionId,
+        eliminado: false,
+      },
+      { empresaClienteId: nuevoClienteId },
+    );
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.CLIENTE_EDITAR,
+      entidadTipo: AuditEntidadTipo.CLIENTE,
+      entidadId: clienteOrigenId,
+      valorNuevo: JSON.stringify({
+        accion: 'reasignar_procesos',
+        nuevoClienteId,
+        reasignados: result.affected ?? 0,
+      }),
+    });
+
+    return { reasignados: result.affected ?? 0 };
+  }
+
+  async findClienteIdByEmpresa(
+    empresa: string,
+    paisSesionId: number,
+  ): Promise<number> {
+    const cliente = await this.clienteRepository.findOne({
+      where: { empresa, paisId: paisSesionId, eliminado: false },
+    });
+
+    if (!cliente) {
+      throw new BusinessException(
+        ErrorCode.CLIENTE_NO_ENCONTRADO,
+        `Cliente no encontrado: ${empresa}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return cliente.id;
   }
 
   async validateUbicacionInPais(

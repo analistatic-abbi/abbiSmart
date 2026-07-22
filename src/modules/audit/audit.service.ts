@@ -69,6 +69,10 @@ export class AuditService {
       where.accion = query.accion;
     }
 
+    if (query.entidadId) {
+      where.entidadId = query.entidadId;
+    }
+
     if (query.fechaDesde && query.fechaHasta) {
       where.fechaHora = Between(
         new Date(query.fechaDesde),
@@ -93,5 +97,25 @@ export class AuditService {
       page,
       limit,
     };
+  }
+
+  async findByEntidad(
+    entidadTipo: string,
+    entidadId: number,
+    options?: { accion?: string; limit?: number },
+  ): Promise<AuditLogResponseDto[]> {
+    const where: FindOptionsWhere<LogAuditoria> = { entidadTipo, entidadId };
+
+    if (options?.accion) {
+      where.accion = options.accion;
+    }
+
+    const rows = await this.logRepository.find({
+      where,
+      order: { fechaHora: 'DESC', id: 'DESC' },
+      take: options?.limit ?? 50,
+    });
+
+    return rows.map((row) => AuditLogResponseDto.fromEntity(row));
   }
 }

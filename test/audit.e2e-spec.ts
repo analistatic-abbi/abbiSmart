@@ -6,7 +6,7 @@ import { AppModule } from '../src/app.module';
 import { AuditAccion } from '../src/common/enums/audit-accion.enum';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Auditoría (e2e)', () => {
   jest.setTimeout(30000);
@@ -20,7 +20,7 @@ describe('Auditoría (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send({ nombre: 'Usuario Audit', correo, rol })
+      .send(buildE2eUserPayload('Usuario Audit', correo, rol))
       .expect(201);
 
     return res.body.usuario.id as number;

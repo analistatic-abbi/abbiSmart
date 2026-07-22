@@ -6,7 +6,8 @@ export class BusinessException extends HttpException {
     public readonly errorCode: ErrorCode | string,
     message: string,
     status: HttpStatus = HttpStatus.BAD_REQUEST,
+    public readonly details?: Record<string, unknown>,
   ) {
-    super({ errorCode, message, statusCode: status }, status);
+    super({ errorCode, message, statusCode: status, ...details }, status);
   }
 }

@@ -70,7 +70,7 @@ export class LoginService {
 
       throw new BusinessException(
         ErrorCode.AUTH_CREDENCIALES_INVALIDAS,
-        'Credenciales inválidas',
+        'Credenciales incorrectas',
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -86,7 +86,7 @@ export class LoginService {
     if (usuario.estado !== EstadoUsuario.ACTIVO || !usuario.passwordHash) {
       throw new BusinessException(
         ErrorCode.AUTH_CREDENCIALES_INVALIDAS,
-        'Credenciales inválidas',
+        'Credenciales incorrectas',
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -114,7 +114,7 @@ export class LoginService {
 
       throw new BusinessException(
         ErrorCode.AUTH_CREDENCIALES_INVALIDAS,
-        'Credenciales inválidas',
+        'Credenciales incorrectas',
         HttpStatus.UNAUTHORIZED,
       );
     }

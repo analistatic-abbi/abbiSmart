@@ -12,7 +12,10 @@ import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { SolicitudEliminacion } from '../../database/entities/solicitud-eliminacion.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { ContactosService } from '../contactos/contactos.service';
 import { ProcesosService } from '../procesos/procesos.service';
+import { ProyeccionesService } from '../proyecciones/proyecciones.service';
+import { RelacionamientosService } from '../relacionamientos/relacionamientos.service';
 import {
   CreateSolicitudEliminacionDto,
   SolicitudEliminacionResponseDto,
@@ -25,6 +28,9 @@ export class SolicitudesEliminacionService {
     private readonly solicitudRepository: Repository<SolicitudEliminacion>,
     private readonly procesosService: ProcesosService,
     private readonly clientesService: ClientesService,
+    private readonly contactosService: ContactosService,
+    private readonly relacionamientosService: RelacionamientosService,
+    private readonly proyeccionesService: ProyeccionesService,
     private readonly auditService: AuditService,
   ) {}
 
@@ -175,12 +181,55 @@ export class SolicitudesEliminacionService {
     rol: Rol,
   ): Promise<void> {
     if (entidadTipo === 'proceso') {
-      await this.procesosService.softDelete(entidadId, actorId, paisSesionId, rol);
+      await this.procesosService.softDelete(
+        entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+        true,
+      );
       return;
     }
 
     if (entidadTipo === 'cliente') {
-      await this.clientesService.softDelete(entidadId, actorId, paisSesionId);
+      await this.clientesService.softDelete(
+        entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+        true,
+      );
+      return;
+    }
+
+    if (entidadTipo === 'contacto') {
+      await this.contactosService.softDelete(
+        entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+      );
+      return;
+    }
+
+    if (entidadTipo === 'relacionamiento') {
+      await this.relacionamientosService.softDelete(
+        entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+      );
+      return;
+    }
+
+    if (entidadTipo === 'proyeccion') {
+      await this.proyeccionesService.softDelete(
+        entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+        true,
+      );
       return;
     }
 
@@ -203,6 +252,21 @@ export class SolicitudesEliminacionService {
 
     if (entidadTipo === 'cliente') {
       await this.clientesService.getClienteActivoOrFail(entidadId, paisSesionId);
+      return;
+    }
+
+    if (entidadTipo === 'contacto') {
+      await this.contactosService.findById(entidadId, paisSesionId);
+      return;
+    }
+
+    if (entidadTipo === 'relacionamiento') {
+      await this.relacionamientosService.findById(entidadId, paisSesionId);
+      return;
+    }
+
+    if (entidadTipo === 'proyeccion') {
+      await this.proyeccionesService.findById(entidadId, paisSesionId);
       return;
     }
 

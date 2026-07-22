@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
   TAREAS_SEGUIMIENTO_ORDEN,
-  tareaAplicaParaInstrumento,
+  tareaAplicaParaProceso,
 } from '../../common/constants/proceso-tareas.constants';
 import {
   AuditAccion,
@@ -14,11 +14,16 @@ import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
 import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { Rol } from '../../common/enums/rol.enum';
+import { TareaCodigo } from '../../common/enums/tarea-codigo.enum';
 import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { PermisosService } from '../../common/services/permisos.service';
+import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { resolveMonedaPorPaisNombre } from '../../common/utils/moneda.util';
+import {
+  validateFechasEnRango,
+} from '../../common/utils/proceso-fechas.util';
 import { Pais } from '../../database/entities/pais.entity';
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ProcesoTarea } from '../../database/entities/proceso-tarea.entity';
@@ -49,9 +54,9 @@ export interface ProcesosPage {
 
 const TRANSICIONES_ESTADO: Record<EstadoProceso, EstadoProceso[]> = {
   [EstadoProceso.POR_VALIDAR]: [EstadoProceso.EN_PROCESO, EstadoProceso.DESCARTADO],
-  [EstadoProceso.EN_PROCESO]: [EstadoProceso.EN_VALIDACION, EstadoProceso.DESCARTADO],
+  [EstadoProceso.EN_PROCESO]: [EstadoProceso.DESCARTADO],
   [EstadoProceso.DESCARTADO]: [],
-  [EstadoProceso.EN_VALIDACION]: [EstadoProceso.PRESENTADO, EstadoProceso.EN_PROCESO],
+  [EstadoProceso.EN_VALIDACION]: [],
   [EstadoProceso.PRESENTADO]: [
     EstadoProceso.SUBSANACION,
     EstadoProceso.ADJUDICADO,
@@ -80,22 +85,46 @@ export class ProcesosService {
     private readonly dataSource: DataSource,
     @Inject(forwardRef(() => ProyeccionesService))
     private readonly proyeccionesService: ProyeccionesService,
+    private readonly eliminacionDependenciasService: EliminacionDependenciasService,
   ) {}
 
   async findAll(
     query: ProcesosQueryDto,
     paisSesionId: number,
+    rol: Rol,
   ): Promise<ProcesosPage> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    const incluirEliminados =
+      query.incluirEliminados === true &&
+      this.permisosService.puedeVerEliminados(rol);
 
     const qb = this.procesoRepository
       .createQueryBuilder('p')
-      .where('p.eliminado = false')
-      .andWhere('p.pais_id = :paisSesionId', { paisSesionId });
+      .where('p.pais_id = :paisSesionId', { paisSesionId });
+
+    if (!incluirEliminados) {
+      qb.andWhere('p.eliminado = false');
+    }
 
     if (query.estado) {
       qb.andWhere('p.estado = :estado', { estado: query.estado });
+    }
+
+    if (query.segmento) {
+      qb.andWhere('p.segmento = :segmento', { segmento: query.segmento });
+    }
+
+    if (query.tipoProceso) {
+      qb.andWhere('p.tipo_proceso = :tipoProceso', {
+        tipoProceso: query.tipoProceso,
+      });
+    }
+
+    if (query.tipoInstrumento) {
+      qb.andWhere('p.tipo_instrumento = :tipoInstrumento', {
+        tipoInstrumento: query.tipoInstrumento,
+      });
     }
 
     if (query.search) {
@@ -110,9 +139,12 @@ export class ProcesosService {
       .take(limit);
 
     const [procesos, total] = await qb.getManyAndCount();
+    const calculos = await this.loadCalculosProcesos(procesos.map((p) => p.id));
 
     return {
-      data: procesos.map((proceso) => this.toResponse(proceso)),
+      data: procesos.map((proceso) =>
+        this.toResponse(proceso, undefined, calculos.get(proceso.id)),
+      ),
       total,
       page,
       limit,
@@ -124,7 +156,30 @@ export class ProcesosService {
       indicadores: true,
     });
 
-    return this.toResponse(proceso, proceso.indicadores);
+    return this.toResponse(
+      proceso,
+      proceso.indicadores,
+      (await this.loadCalculosProcesos([proceso.id])).get(proceso.id),
+    );
+  }
+
+  async getFechasHistorial(id: number, paisSesionId: number) {
+    await this.getProcesoActivoOrFail(id, paisSesionId);
+
+    const rows = await this.auditService.findByEntidad(
+      AuditEntidadTipo.PROCESO,
+      id,
+      { accion: AuditAccion.PROCESO_FECHA_EDITAR, limit: 100 },
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      campo: row.campo,
+      valorAnterior: row.valorAnterior,
+      valorNuevo: row.valorNuevo,
+      usuarioId: row.usuarioId,
+      fechaHora: row.fechaHora,
+    }));
   }
 
   async create(
@@ -134,8 +189,11 @@ export class ProcesosService {
   ): Promise<ProcesoResponseDto> {
     this.validateEmpresa(dto.empresaClienteId, dto.empresaOtro);
     this.validateExperiencia(dto.experiencia, dto.observacion);
-    this.validateRfiFechas(dto.tipoInstrumento, dto.fechaAdquisicionDerecho);
     this.validateIndicadoresCompletos(dto.indicadores);
+    validateFechasEnRango({
+      fechaApertura: dto.fechaApertura,
+      fechaCierre: dto.fechaCierre,
+    });
 
     const hayVacios = dto.indicadores.some(
       (item) => item.valorRequerido === undefined || item.valorRequerido === null,
@@ -177,6 +235,9 @@ export class ProcesosService {
       paisSesionId,
     );
 
+    const fechaAdquisicion =
+      dto.tipoInstrumento === TipoInstrumento.RFI ? null : null;
+
     const saved = await this.dataSource.transaction(async (manager) => {
       const proceso = manager.create(Proceso, {
         idDigitado: dto.idDigitado,
@@ -198,16 +259,13 @@ export class ProcesosService {
         usuarioCreadorId: actorId,
         fechaApertura: dto.fechaApertura,
         fechaCierre: dto.fechaCierre,
-        fechaManifestacionInteres: dto.fechaManifestacionInteres ?? null,
-        fechaAdquisicionDerecho:
-          dto.tipoInstrumento === TipoInstrumento.RFI
-            ? null
-            : dto.fechaAdquisicionDerecho ?? null,
-        fechaReunionAclaratoria: dto.fechaReunionAclaratoria ?? null,
-        fechaVisitaTecnica: dto.fechaVisitaTecnica ?? null,
-        fechaSolicitudesAclaracion: dto.fechaSolicitudesAclaracion ?? null,
-        fechaRespuestaAclaracion: dto.fechaRespuestaAclaracion ?? null,
-        fechaLimitacionMypymes: dto.fechaLimitacionMypymes ?? null,
+        fechaManifestacionInteres: null,
+        fechaAdquisicionDerecho: null,
+        fechaReunionAclaratoria: null,
+        fechaVisitaTecnica: null,
+        fechaSolicitudesAclaracion: null,
+        fechaRespuestaAclaracion: null,
+        fechaLimitacionMypymes: null,
         eliminado: false,
       });
 
@@ -229,9 +287,10 @@ export class ProcesosService {
           manager.create(ProcesoTarea, {
             procesoId: procesoGuardado.id,
             tareaCodigo,
-            aplica: tareaAplicaParaInstrumento(
+            aplica: tareaAplicaParaProceso(
               tareaCodigo,
               dto.tipoInstrumento,
+              fechaAdquisicion,
             ),
             completada: false,
           }),
@@ -252,6 +311,15 @@ export class ProcesosService {
       entidadId: reloaded.id,
       valorNuevo: JSON.stringify(this.toResponse(reloaded, reloaded.indicadores)),
     });
+
+    if (dto.proyeccionId) {
+      await this.proyeccionesService.vincularProcesoResultante(
+        dto.proyeccionId,
+        { procesoResultanteId: reloaded.id },
+        actorId,
+        paisSesionId,
+      );
+    }
 
     return this.toResponse(reloaded, reloaded.indicadores);
   }
@@ -301,7 +369,7 @@ export class ProcesosService {
     paisSesionId: number,
     rol: Rol,
   ): Promise<ProcesoResponseDto> {
-    if (rol !== Rol.ADMINISTRADOR && rol !== Rol.SUPERVISOR_SISTEMA) {
+    if (!this.permisosService.puedeEditarFechas(rol)) {
       throw new BusinessException(
         ErrorCode.PERMISO_DENEGADO,
         'Solo Administrador o Supervisor pueden editar fechas del proceso',
@@ -316,41 +384,133 @@ export class ProcesosService {
 
     const valorAnterior = JSON.stringify(this.toResponse(proceso, proceso.indicadores));
 
-    if (dto.fechaApertura !== undefined) proceso.fechaApertura = dto.fechaApertura;
-    if (dto.fechaCierre !== undefined) proceso.fechaCierre = dto.fechaCierre;
+    const cambiosFechas: Array<{
+      campo: string;
+      anterior: string | null;
+      nuevo: string | null;
+    }> = [];
+
+    const registrarCambio = (
+      campo: string,
+      anterior: string | null,
+      nuevo: string | null,
+    ) => {
+      if (anterior !== nuevo) {
+        cambiosFechas.push({ campo, anterior, nuevo });
+      }
+    };
+
+    if (dto.fechaApertura !== undefined) {
+      registrarCambio('fechaApertura', proceso.fechaApertura, dto.fechaApertura);
+      proceso.fechaApertura = dto.fechaApertura;
+    }
+    if (dto.fechaCierre !== undefined) {
+      registrarCambio('fechaCierre', proceso.fechaCierre, dto.fechaCierre);
+      proceso.fechaCierre = dto.fechaCierre;
+    }
     if (dto.fechaManifestacionInteres !== undefined) {
+      registrarCambio(
+        'fechaManifestacionInteres',
+        proceso.fechaManifestacionInteres,
+        dto.fechaManifestacionInteres,
+      );
       proceso.fechaManifestacionInteres = dto.fechaManifestacionInteres;
     }
     if (dto.fechaAdquisicionDerecho !== undefined) {
       this.validateRfiFechas(proceso.tipoInstrumento, dto.fechaAdquisicionDerecho);
+      registrarCambio(
+        'fechaAdquisicionDerecho',
+        proceso.fechaAdquisicionDerecho,
+        dto.fechaAdquisicionDerecho,
+      );
       proceso.fechaAdquisicionDerecho = dto.fechaAdquisicionDerecho;
     }
     if (dto.fechaReunionAclaratoria !== undefined) {
+      registrarCambio(
+        'fechaReunionAclaratoria',
+        proceso.fechaReunionAclaratoria,
+        dto.fechaReunionAclaratoria,
+      );
       proceso.fechaReunionAclaratoria = dto.fechaReunionAclaratoria;
     }
     if (dto.fechaVisitaTecnica !== undefined) {
+      registrarCambio(
+        'fechaVisitaTecnica',
+        proceso.fechaVisitaTecnica,
+        dto.fechaVisitaTecnica,
+      );
       proceso.fechaVisitaTecnica = dto.fechaVisitaTecnica;
     }
     if (dto.fechaSolicitudesAclaracion !== undefined) {
+      registrarCambio(
+        'fechaSolicitudesAclaracion',
+        proceso.fechaSolicitudesAclaracion,
+        dto.fechaSolicitudesAclaracion,
+      );
       proceso.fechaSolicitudesAclaracion = dto.fechaSolicitudesAclaracion;
     }
     if (dto.fechaRespuestaAclaracion !== undefined) {
+      registrarCambio(
+        'fechaRespuestaAclaracion',
+        proceso.fechaRespuestaAclaracion,
+        dto.fechaRespuestaAclaracion,
+      );
       proceso.fechaRespuestaAclaracion = dto.fechaRespuestaAclaracion;
     }
     if (dto.fechaLimitacionMypymes !== undefined) {
+      registrarCambio(
+        'fechaLimitacionMypymes',
+        proceso.fechaLimitacionMypymes,
+        dto.fechaLimitacionMypymes,
+      );
       proceso.fechaLimitacionMypymes = dto.fechaLimitacionMypymes;
     }
 
-    const saved = await this.procesoRepository.save(proceso);
+    if (!proceso.fechaApertura || !proceso.fechaCierre) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_FECHAS_PENDIENTES,
+        'Debe registrar fecha de apertura y fecha de cierre',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    await this.auditService.log({
-      usuarioId: actorId,
-      accion: AuditAccion.PROCESO_EDITAR,
-      entidadTipo: AuditEntidadTipo.PROCESO,
-      entidadId: saved.id,
-      valorAnterior,
-      valorNuevo: JSON.stringify(this.toResponse(saved, proceso.indicadores)),
+    validateFechasEnRango({
+      fechaApertura: proceso.fechaApertura,
+      fechaCierre: proceso.fechaCierre,
+      fechaManifestacionInteres: proceso.fechaManifestacionInteres,
+      fechaAdquisicionDerecho: proceso.fechaAdquisicionDerecho,
+      fechaReunionAclaratoria: proceso.fechaReunionAclaratoria,
+      fechaVisitaTecnica: proceso.fechaVisitaTecnica,
+      fechaSolicitudesAclaracion: proceso.fechaSolicitudesAclaracion,
+      fechaRespuestaAclaracion: proceso.fechaRespuestaAclaracion,
+      fechaLimitacionMypymes: proceso.fechaLimitacionMypymes,
     });
+
+    const saved = await this.procesoRepository.save(proceso);
+    await this.sincronizarTareasAplica(saved);
+
+    for (const cambio of cambiosFechas) {
+      await this.auditService.log({
+        usuarioId: actorId,
+        accion: AuditAccion.PROCESO_FECHA_EDITAR,
+        entidadTipo: AuditEntidadTipo.PROCESO,
+        entidadId: saved.id,
+        campo: cambio.campo,
+        valorAnterior: cambio.anterior,
+        valorNuevo: cambio.nuevo,
+      });
+    }
+
+    if (cambiosFechas.length > 0) {
+      await this.auditService.log({
+        usuarioId: actorId,
+        accion: AuditAccion.PROCESO_EDITAR,
+        entidadTipo: AuditEntidadTipo.PROCESO,
+        entidadId: saved.id,
+        valorAnterior,
+        valorNuevo: JSON.stringify(this.toResponse(saved, proceso.indicadores)),
+      });
+    }
 
     return this.toResponse(saved, proceso.indicadores);
   }
@@ -363,8 +523,10 @@ export class ProcesosService {
     rol: Rol,
   ): Promise<ProcesoResponseDto> {
     this.assertPuedeGestionar(rol);
-    const proceso = await this.getProcesoActivoOrFail(id, paisSesionId);
-    const valorAnterior = JSON.stringify(this.toResponse(proceso));
+    const proceso = await this.getProcesoActivoOrFail(id, paisSesionId, {
+      indicadores: true,
+    });
+    const valorAnterior = JSON.stringify(this.toResponse(proceso, proceso.indicadores));
 
     const permitidos = TRANSICIONES_ESTADO[proceso.estado] ?? [];
 
@@ -372,6 +534,40 @@ export class ProcesosService {
       throw new BusinessException(
         ErrorCode.PROCESO_ESTADO_INVALIDO,
         `No se puede cambiar de ${proceso.estado} a ${dto.estado}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (
+      proceso.estado === EstadoProceso.POR_VALIDAR &&
+      dto.estado === EstadoProceso.EN_PROCESO
+    ) {
+      this.assertIndicadoresValidados(proceso.indicadores ?? []);
+
+      if (!proceso.fechaApertura || !proceso.fechaCierre) {
+        throw new BusinessException(
+          ErrorCode.PROCESO_FECHAS_PENDIENTES,
+          'Debe configurar las fechas del proceso antes de pasar a En Proceso',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (
+      proceso.estado === EstadoProceso.EN_PROCESO &&
+      dto.estado === EstadoProceso.EN_VALIDACION
+    ) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_ESTADO_INVALIDO,
+        'Use la asignación de validadores para pasar a En Validación',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (proceso.estado === EstadoProceso.EN_VALIDACION) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_ESTADO_INVALIDO,
+        'El estado En Validación solo cambia mediante veredictos de validación',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -403,6 +599,7 @@ export class ProcesosService {
     actorId: number,
     paisSesionId: number,
     rol: Rol,
+    confirmarDependientes = false,
   ): Promise<void> {
     if (rol !== Rol.ADMINISTRADOR) {
       throw new BusinessException(
@@ -413,6 +610,15 @@ export class ProcesosService {
     }
 
     const proceso = await this.getProcesoActivoOrFail(id, paisSesionId);
+    const dependencias =
+      await this.eliminacionDependenciasService.verificarProceso(proceso.id);
+
+    this.eliminacionDependenciasService.assertPuedeEliminar(
+      dependencias,
+      confirmarDependientes,
+      this.permisosService.puedeEliminarDirecto(rol),
+    );
+
     proceso.eliminado = true;
     proceso.fechaEliminacion = new Date();
     proceso.eliminadoPorId = actorId;
@@ -424,6 +630,11 @@ export class ProcesosService {
       entidadTipo: AuditEntidadTipo.PROCESO,
       entidadId: proceso.id,
     });
+  }
+
+  async getDependencias(id: number, paisSesionId: number) {
+    await this.getProcesoActivoOrFail(id, paisSesionId);
+    return this.eliminacionDependenciasService.verificarProceso(id);
   }
 
   async findTareas(
@@ -479,6 +690,14 @@ export class ProcesosService {
       );
     }
 
+    if (!dto.confirmar) {
+      throw new BusinessException(
+        ErrorCode.TAREA_CONFIRMACION_REQUERIDA,
+        'Debe confirmar la finalización de la tarea',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     tarea.evidencia = dto.evidencia.trim();
     tarea.completada = true;
     tarea.fechaCompletada = new Date();
@@ -527,6 +746,25 @@ export class ProcesosService {
     }
 
     return proceso;
+  }
+
+  private async sincronizarTareasAplica(proceso: Proceso): Promise<void> {
+    const tareas = await this.tareaRepository.find({
+      where: { procesoId: proceso.id },
+    });
+
+    for (const tarea of tareas) {
+      const aplica = tareaAplicaParaProceso(
+        tarea.tareaCodigo as TareaCodigo,
+        proceso.tipoInstrumento,
+        proceso.fechaAdquisicionDerecho,
+      );
+
+      if (tarea.aplica !== aplica) {
+        tarea.aplica = aplica;
+        await this.tareaRepository.save(tarea);
+      }
+    }
   }
 
   private assertPuedeGestionar(rol: Rol): void {
@@ -596,6 +834,35 @@ export class ProcesosService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private async loadCalculosProcesos(
+    procesoIds: number[],
+  ): Promise<Map<number, Record<string, unknown>>> {
+    if (procesoIds.length === 0) {
+      return new Map();
+    }
+
+    const placeholders = procesoIds.map(() => '?').join(',');
+    const rows = await this.procesoRepository.query(
+      `SELECT
+         vc.id,
+         vc.empresa_mostrar AS empresaMostrar,
+         vc.dias_restantes_cierre AS diasRestantesCierre,
+         COALESCE(va.avance_porcentaje, 0) AS avancePorcentaje,
+         vc.dias_espera AS diasEspera,
+         vc.fecha_esperada AS fechaEsperada,
+         vc.meses_ejecucion_anio_reporte AS mesesEjecucionAnioReporte,
+         vc.facturacion_estimada_anio_reporte AS facturacionEstimadaAnioReporte
+       FROM vista_procesos_calculado vc
+       LEFT JOIN vista_procesos_avance va ON va.proceso_id = vc.id
+       WHERE vc.id IN (${placeholders})`,
+      procesoIds,
+    );
+
+    return new Map(
+      rows.map((row: Record<string, unknown>) => [Number(row.id), row]),
+    );
   }
 
   private assertIndicadoresValidados(indicadores: ProcesoIndicador[]): void {
@@ -689,6 +956,7 @@ export class ProcesosService {
   toResponse(
     proceso: Proceso,
     indicadores?: ProcesoIndicador[],
+    calculos?: Record<string, unknown>,
   ): ProcesoResponseDto {
     return {
       id: proceso.id,
@@ -722,6 +990,27 @@ export class ProcesosService {
       fechaCierre: proceso.fechaCierre,
       fechaInicioEjecucion: proceso.fechaInicioEjecucion,
       fechaFinalizacion: proceso.fechaFinalizacion,
+      empresaMostrar: (calculos?.empresaMostrar as string | undefined) ?? null,
+      diasRestantesCierre:
+        calculos?.diasRestantesCierre !== undefined
+          ? Number(calculos.diasRestantesCierre)
+          : null,
+      avancePorcentaje:
+        calculos?.avancePorcentaje !== undefined
+          ? Number(calculos.avancePorcentaje)
+          : null,
+      diasEspera:
+        calculos?.diasEspera !== undefined && calculos.diasEspera !== null
+          ? Number(calculos.diasEspera)
+          : null,
+      fechaEsperada: (calculos?.fechaEsperada as string | undefined) ?? null,
+      mesesEjecucionAnioReporte:
+        calculos?.mesesEjecucionAnioReporte !== undefined &&
+        calculos.mesesEjecucionAnioReporte !== null
+          ? Number(calculos.mesesEjecucionAnioReporte)
+          : null,
+      facturacionEstimadaAnioReporte:
+        (calculos?.facturacionEstimadaAnioReporte as string | undefined) ?? null,
       indicadores: indicadores?.map((item) => this.toIndicadorResponse(item)),
     };
   }

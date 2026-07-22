@@ -3,7 +3,6 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
@@ -22,7 +21,6 @@ export class CreateUserDto {
   @IsEnum(Rol)
   rol: Rol;
 
-  @IsOptional()
   @IsInt()
-  paisId?: number;
+  paisId: number;
 }

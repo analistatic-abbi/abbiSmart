@@ -1,0 +1,459 @@
+{
+  "info": {
+    "_postman_id": "a7b8c9d0-e1f2-3456-7890-abcdef123456",
+    "name": "Smart Licitaciones — Verificación Release",
+    "description": "Colección única para **confirmar todos los cambios del backend** antes de subir a producción.\n\n**Requisitos:** API en marcha, `npm run seed:ubicaciones`, migraciones 001 y 003, entorno **Smart Licitaciones — Local**.\n\n**Ejecutar:** Collection Runner → carpeta **▶ RUN — Verificación completa** → Run.\n\n**Cubre:** PERF-004/007, TRX-006, CLI-004, CON-003, PRY-014, FEC-001/005, carga masiva (3 entidades), operador país fijo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const body = pm.response.json();",
+          "  if (body.devActivationToken) pm.environment.set('activationToken', body.devActivationToken);",
+          "  if (body.preAuthToken) pm.environment.set('preAuthToken', body.preAuthToken);",
+          "  if (body.accessToken) {",
+          "    const reqName = (pm.info.requestName || '').toLowerCase();",
+          "    if (reqName.includes('operador')) pm.environment.set('operadorAccessToken', body.accessToken);",
+          "    else pm.environment.set('accessToken', body.accessToken);",
+          "  }",
+          "  if (body.usuario?.id) pm.environment.set('targetUserId', String(body.usuario.id));",
+          "  if (body.cliente?.id) pm.environment.set('clienteId', String(body.cliente.id));",
+          "  if (body.contacto?.id) pm.environment.set('contactoId', String(body.contacto.id));",
+          "  if (body.proceso?.id) pm.environment.set('procesoId', String(body.proceso.id));",
+          "  if (body.parametro?.id) pm.environment.set('parametroId', String(body.parametro.id));",
+          "  if (body.proyeccion?.id) pm.environment.set('proyeccionId', String(body.proyeccion.id));",
+          "  if (body.data?.[0]?.id && pm.request.url.path.join('/').includes('ubicaciones')) {",
+          "    pm.environment.set('ubicacionId', String(body.data[0].id));",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "▶ RUN — Verificación completa",
+      "description": "Ejecutar en orden con Collection Runner. Todos los tests deben pasar.",
+      "item": [
+        {
+          "name": "01. GET Health",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.environment.set('adminCorreo', `admin-release-${ts}@local.test`);",
+                  "pm.environment.set('operadorCorreo', `operador-release-${ts}@local.test`);",
+                  "pm.environment.set('empresaCarga', `Empresa Release ${ts}`);",
+                  "pm.environment.set('anioParametro', String(2000 + (ts % 50)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        },
+        {
+          "name": "02. POST Crear Admin (paisId obligatorio)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin Release\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\",\n  \"paisId\": {{paisId}}\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));", "pm.test('paisId', () => pm.expect(pm.response.json().usuario.paisId).to.eql(Number(pm.environment.get('paisId'))));"] } }]
+        },
+        {
+          "name": "03. POST Activar Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/activate"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "04. POST Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('requiere país', () => pm.expect(pm.response.json().requiresCountrySelection).to.eql(true));"] } }]
+        },
+        {
+          "name": "05. POST Select Country",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Pre-Auth-Token", "value": "{{preAuthToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"paisId\": {{paisId}}\n}" },
+            "url": "{{baseUrl}}/auth/select-country"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('accessToken', () => pm.expect(pm.response.json().accessToken).to.be.a('string'));"] } }]
+        },
+        {
+          "name": "06. GET Catálogo ubicaciones (REG-008)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?departamento=Antioquia&limit=1&paisId={{paisId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('seed OK', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "07. PATCH Habilitar carga masiva",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"valor\": \"true\"\n}" },
+            "url": "{{baseUrl}}/configuracion/carga_masiva_habilitada"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "08. POST Carga masiva clientes (CLI-004)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empresa = pm.environment.get('empresaCarga');",
+                  "pm.environment.set('csvClientes', `empresa,pais,region,segmento\\n${empresa},Colombia,Antioquia,Minería`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('1 fila OK', () => pm.expect(pm.response.json().filasExitosas).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "content", "type": "text", "value": "{{csvClientes}}" }]
+            },
+            "url": "{{baseUrl}}/carga-masiva/clientes"
+          }
+        },
+        {
+          "name": "09. POST Carga masiva contactos (CON-003)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empresa = pm.environment.get('empresaCarga');",
+                  "pm.environment.set('csvContactos', `empresa,nombre,region,cargo,referido_por_nombre\\n${empresa},Referente Release,Antioquia,Gerente,\\n${empresa},Contacto Release,Antioquia,Analista,Referente Release`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('2 filas OK', () => pm.expect(pm.response.json().filasExitosas).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "content", "type": "text", "value": "{{csvContactos}}" }]
+            },
+            "url": "{{baseUrl}}/carga-masiva/contactos"
+          }
+        },
+        {
+          "name": "10. GET Contactos global + search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/contactos?search=Contacto Release&limit=10"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('resultados', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "11. GET Clientes segmento (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes?segmento=Minería&search={{empresaCarga}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('cliente cargado', () => pm.expect(pm.response.json().data.length).to.eql(1));", "pm.environment.set('clienteId', String(pm.response.json().data[0].id));"] } }]
+        },
+        {
+          "name": "12. GET Relacionamientos filtros (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/relacionamientos?canal=Correo&limit=5"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "13. POST Parámetro KTNO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"indicadorCodigo\": \"KTNO\",\n  \"anio\": {{anioParametro}},\n  \"valor\": 1.5,\n  \"reglaCumplimiento\": \"Mayor o igual al requerido\"\n}"
+            },
+            "url": "{{baseUrl}}/parametros"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "14. GET Parámetros search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/parametros?search=KTNO"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('KTNO', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "15. POST Proceso con fechas obligatorias (FEC-001)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDigitado\": \"REL-{{anioParametro}}\",\n  \"empresaClienteId\": {{clienteId}},\n  \"ubicacionId\": {{ubicacionId}},\n  \"cuantia\": 1500000,\n  \"segmento\": \"Gas Natural\",\n  \"tipoProceso\": \"Periódico\",\n  \"tipoInstrumento\": \"Licitación\",\n  \"plazoEjecucionMeses\": 12,\n  \"experiencia\": false,\n  \"fechaApertura\": \"2026-01-01\",\n  \"fechaCierre\": \"2026-06-30\",\n  \"confirmarIndicadoresVacios\": true,\n  \"indicadores\": [\n    {\"indicadorCodigo\": \"KTNO\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"PN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROE\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROA\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"MDN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"IL\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"E\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"RCI\", \"valorRequerido\": null}\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/procesos"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));", "pm.test('fechas', () => {", "  const p = pm.response.json().proceso;", "  pm.expect(p.fechaApertura).to.eql('2026-01-01');", "  pm.expect(p.fechaCierre).to.eql('2026-06-30');", "});"] } }]
+        },
+        {
+          "name": "16. POST Proceso sin fechas → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDigitado\": \"SIN-FECHAS\",\n  \"empresaClienteId\": {{clienteId}},\n  \"ubicacionId\": {{ubicacionId}},\n  \"cuantia\": 100,\n  \"segmento\": \"Gas Natural\",\n  \"tipoProceso\": \"Periódico\",\n  \"tipoInstrumento\": \"Licitación\",\n  \"plazoEjecucionMeses\": 6,\n  \"experiencia\": false,\n  \"confirmarIndicadoresVacios\": true,\n  \"indicadores\": [\n    {\"indicadorCodigo\": \"KTNO\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"PN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROE\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROA\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"MDN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"IL\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"E\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"RCI\", \"valorRequerido\": null}\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/procesos"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('400 validación', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "17. PATCH Fecha manifestación (FEC-002)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"fechaManifestacionInteres\": \"2026-02-15\"\n}" },
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/fechas"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "18. GET Historial fechas (FEC-005)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/fechas/historial"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('historial', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "19. PATCH Estado En Proceso",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"estado\": \"En Proceso\"\n}" },
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/estado"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "20. GET Users search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/users?search=admin-release&rol=Administrador"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('admin listado', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "21. POST Crear Operador (país fijo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Operador Release\",\n  \"correo\": \"{{operadorCorreo}}\",\n  \"rol\": \"Operador\",\n  \"paisId\": {{paisId}}\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "22. POST Activar Operador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/activate"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "23. POST Login Operador (sin select-country)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"{{operadorCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('sin selección país', () => pm.expect(pm.response.json().requiresCountrySelection).to.eql(false));", "pm.environment.set('operadorAccessToken', pm.response.json().accessToken);"] } }]
+        },
+        {
+          "name": "24. POST Carga masiva proyecciones (PRY-014)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "type": "text",
+                  "value": "anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion\n2029,2029-05-01,2000000,1500000"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/carga-masiva/proyecciones"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('1 fila', () => pm.expect(pm.response.json().filasExitosas).to.eql(1));"] } }]
+        },
+        {
+          "name": "25. GET Proyecciones + Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/proyecciones?anioProyectado=2029"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('proyección', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        },
+        {
+          "name": "26. GET Dashboard resumen",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/dashboard/resumen"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "27. GET Audit entidadId (PERF-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/audit?entidadId={{procesoId}}&limit=5"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "28. GET Logs carga masiva",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/carga-masiva/logs"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('logs', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "📎 Manual — archivos CSV",
+      "description": "Body → form-data → `file` (tipo File). Archivos en carpeta `postman/` del repo.",
+      "item": [
+        {
+          "name": "POST Carga clientes — archivo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file" }] },
+            "url": "{{baseUrl}}/carga-masiva/clientes"
+          }
+        },
+        {
+          "name": "POST Carga contactos — archivo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file" }] },
+            "url": "{{baseUrl}}/carga-masiva/contactos"
+          }
+        },
+        {
+          "name": "POST Carga proyecciones — archivo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file" }] },
+            "url": "{{baseUrl}}/carga-masiva/proyecciones"
+          }
+        }
+      ]
+    }
+  ]
+}

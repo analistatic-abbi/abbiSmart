@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Proyecciones Fase E (e2e)', () => {
   jest.setTimeout(30000);
@@ -20,7 +20,7 @@ describe('Proyecciones Fase E (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('x-admin-dev-key', adminDevKey)
-      .send({ nombre: 'Usuario Proyecciones E2E', correo, rol })
+      .send(buildE2eUserPayload('Usuario Proyecciones E2E', correo, rol))
       .expect(201);
   }
 
@@ -100,7 +100,6 @@ describe('Proyecciones Fase E (e2e)', () => {
         fechaEstimadaPublicacion: '2027-06-15',
         valorVenta: 2500000,
         valorFacturacion: 2000000,
-        mercado: 'General',
       })
       .expect(201);
 
@@ -136,5 +135,22 @@ describe('Proyecciones Fase E (e2e)', () => {
       .patch('/api/v1/notificaciones/leer-todas')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/proyecciones/asignar-mercado')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        anioProyectado: 2027,
+        asignaciones: [{ proyeccionId, mercado: 'General' }],
+      })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/proyecciones/${proyeccionId}/cerrar`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.proyeccion.estado).toBe('Cerrado');
+      });
   });
 });
