@@ -1,0 +1,321 @@
+{
+  "info": {
+    "_postman_id": "d4e5f6a7-b8c9-0123-def0-234567890123",
+    "name": "Smart Licitaciones — Fase C (CRM)",
+    "description": "Pruebas de **Fase C**: `clientes`, `contactos`, `relacionamientos` y `carga-masiva`.\n\n**Requisitos:** seed de ubicaciones (`npm run seed:ubicaciones`), API en marcha, `carga_masiva_habilitada=true`.\n\n**Flujo rápido:** carpeta **▶ RUN — Flujo automático**.\n\n**Variables auto:** `accessToken`, `ubicacionId`, `clienteId`, `contactoGenericoId`, `contactoId`, `relacionamientoId`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const body = pm.response.json();",
+          "  if (body.devActivationToken) pm.environment.set('activationToken', body.devActivationToken);",
+          "  if (body.preAuthToken) pm.environment.set('preAuthToken', body.preAuthToken);",
+          "  if (body.accessToken) pm.environment.set('accessToken', body.accessToken);",
+          "  if (body.cliente?.id) pm.environment.set('clienteId', String(body.cliente.id));",
+          "  if (body.contacto?.id) pm.environment.set('contactoId', String(body.contacto.id));",
+          "  if (body.relacionamiento?.id) pm.environment.set('relacionamientoId', String(body.relacionamiento.id));",
+          "  if (body.data?.[0]?.id && pm.request.url.path.join('/').includes('ubicaciones')) {",
+          "    pm.environment.set('ubicacionId', String(body.data[0].id));",
+          "  }",
+          "  if (Array.isArray(body.data) && pm.request.url.path.join('/').includes('contactos') && body.data[0]?.esGenerico) {",
+          "    pm.environment.set('contactoGenericoId', String(body.data[0].id));",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "▶ RUN — Flujo automático (ejecutar en orden)",
+      "item": [
+        {
+          "name": "1. Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.environment.set('adminCorreo', `admin-fasec-${ts}@local.test`);",
+                  "pm.environment.set('empresaCrm', `Empresa CRM ${ts}`);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        },
+        {
+          "name": "2. POST Crear Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin CRM\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "3. POST Activar Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/activate"
+          }
+        },
+        {
+          "name": "4. POST Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "5. POST Select Country",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Pre-Auth-Token", "value": "{{preAuthToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"paisId\": {{paisId}}\n}" },
+            "url": "{{baseUrl}}/auth/select-country"
+          }
+        },
+        {
+          "name": "6. GET Ubicación (seed)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?departamento=Antioquia&limit=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('ubicacionId', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7. POST Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresa\": \"{{empresaCrm}}\",\n  \"ubicacionId\": {{ubicacionId}},\n  \"segmento\": \"Minería\"\n}"
+            },
+            "url": "{{baseUrl}}/clientes"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "8. GET Contactos (genérico auto)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/contactos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('contacto genérico', () => {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.length).to.eql(1);",
+                  "  pm.expect(data[0].esGenerico).to.eql(true);",
+                  "  pm.expect(data[0].nombre).to.eql('Contacto genérico');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "9. POST Crear contacto",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"María López\",\n  \"ubicacionId\": {{ubicacionId}},\n  \"correo\": \"maria@crm.test\",\n  \"cargo\": \"Gerente\"\n}"
+            },
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/contactos"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "10. POST Relacionamiento",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contactoId\": {{contactoId}},\n  \"canal\": \"Correo\",\n  \"mensaje\": \"Seguimiento comercial inicial\",\n  \"fechaMensaje\": \"2020-01-15\",\n  \"resultado\": \"Ninguno\"\n}"
+            },
+            "url": "{{baseUrl}}/relacionamientos"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "11. GET Relacionamientos vencidos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/relacionamientos/vencidos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('incluye relacionamiento', () => {",
+                  "  const ids = pm.response.json().data.map((r) => r.id);",
+                  "  pm.expect(ids).to.include(Number(pm.environment.get('relacionamientoId')));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "12. PATCH Registrar respuesta",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuesta\": \"Cliente interesado en reunión\",\n  \"fechaRespuesta\": \"2026-03-20\"\n}"
+            },
+            "url": "{{baseUrl}}/relacionamientos/{{relacionamientoId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "13. DELETE Contacto genérico (403/400)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/contactos/{{contactoGenericoId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 no eliminable', () => pm.response.to.have.status(400));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "14. GET Logs carga masiva",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/carga-masiva/logs"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
+      "name": "01 — Clientes",
+      "item": [
+        {
+          "name": "GET Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes?limit=20"
+          }
+        },
+        {
+          "name": "GET Cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Contactos",
+      "item": [
+        {
+          "name": "GET Contactos del cliente",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/contactos"
+          }
+        },
+        {
+          "name": "GET Contacto por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/contactos/{{contactoId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Relacionamientos",
+      "item": [
+        {
+          "name": "GET Listar relacionamientos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/relacionamientos?limit=20"
+          }
+        },
+        {
+          "name": "GET Vencidos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/relacionamientos/vencidos"
+          }
+        }
+      ]
+    }
+  ]
+}

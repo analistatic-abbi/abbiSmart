@@ -1,0 +1,348 @@
+{
+  "info": {
+    "_postman_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "name": "Smart Licitaciones — Fase B (Catálogos + Config)",
+    "description": "Pruebas de **Fase B**: módulos `catalogos` y `configuracion`.\n\n**Requisito previo (ubicaciones):** ejecutar una vez `npm run seed:ubicaciones` para cargar ~1123 municipios de Colombia y ~1892 distritos de Perú.\n\n**API:** ubicaciones geográficas = **solo lectura** (catálogo precargado en BD).\n\n**Flujo rápido:** carpeta **▶ RUN — Flujo automático** → Collection Runner → Run.\n\n**Variables auto:** `activationToken`, `preAuthToken`, `accessToken`, `operadorAccessToken`, `ubicacionId`, `departamentoCatalogo`, `paisCatalogoId`, `configDiasCrmValor`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const body = pm.response.json();",
+          "  if (body.devActivationToken) pm.environment.set('activationToken', body.devActivationToken);",
+          "  if (body.preAuthToken) pm.environment.set('preAuthToken', body.preAuthToken);",
+          "  if (body.accessToken) {",
+          "    const reqName = (pm.info.requestName || '').toLowerCase();",
+          "    if (reqName.includes('operador')) pm.environment.set('operadorAccessToken', body.accessToken);",
+          "    else pm.environment.set('accessToken', body.accessToken);",
+          "  }",
+          "  if (body.data?.[0]?.id && pm.request.url.path.join('/').includes('ubicaciones') && !pm.request.url.path.join('/').includes('departamentos')) {",
+          "    pm.environment.set('ubicacionId', String(body.data[0].id));",
+          "  }",
+          "  if (body.ubicacion?.id) pm.environment.set('ubicacionId', String(body.ubicacion.id));",
+          "  if (body.pais?.id) pm.environment.set('paisCatalogoId', String(body.pais.id));",
+          "  if (body.data?.[0] && pm.request.url.path.join('/').includes('departamentos')) {",
+          "    pm.environment.set('departamentoCatalogo', body.data[0]);",
+          "  }",
+          "  if (body.configuracion?.clave === 'dias_espera_respuesta_crm') {",
+          "    pm.environment.set('configDiasCrmValor', body.configuracion.valor);",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "▶ RUN — Flujo automático (ejecutar en orden)",
+      "item": [
+        {
+          "name": "1. Setup — correos únicos",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.environment.set('adminCorreo', `admin-faseb-${ts}@local.test`);",
+                  "pm.environment.set('operadorCorreo', `operador-faseb-${ts}@local.test`);",
+                  "pm.environment.set('paisNuevoNombre', `Pais Test ${ts}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            { "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }
+          ],
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        },
+        {
+          "name": "2. POST Crear Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Fase B\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}" },
+            "url": "{{baseUrl}}/users"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "3. POST Activar Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/activate"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "4. POST Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "5. POST Select Country Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Pre-Auth-Token", "value": "{{preAuthToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"paisId\": {{paisId}}\n}" },
+            "url": "{{baseUrl}}/auth/select-country"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "6. GET Listar países",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/paises"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('países', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "7. GET Departamentos (seed BD)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones/departamentos?paisId={{paisId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('seed cargado', () => pm.expect(pm.response.json().data.length).to.be.at.least(1));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "8. GET Ubicaciones por departamento",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?departamento={{departamentoCatalogo}}&limit=10"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('municipios', () => pm.expect(pm.response.json().total).to.be.at.least(1));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "9. GET Ubicación por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones/{{ubicacionId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "10. GET Configuración (lista)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/configuracion"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "11. GET Config dias_espera_respuesta_crm",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/configuracion/dias_espera_respuesta_crm"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "12. PATCH Config dias_espera_respuesta_crm",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"valor\": \"9\"\n}" },
+            "url": "{{baseUrl}}/configuracion/dias_espera_respuesta_crm"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "13. PATCH Restaurar config original",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"valor\": \"{{configDiasCrmValor}}\"\n}" },
+            "url": "{{baseUrl}}/configuracion/dias_espera_respuesta_crm"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "14. POST Crear país (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"{{paisNuevoNombre}}\",\n  \"activo\": true\n}" },
+            "url": "{{baseUrl}}/catalogos/paises"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "15. PATCH Desactivar país creado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"activo\": false\n}" },
+            "url": "{{baseUrl}}/catalogos/paises/{{paisCatalogoId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "16. POST Crear Operador",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Operador Fase B\",\n  \"correo\": \"{{operadorCorreo}}\",\n  \"rol\": \"Operador\",\n  \"paisId\": {{paisId}}\n}" },
+            "url": "{{baseUrl}}/users"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "17. POST Activar Operador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/activate"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "18. POST Login Operador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"{{operadorCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.environment.set('operadorAccessToken', pm.response.json().accessToken);"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "19. GET Ubicaciones como Operador",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{operadorAccessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?limit=5"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "20. GET Config como Operador (403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{operadorAccessToken}}" }],
+            "url": "{{baseUrl}}/configuracion"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('403', () => pm.response.to.have.status(403));"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
+      "name": "01 — Catálogos / Ubicaciones (solo lectura)",
+      "item": [
+        {
+          "name": "GET Departamentos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones/departamentos?paisId={{paisId}}"
+          }
+        },
+        {
+          "name": "GET Ubicaciones por departamento",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?departamento=Antioquia&limit=20"
+          }
+        },
+        {
+          "name": "GET Ubicación por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones/{{ubicacionId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Catálogos / Países",
+      "item": [
+        {
+          "name": "GET Listar países",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/paises"
+          }
+        },
+        {
+          "name": "POST Crear país",
+          "event": [{ "listen": "prerequest", "script": { "exec": ["pm.environment.set('paisNuevoNombre', `Pais Manual ${Date.now()}`);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"{{paisNuevoNombre}}\",\n  \"activo\": true\n}" },
+            "url": "{{baseUrl}}/catalogos/paises"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Configuración",
+      "item": [
+        {
+          "name": "GET Listar configuración",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/configuracion"
+          }
+        },
+        {
+          "name": "PATCH dias_espera_respuesta_crm",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"valor\": \"7\"\n}" },
+            "url": "{{baseUrl}}/configuracion/dias_espera_respuesta_crm"
+          }
+        }
+      ]
+    }
+  ]
+}

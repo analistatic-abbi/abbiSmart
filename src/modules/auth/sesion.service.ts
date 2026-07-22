@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { randomBytes } from 'crypto';
 
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 
 import { BusinessException } from '../../common/exceptions/business.exception';
 
@@ -198,6 +198,14 @@ export class SesionService {
 
   async invalidateAllUserSessions(usuarioId: number): Promise<void> {
     await this.sesionRepository.delete({ usuarioId });
+  }
+
+  async deleteExpiredSessions(): Promise<number> {
+    const result = await this.sesionRepository.delete({
+      fechaExpiracion: LessThan(new Date()),
+    });
+
+    return result.affected ?? 0;
   }
 
   private calculateExpirationDate(): Date {

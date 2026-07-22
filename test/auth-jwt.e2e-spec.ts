@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Auth JWT (e2e)', () => {
   let app: INestApplication<App>;
@@ -54,13 +54,13 @@ describe('Auth JWT (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(MailService)
-      .useValue({
-        sendActivationEmail: jest.fn(
-          async (_to: string, _nombre: string, token: string) => {
+      .useValue(
+        createE2eMailServiceMock({
+          onActivationToken: (token) => {
             capturedActivationToken = token;
           },
-        ),
-      })
+        }),
+      )
       .compile();
 
     app = moduleFixture.createNestApplication({ bufferLogs: true });

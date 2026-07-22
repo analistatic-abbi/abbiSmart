@@ -471,6 +471,9 @@ INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
     ('anio_reporte_vigente', '2026', 'Año calendario usado para calcular Meses de ejecución y Facturación estimada (SGP-005, SGP-006)'),
     ('carga_masiva_habilitada', 'true', 'Activa o desactiva por completo la carga masiva de Proyecciones/Clientes/Contactos (TRX-014)');
 
+-- Ubicaciones geográficas (REG-008): cargar con npm run seed:ubicaciones
+-- Archivo: database/seeds/ubicaciones_geograficas.sql (~1123 municipios CO + ~1892 distritos PE)
+
 -- ============================================================================
 -- 10. VISTAS DE CÁLCULO — dependen de la fecha actual, no se almacenan
 -- ============================================================================
