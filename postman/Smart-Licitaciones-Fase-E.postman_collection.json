@@ -69,7 +69,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Admin Fase E\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}"
+              "raw": "{\n  \"nombre\": \"Admin Fase E\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\",\n  \"paisId\": {{paisId}}\n}"
             },
             "url": "{{baseUrl}}/users"
           }
@@ -296,7 +296,7 @@
                 {
                   "key": "content",
                   "type": "text",
-                  "value": "anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,mercado,proceso_origen_id\n2028,2028-03-15,1000000,900000,Objetivo,",
+                  "value": "anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion\n2028,2028-03-15,1000000,900000",
                   "description": "Alternativa fiable en Postman si el adjunto file llega vacío."
                 }
               ]
@@ -399,6 +399,71 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Gaps — endpoints nuevos",
+      "item": [
+        {
+          "name": "PATCH Cerrar proyección (PRY-004)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/proyecciones/{{proyeccionId}}/cerrar"
+          }
+        },
+        {
+          "name": "PATCH Asignar mercado batch (PRY-011)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anioProyectado\": 2027,\n  \"asignaciones\": [{\"proyeccionId\": {{proyeccionId}}, \"mercado\": \"General\"}]\n}"
+            },
+            "url": "{{baseUrl}}/proyecciones/asignar-mercado"
+          }
+        },
+        {
+          "name": "GET Dashboard proyecciones (PRY-010)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/dashboard/proyecciones?anio=2027"
+          }
+        },
+        {
+          "name": "GET Dependencias proyección (TRX-013)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/proyecciones/{{proyeccionId}}/dependencias"
+          }
         }
       ]
     }

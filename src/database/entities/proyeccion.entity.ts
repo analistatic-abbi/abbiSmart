@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
+import { Pais } from './pais.entity';
 import { Proceso } from './proceso.entity';
 import { Usuario } from './usuario.entity';
 
@@ -23,6 +24,9 @@ export class Proyeccion {
 
   @Column({ name: 'proceso_resultante_id', type: 'bigint', unsigned: true, nullable: true })
   procesoResultanteId: number | null;
+
+  @Column({ name: 'pais_id', type: 'bigint', unsigned: true })
+  paisId: number;
 
   @Column({ name: 'anio_proyectado', type: 'smallint', unsigned: true })
   anioProyectado: number;
@@ -61,6 +65,10 @@ export class Proyeccion {
 
   @Column({ name: 'eliminado_por_id', type: 'bigint', unsigned: true, nullable: true })
   eliminadoPorId: number | null;
+
+  @ManyToOne(() => Pais)
+  @JoinColumn({ name: 'pais_id' })
+  pais: Pais;
 
   @ManyToOne(() => Proceso, { nullable: true })
   @JoinColumn({ name: 'proceso_origen_id' })

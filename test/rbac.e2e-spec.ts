@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('RBAC y país de sesión (e2e)', () => {
   let app: INestApplication<App>;
@@ -19,14 +19,7 @@ describe('RBAC y país de sesión (e2e)', () => {
     paisId?: number,
     adminToken?: string,
   ): Promise<number> {
-    const payload: Record<string, unknown> = {
-      nombre: 'Usuario E2E',
-      correo,
-      rol,
-    };
-    if (paisId !== undefined) {
-      payload.paisId = paisId;
-    }
+    const payload = buildE2eUserPayload('Usuario E2E', correo, rol, paisId ?? 1);
 
     const req = request(app.getHttpServer()).post('/api/v1/users').send(payload);
 
@@ -201,6 +194,23 @@ describe('RBAC y país de sesión (e2e)', () => {
       .expect(403);
   });
 
+  it('Validador no puede escribir en rutas generales pero sí validar', async () => {
+    const validadorCorreo = `val-write-${Date.now()}@test.local`;
+    await createUser(validadorCorreo, Rol.VALIDADOR);
+    await activateLastCreatedUser();
+    const token = await loginAs(validadorCorreo);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/authorization-demo/escritura')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/authorization-demo/validacion')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+
   it('Administrador puede crear usuarios con JWT sin dev key', async () => {
     const adminToken = await setupAdmin();
     const nuevoCorreo = `jwt-create-${Date.now()}@test.local`;
@@ -208,11 +218,7 @@ describe('RBAC y país de sesión (e2e)', () => {
     await request(app.getHttpServer())
       .post('/api/v1/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        nombre: 'Creado por JWT',
-        correo: nuevoCorreo,
-        rol: Rol.VISITANTE,
-      })
+      .send(buildE2eUserPayload('Creado por JWT', nuevoCorreo, Rol.VISITANTE))
       .expect(201)
       .expect((res) => {
         expect(res.body.usuario.correo).toBe(nuevoCorreo);

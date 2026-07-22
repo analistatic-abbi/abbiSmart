@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Users admin (e2e)', () => {
   jest.setTimeout(30000);
@@ -21,14 +21,7 @@ describe('Users admin (e2e)', () => {
     rol: Rol,
     paisId?: number,
   ): Promise<number> {
-    const payload: Record<string, unknown> = {
-      nombre: 'Usuario E2E',
-      correo,
-      rol,
-    };
-    if (paisId !== undefined) {
-      payload.paisId = paisId;
-    }
+    const payload = buildE2eUserPayload('Usuario E2E', correo, rol, paisId ?? 1);
 
     const res = await request(app.getHttpServer())
       .post('/api/v1/users')
@@ -126,8 +119,13 @@ describe('Users admin (e2e)', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.usuario.estado).toBe('Activo');
+        expect(res.body.message).toContain('activación');
       });
+
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/activate')
+      .send({ token: capturedActivationToken, password })
+      .expect(200);
 
     await request(app.getHttpServer())
       .post('/api/v1/auth/login')
@@ -173,6 +171,33 @@ describe('Users admin (e2e)', () => {
       .expect(200)
       .expect((res) => {
         expect(res.body.usuario.rol).toBe(Rol.VALIDADOR);
+      });
+  });
+
+  it('admin can list users paginated (PERF-004)', async () => {
+    const adminToken = await setupAdmin();
+
+    await request(app.getHttpServer())
+      .get('/api/v1/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.total).toBeGreaterThanOrEqual(1);
+        expect(Array.isArray(res.body.data)).toBe(true);
+      });
+  });
+
+  it('admin can resend activation link (PERF-009)', async () => {
+    const adminToken = await setupAdmin();
+    const targetCorreo = `inactive-${Date.now()}@test.local`;
+    const targetId = await createUser(targetCorreo, Rol.VISITANTE);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/users/${targetId}/reenviar-activacion`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.message).toContain('activación');
       });
   });
 

@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Rol } from '../../common/enums/rol.enum';
+import { EntityManager, Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
@@ -10,9 +11,17 @@ import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { ContactosQueryDto } from './dto/contactos-query.dto';
 import { ContactoResponseDto } from './dto/contacto-response.dto';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
+
+export interface ContactosPage {
+  data: ContactoResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 @Injectable()
 export class ContactosService {
@@ -22,6 +31,50 @@ export class ContactosService {
     private readonly clientesService: ClientesService,
     private readonly auditService: AuditService,
   ) {}
+
+  async findAll(
+    query: ContactosQueryDto,
+    paisSesionId: number,
+  ): Promise<ContactosPage> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const qb = this.contactoRepository
+      .createQueryBuilder('co')
+      .innerJoin('co.cliente', 'cl')
+      .where('co.eliminado = false')
+      .andWhere('cl.pais_id = :paisSesionId', { paisSesionId });
+
+    if (query.clienteId) {
+      qb.andWhere('co.cliente_id = :clienteId', { clienteId: query.clienteId });
+    }
+
+    if (query.esGenerico !== undefined) {
+      qb.andWhere('co.es_generico = :esGenerico', {
+        esGenerico: query.esGenerico,
+      });
+    }
+
+    if (query.search) {
+      qb.andWhere(
+        '(co.nombre LIKE :search OR co.cargo LIKE :search OR co.correo LIKE :search OR cl.empresa LIKE :search)',
+        { search: `%${query.search}%` },
+      );
+    }
+
+    qb.orderBy('co.nombre', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [contactos, total] = await qb.getManyAndCount();
+
+    return {
+      data: contactos.map((contacto) => this.toResponse(contacto)),
+      total,
+      page,
+      limit,
+    };
+  }
 
   async findByCliente(
     clienteId: number,
@@ -62,11 +115,43 @@ export class ContactosService {
     return contacto;
   }
 
+  async findContactoIdByNombre(
+    clienteId: number,
+    nombre: string,
+    paisSesionId: number,
+  ): Promise<number> {
+    await this.clientesService.getClienteActivoOrFail(clienteId, paisSesionId);
+
+    const contacto = await this.contactoRepository.findOne({
+      where: { clienteId, nombre, eliminado: false },
+    });
+
+    if (!contacto) {
+      throw new BusinessException(
+        ErrorCode.CONTACTO_NO_ENCONTRADO,
+        `Contacto referido no encontrado: ${nombre}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return contacto.id;
+  }
+
   async create(
     clienteId: number,
     dto: CreateContactoDto,
     actorId: number,
     paisSesionId: number,
+  ): Promise<ContactoResponseDto> {
+    return this.createForCliente(clienteId, dto, actorId, paisSesionId);
+  }
+
+  async createForCliente(
+    clienteId: number,
+    dto: CreateContactoDto,
+    actorId: number,
+    paisSesionId: number,
+    manager?: EntityManager,
   ): Promise<ContactoResponseDto> {
     await this.clientesService.getClienteActivoOrFail(clienteId, paisSesionId);
     await this.clientesService.validateUbicacionInPais(
@@ -82,7 +167,11 @@ export class ContactosService {
       );
     }
 
-    const contacto = this.contactoRepository.create({
+    const repo = manager
+      ? manager.getRepository(Contacto)
+      : this.contactoRepository;
+
+    const contacto = repo.create({
       clienteId,
       nombre: dto.nombre,
       ubicacionId: dto.ubicacionId,
@@ -94,15 +183,17 @@ export class ContactosService {
       eliminado: false,
     });
 
-    const saved = await this.contactoRepository.save(contacto);
+    const saved = await repo.save(contacto);
 
-    await this.auditService.log({
-      usuarioId: actorId,
-      accion: AuditAccion.CONTACTO_CREAR,
-      entidadTipo: AuditEntidadTipo.CONTACTO,
-      entidadId: saved.id,
-      valorNuevo: JSON.stringify(this.toResponse(saved)),
-    });
+    if (!manager) {
+      await this.auditService.log({
+        usuarioId: actorId,
+        accion: AuditAccion.CONTACTO_CREAR,
+        entidadTipo: AuditEntidadTipo.CONTACTO,
+        entidadId: saved.id,
+        valorNuevo: JSON.stringify(this.toResponse(saved)),
+      });
+    }
 
     return this.toResponse(saved);
   }
@@ -114,14 +205,6 @@ export class ContactosService {
     paisSesionId: number,
   ): Promise<ContactoResponseDto> {
     const contacto = await this.getContactoActivoOrFail(id, paisSesionId);
-
-    if (contacto.esGenerico) {
-      throw new BusinessException(
-        ErrorCode.CONTACTO_GENERICO_NO_EDITABLE,
-        'El contacto genérico no puede editarse',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     const valorAnterior = JSON.stringify(this.toResponse(contacto));
 
@@ -158,6 +241,16 @@ export class ContactosService {
     if (dto.telefono !== undefined) contacto.telefono = dto.telefono;
     if (dto.correo !== undefined) contacto.correo = dto.correo;
 
+    if (
+      contacto.esGenerico &&
+      (dto.nombre !== undefined ||
+        dto.cargo !== undefined ||
+        dto.telefono !== undefined ||
+        dto.correo !== undefined)
+    ) {
+      contacto.esGenerico = false;
+    }
+
     const saved = await this.contactoRepository.save(contacto);
 
     await this.auditService.log({
@@ -176,7 +269,16 @@ export class ContactosService {
     id: number,
     actorId: number,
     paisSesionId: number,
+    rol: Rol,
   ): Promise<void> {
+    if (rol !== Rol.ADMINISTRADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Solo el Administrador puede eliminar contactos directamente',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const contacto = await this.getContactoActivoOrFail(id, paisSesionId);
 
     if (contacto.esGenerico) {

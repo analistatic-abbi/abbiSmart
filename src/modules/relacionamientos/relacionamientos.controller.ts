@@ -14,6 +14,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
+import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { CreateRelacionamientoDto } from './dto/create-relacionamiento.dto';
 import { RelacionamientosQueryDto } from './dto/relacionamiento-response.dto';
@@ -130,6 +131,7 @@ export class RelacionamientosController {
       id,
       actor.userId,
       actor.paisSesionId!,
+      actor.rol as Rol,
     );
 
     return {

@@ -61,7 +61,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Admin CRM\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}"
+              "raw": "{\n  \"nombre\": \"Admin CRM\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\",\n  \"paisId\": {{paisId}}\n}"
             },
             "url": "{{baseUrl}}/users"
           }
@@ -155,7 +155,7 @@
                   "  const data = pm.response.json().data;",
                   "  pm.expect(data.length).to.eql(1);",
                   "  pm.expect(data[0].esGenerico).to.eql(true);",
-                  "  pm.expect(data[0].nombre).to.eql('Contacto genérico');",
+                  "  pm.expect(data[0].nombre).to.include('Contacto General');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -266,6 +266,14 @@
           }
         },
         {
+          "name": "GET Clientes segmento (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/clientes?segmento=Minería&search={{empresaCrm}}"
+          }
+        },
+        {
           "name": "GET Cliente por ID",
           "request": {
             "method": "GET",
@@ -293,6 +301,67 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": "{{baseUrl}}/contactos/{{contactoId}}"
           }
+        },
+        {
+          "name": "GET Contactos global search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/contactos?search=María&limit=20"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 — Carga masiva",
+      "item": [
+        {
+          "name": "PATCH Habilitar carga masiva",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"valor\": \"true\"\n}" },
+            "url": "{{baseUrl}}/configuracion/carga_masiva_habilitada"
+          }
+        },
+        {
+          "name": "POST Carga clientes (content)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "type": "text",
+                  "value": "empresa,pais,region,segmento\n{{empresaCrm}},Colombia,Antioquia,Minería"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/carga-masiva/clientes"
+          }
+        },
+        {
+          "name": "POST Carga contactos (content)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "type": "text",
+                  "value": "empresa,nombre,region,cargo\n{{empresaCrm}},Contacto CSV,Antioquia,Analista"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/carga-masiva/contactos"
+          }
         }
       ]
     },
@@ -305,6 +374,14 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": "{{baseUrl}}/relacionamientos?limit=20"
+          }
+        },
+        {
+          "name": "GET Relacionamientos canal+search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/relacionamientos?canal=Correo&search=comercial"
           }
         },
         {

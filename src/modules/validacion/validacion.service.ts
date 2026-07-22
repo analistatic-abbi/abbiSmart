@@ -46,7 +46,18 @@ export class ValidacionService {
   async findPendientes(
     validadorId: number,
     paisSesionId: number,
+    search?: string,
   ): Promise<ValidacionPendienteDto[]> {
+    const params: unknown[] = [validadorId, paisSesionId];
+    let searchClause = '';
+
+    if (search?.trim()) {
+      searchClause =
+        ' AND (v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ?)';
+      const term = `%${search.trim()}%`;
+      params.push(term, term, term);
+    }
+
     const rows = await this.validacionRepository.query(
       `SELECT
          vp2.id AS validacionId,
@@ -58,9 +69,9 @@ export class ValidacionService {
        INNER JOIN validaciones_proceso vp2
          ON vp2.proceso_id = v.proceso_id AND vp2.validador_id = v.validador_id
        INNER JOIN procesos p ON p.id = v.proceso_id
-       WHERE v.validador_id = ? AND p.pais_id = ?
+       WHERE v.validador_id = ? AND p.pais_id = ?${searchClause}
        ORDER BY vp2.fecha_asignacion ASC`,
-      [validadorId, paisSesionId],
+      params,
     );
 
     return rows as ValidacionPendienteDto[];
@@ -245,5 +256,52 @@ export class ValidacionService {
         procesoEstado: proceso.estado,
       }),
     });
+  }
+
+  async getRevisionProceso(
+    procesoId: number,
+    paisSesionId: number,
+    validadorId?: number,
+    rol?: Rol,
+  ) {
+    if (rol === Rol.VALIDADOR && validadorId) {
+      const asignacion = await this.validacionRepository.findOne({
+        where: { procesoId, validadorId },
+      });
+
+      if (!asignacion) {
+        throw new BusinessException(
+          ErrorCode.VALIDACION_NO_ASIGNADA,
+          'No está asignado como validador de este proceso',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
+    const proceso = await this.procesosService.findById(procesoId, paisSesionId);
+    const tareas = await this.procesosService.findTareas(procesoId, paisSesionId);
+
+    return {
+      proceso,
+      tareas,
+    };
+  }
+
+  async findValidacionesByProceso(procesoId: number, paisSesionId: number) {
+    await this.procesosService.getProcesoActivoOrFail(procesoId, paisSesionId);
+
+    const validaciones = await this.validacionRepository.find({
+      where: { procesoId },
+      order: { fechaAsignacion: 'ASC' },
+    });
+
+    return validaciones.map((item) => ({
+      id: item.id,
+      validadorId: item.validadorId,
+      veredicto: item.veredicto,
+      comentario: item.comentario,
+      fechaAsignacion: item.fechaAsignacion,
+      fechaVeredicto: item.fechaVeredicto,
+    }));
   }
 }

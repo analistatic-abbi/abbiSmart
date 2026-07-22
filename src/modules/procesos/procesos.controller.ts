@@ -14,6 +14,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
+import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
 import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
@@ -41,11 +42,46 @@ export class ProcesosController {
     const result = await this.procesosService.findAll(
       query,
       user.paisSesionId!,
+      user.rol as Rol,
     );
 
     return {
       message: 'Procesos obtenidos correctamente',
       ...result,
+    };
+  }
+
+  @Get(':id/dependencias')
+  @ApiOperation({ summary: 'Consultar dependencias antes de eliminar (TRX-013)' })
+  async getDependencias(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.procesosService.getDependencias(
+      id,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Dependencias del proceso obtenidas correctamente',
+      data,
+    };
+  }
+
+  @Get(':id/fechas/historial')
+  @ApiOperation({ summary: 'Historial de cambios de fechas del proceso (FEC-005)' })
+  async getFechasHistorial(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.procesosService.getFechasHistorial(
+      id,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Historial de fechas obtenido correctamente',
+      data,
     };
   }
 
@@ -155,6 +191,7 @@ export class ProcesosController {
   @ApiOperation({ summary: 'Eliminar proceso (soft delete, solo Admin)' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: EliminarEntidadQueryDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     await this.procesosService.softDelete(
@@ -162,6 +199,7 @@ export class ProcesosController {
       actor.userId,
       actor.paisSesionId!,
       actor.rol as Rol,
+      query.confirmarDependientes === true,
     );
 
     return {

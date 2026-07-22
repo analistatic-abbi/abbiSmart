@@ -53,6 +53,13 @@ export class ParametrosService {
       qb.andWhere('p.anio = :anio', { anio: query.anio });
     }
 
+    if (query.search) {
+      qb.andWhere(
+        '(CAST(p.anio AS CHAR) LIKE :search OR p.indicador_codigo LIKE :search)',
+        { search: `%${query.search}%` },
+      );
+    }
+
     qb.orderBy('p.indicador_codigo', 'ASC')
       .addOrderBy('p.anio', 'DESC')
       .skip((page - 1) * limit)
@@ -158,6 +165,15 @@ export class ParametrosService {
     });
 
     return this.toResponse(saved);
+  }
+
+  async getHistorial(id: number, paisSesionId: number) {
+    await this.getParametroOrFail(id, paisSesionId);
+
+    return this.auditService.findByEntidad(
+      AuditEntidadTipo.PARAMETRO_FINANCIERO,
+      id,
+    );
   }
 
   private async getParametroOrFail(

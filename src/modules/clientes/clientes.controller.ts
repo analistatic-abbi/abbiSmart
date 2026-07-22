@@ -15,9 +15,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { ClientesQueryDto } from '../../common/dto/pagination-query.dto';
+import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
+import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
+import { ReasignarProcesosDto } from './dto/reasignar-procesos.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 
 @ApiTags('CRM — Clientes')
@@ -35,11 +38,29 @@ export class ClientesController {
     const result = await this.clientesService.findAll(
       query,
       user.paisSesionId!,
+      user.rol as Rol,
     );
 
     return {
       message: 'Clientes obtenidos correctamente',
       ...result,
+    };
+  }
+
+  @Get(':id/dependencias')
+  @ApiOperation({ summary: 'Consultar dependencias antes de eliminar (TRX-013)' })
+  async getDependencias(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.clientesService.getDependencias(
+      id,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Dependencias del cliente obtenidas correctamente',
+      data,
     };
   }
 
@@ -100,15 +121,44 @@ export class ClientesController {
     };
   }
 
+  @Patch(':id/reasignar-procesos')
+  @RequireWriteAccess()
+  @ApiOperation({ summary: 'Reasignar procesos de un cliente a otro (TRX-013)' })
+  async reasignarProcesos(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReasignarProcesosDto,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const data = await this.clientesService.reasignarProcesos(
+      id,
+      dto.nuevoClienteId,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol as Rol,
+    );
+
+    return {
+      message: 'Procesos reasignados correctamente',
+      data,
+    };
+  }
+
   @Delete(':id')
   @RequireWriteAccess()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar cliente (soft delete)' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: EliminarEntidadQueryDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    await this.clientesService.softDelete(id, actor.userId, actor.paisSesionId!);
+    await this.clientesService.softDelete(
+      id,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol as Rol,
+      query.confirmarDependientes === true,
+    );
 
     return {
       message: 'Cliente eliminado correctamente',

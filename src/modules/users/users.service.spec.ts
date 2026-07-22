@@ -162,6 +162,7 @@ describe('UsersService', () => {
   describe('createUser', () => {
     it('should create inactive user and send activation email', async () => {
       usuarioRepository.count.mockResolvedValue(0);
+      paisRepository.findOne.mockResolvedValue({ id: 1, activo: true } as Pais);
       usuarioRepository.create.mockReturnValue(mockUsuario);
       usuarioRepository.save.mockResolvedValue(mockUsuario);
       activationService.createActivationToken.mockResolvedValue('raw-token-hex');
@@ -170,6 +171,7 @@ describe('UsersService', () => {
         nombre: 'Nuevo',
         correo: 'nuevo@test.com',
         rol: Rol.VISITANTE,
+        paisId: 1,
       });
 
       expect(result.usuario.correo).toBe('admin@test.com');
@@ -189,6 +191,7 @@ describe('UsersService', () => {
           nombre: 'Dup',
           correo: 'dup@test.com',
           rol: Rol.VISITANTE,
+          paisId: 1,
         }),
       ).rejects.toMatchObject({
         response: { errorCode: 'CORREO_YA_REGISTRADO' },
@@ -197,20 +200,22 @@ describe('UsersService', () => {
   });
 
   describe('unlockUser', () => {
-    it('should unlock blocked user', async () => {
+    it('should resend activation for blocked user', async () => {
       usuarioRepository.findOne.mockResolvedValue({
         ...mockUsuario,
         estado: EstadoUsuario.BLOQUEADA,
         intentosFallidos: 5,
       });
       usuarioRepository.save.mockImplementation(async (u) => u as Usuario);
+      activationService.createActivationToken.mockResolvedValue('new-token');
+      mailService.sendActivationEmail.mockResolvedValue(undefined);
 
-      const result = await service.unlockUser(1);
+      const result = await service.unlockUser(1, 99);
 
-      expect(result.estado).toBe(EstadoUsuario.ACTIVO);
+      expect(result.message).toContain('activación');
       expect(usuarioRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
-          estado: EstadoUsuario.ACTIVO,
+          estado: EstadoUsuario.INACTIVO,
           intentosFallidos: 0,
         }),
       );

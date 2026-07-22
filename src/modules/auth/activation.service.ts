@@ -173,7 +173,7 @@ export class ActivationService {
       where: { id: tokenEntity.usuarioId, eliminado: false },
     });
 
-    if (!usuario || usuario.estado !== EstadoUsuario.ACTIVO) {
+    if (!usuario || usuario.eliminado) {
       throw new BusinessException(
         ErrorCode.TOKEN_ACTIVACION_INVALIDO,
         'El enlace no es válido',
@@ -181,9 +181,19 @@ export class ActivationService {
       );
     }
 
+    if (usuario.estado === EstadoUsuario.BLOQUEADA) {
+      throw new BusinessException(
+        ErrorCode.AUTH_CUENTA_BLOQUEADA,
+        'La cuenta está bloqueada. Solicite desbloqueo al administrador.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const bcryptRounds =
       this.configService.get<number>('security.bcryptRounds') ?? 12;
     usuario.passwordHash = await bcrypt.hash(password, bcryptRounds);
+    usuario.estado = EstadoUsuario.ACTIVO;
+    usuario.intentosFallidos = 0;
     tokenEntity.usado = true;
 
     await this.usuarioRepository.save(usuario);

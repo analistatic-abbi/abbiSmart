@@ -45,7 +45,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Procesos\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Procesos\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\",\n  \"paisId\": {{paisId}}\n}" },
             "url": "{{baseUrl}}/users"
           }
         },
@@ -129,7 +129,7 @@
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"evidencia\": \"Carpeta creada en SharePoint\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"evidencia\": \"Carpeta creada en SharePoint\",\n  \"confirmar\": true\n}" },
             "url": "{{baseUrl}}/procesos/{{procesoId}}/tareas/{{tareaId}}/completar"
           }
         },
@@ -156,6 +156,51 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": "{{baseUrl}}/dashboard/procesos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gaps — endpoints nuevos",
+      "item": [
+        {
+          "name": "GET Revisión proceso validación (VAL-003)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/validacion/procesos/{{procesoId}}/revision"
+          }
+        },
+        {
+          "name": "GET Historial parámetro (PAR-003)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/parametros/{{parametroId}}/historial"
+          }
+        },
+        {
+          "name": "GET Historial fechas proceso (FEC-005)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/fechas/historial"
+          }
+        },
+        {
+          "name": "GET Parámetros search (TRX-006)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/parametros?search=KTNO"
+          }
+        },
+        {
+          "name": "GET Dependencias proceso (TRX-013)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/dependencias"
           }
         }
       ]

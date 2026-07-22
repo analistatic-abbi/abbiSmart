@@ -5,7 +5,9 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
+  IsString,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
@@ -24,6 +26,12 @@ export class ParametrosQueryDto extends PaginationQueryDto {
   @Min(2000)
   @Max(2100)
   anio?: number;
+
+  @ApiPropertyOptional({ description: 'Búsqueda por código de indicador o año' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  search?: string;
 }
 
 export class CreateParametroDto {

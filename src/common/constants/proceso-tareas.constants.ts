@@ -31,3 +31,19 @@ export function tareaAplicaParaInstrumento(
 
   return true;
 }
+
+export function tareaAplicaParaProceso(
+  tareaCodigo: TareaCodigo,
+  tipoInstrumento: TipoInstrumento,
+  fechaAdquisicionDerecho?: string | null,
+): boolean {
+  if (!tareaAplicaParaInstrumento(tareaCodigo, tipoInstrumento)) {
+    return false;
+  }
+
+  if (tareaCodigo === TareaCodigo.ADQUISICION_DERECHO) {
+    return Boolean(fechaAdquisicionDerecho);
+  }
+
+  return true;
+}

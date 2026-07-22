@@ -393,6 +393,7 @@ CREATE TABLE proyecciones (
     id                          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     proceso_origen_id           BIGINT UNSIGNED NULL,   -- NULL si la Proyección se creó manualmente (PRY-013); un proceso genera como máximo una (PRY-009)
     proceso_resultante_id       BIGINT UNSIGNED NULL,   -- El proceso en el que se convierte esta Proyección (PRY-003, PRY-015)
+    pais_id                     BIGINT UNSIGNED NOT NULL,  -- País de la proyección (sesión o proceso origen/resultante)
     anio_proyectado             SMALLINT UNSIGNED NOT NULL,
     fecha_estimada_publicacion  DATE NOT NULL,
     valor_venta                 DECIMAL(18,2) NOT NULL,
@@ -405,11 +406,13 @@ CREATE TABLE proyecciones (
     eliminado_por_id            BIGINT UNSIGNED NULL,
     CONSTRAINT fk_proyeccion_proceso_origen FOREIGN KEY (proceso_origen_id) REFERENCES procesos(id),
     CONSTRAINT fk_proyeccion_proceso_resultante FOREIGN KEY (proceso_resultante_id) REFERENCES procesos(id),
+    CONSTRAINT fk_proyeccion_pais FOREIGN KEY (pais_id) REFERENCES paises(id),
     CONSTRAINT fk_proyeccion_eliminador FOREIGN KEY (eliminado_por_id) REFERENCES usuarios(id),
     UNIQUE KEY uk_proyeccion_origen (proceso_origen_id),      -- Relación 1 a 1: un proceso genera como máximo una Proyección (PRY-009)
     UNIQUE KEY uk_proyeccion_resultante (proceso_resultante_id),  -- Un proceso es el resultante de, como máximo, una Proyección
     INDEX idx_proyeccion_anio (anio_proyectado),
-    INDEX idx_proyeccion_estado (estado)
+    INDEX idx_proyeccion_estado (estado),
+    INDEX idx_proyeccion_pais (pais_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Oportunidades futuras: generadas automáticamente, manuales o cargadas masivamente (PRY-001 a PRY-015)';
 
 -- ============================================================================
@@ -541,6 +544,32 @@ SELECT
         ELSE 'Sale este mes'
     END AS estado_sugerido
 FROM proyecciones py
+WHERE py.eliminado = FALSE;
+
+CREATE VIEW vista_proyecciones_listado AS
+SELECT
+    py.id,
+    py.pais_id,
+    py.proceso_origen_id,
+    py.proceso_resultante_id,
+    py.anio_proyectado,
+    py.fecha_estimada_publicacion,
+    py.valor_venta,
+    py.valor_facturacion,
+    py.estado,
+    py.mercado,
+    py.fecha_creacion,
+    v.dias_faltantes,
+    v.estado_sugerido,
+    COALESCE(po.codigo, pr.codigo) AS proceso_codigo,
+    COALESCE(c_origen.empresa, c_res.empresa, po.empresa_otro, pr.empresa_otro) AS empresa,
+    COALESCE(po.segmento, pr.segmento) AS segmento
+FROM proyecciones py
+INNER JOIN vista_proyecciones_calculado v ON v.id = py.id
+LEFT JOIN procesos po ON po.id = py.proceso_origen_id
+LEFT JOIN procesos pr ON pr.id = py.proceso_resultante_id
+LEFT JOIN clientes c_origen ON c_origen.id = po.empresa_cliente_id
+LEFT JOIN clientes c_res ON c_res.id = pr.empresa_cliente_id
 WHERE py.eliminado = FALSE;
 
 CREATE VIEW vista_relacionamientos_vencidos AS

@@ -9,6 +9,7 @@ export enum AuditAccion {
   USUARIO_CREAR = 'usuario_crear',
   USUARIO_EDITAR = 'usuario_editar',
   USUARIO_DESBLOQUEAR = 'usuario_desbloquear',
+  USUARIO_DESACTIVAR = 'usuario_desactivar',
   PAIS_CREAR = 'pais_crear',
   PAIS_EDITAR = 'pais_editar',
   UBICACION_CREAR = 'ubicacion_crear',
@@ -28,6 +29,7 @@ export enum AuditAccion {
   PARAMETRO_EDITAR = 'parametro_editar',
   PROCESO_CREAR = 'proceso_crear',
   PROCESO_EDITAR = 'proceso_editar',
+  PROCESO_FECHA_EDITAR = 'proceso_fecha_editar',
   PROCESO_CAMBIAR_ESTADO = 'proceso_cambiar_estado',
   PROCESO_ELIMINAR = 'proceso_eliminar',
   TAREA_COMPLETAR = 'tarea_completar',
@@ -40,6 +42,8 @@ export enum AuditAccion {
   PROYECCION_ELIMINAR = 'proyeccion_eliminar',
   PROYECCION_GENERAR_AUTO = 'proyeccion_generar_auto',
   PROYECCION_VINCULAR_PROCESO = 'proyeccion_vincular_proceso',
+  PROYECCION_CERRAR = 'proyeccion_cerrar',
+  PROYECCION_ASIGNAR_MERCADO = 'proyeccion_asignar_mercado',
 }
 
 export enum AuditEntidadTipo {

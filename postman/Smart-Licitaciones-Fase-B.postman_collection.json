@@ -67,7 +67,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Fase B\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Fase B\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\",\n  \"paisId\": {{paisId}}\n}" },
             "url": "{{baseUrl}}/users"
           },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]

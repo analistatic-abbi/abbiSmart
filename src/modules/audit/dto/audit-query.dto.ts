@@ -24,6 +24,12 @@ export class AuditQueryDto {
   accion?: string;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  entidadId?: number;
+
+  @IsOptional()
   @IsDateString()
   fechaDesde?: string;
 

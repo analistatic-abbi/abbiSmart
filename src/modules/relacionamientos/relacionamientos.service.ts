@@ -6,6 +6,7 @@ import {
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
 import { ResultadoRelacionamiento } from '../../common/enums/resultado-relacionamiento.enum';
+import { Rol } from '../../common/enums/rol.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
@@ -53,6 +54,21 @@ export class RelacionamientosService {
       qb.andWhere('r.contacto_id = :contactoId', {
         contactoId: query.contactoId,
       });
+    }
+
+    if (query.canal) {
+      qb.andWhere('r.canal = :canal', { canal: query.canal });
+    }
+
+    if (query.resultado) {
+      qb.andWhere('r.resultado = :resultado', { resultado: query.resultado });
+    }
+
+    if (query.search) {
+      qb.andWhere(
+        '(r.mensaje LIKE :search OR r.respuesta LIKE :search)',
+        { search: `%${query.search}%` },
+      );
     }
 
     qb.orderBy('r.fecha_mensaje', 'DESC')
@@ -111,28 +127,66 @@ export class RelacionamientosService {
     actorId: number,
     paisSesionId: number,
   ): Promise<RelacionamientoResponseDto> {
-    await this.contactosService.getContactoActivoOrFail(
+    this.validateFechaReunion(dto.resultado, dto.fechaReunion);
+
+    if (
+      dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
+      !dto.contactoReferido
+    ) {
+      throw new BusinessException(
+        ErrorCode.RELACIONAMIENTO_REFERIDO_REQUERIDO,
+        'Debe indicar los datos del contacto referido',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const contactoOrigen = await this.contactosService.getContactoActivoOrFail(
       dto.contactoId,
       paisSesionId,
     );
 
-    this.validateFechaReunion(dto.resultado, dto.fechaReunion);
+    const saved = await this.relacionamientoRepository.manager.transaction(
+      async (manager) => {
+        const relacionamiento = manager.create(Relacionamiento, {
+          contactoId: dto.contactoId,
+          emisorUsuarioId: actorId,
+          canal: dto.canal,
+          mensaje: dto.mensaje,
+          fechaMensaje: dto.fechaMensaje,
+          resultado: dto.resultado,
+          fechaReunion:
+            dto.resultado === ResultadoRelacionamiento.REUNION_PROGRAMADA
+              ? dto.fechaReunion ?? null
+              : null,
+          eliminado: false,
+        });
 
-    const relacionamiento = this.relacionamientoRepository.create({
-      contactoId: dto.contactoId,
-      emisorUsuarioId: actorId,
-      canal: dto.canal,
-      mensaje: dto.mensaje,
-      fechaMensaje: dto.fechaMensaje,
-      resultado: dto.resultado,
-      fechaReunion:
-        dto.resultado === ResultadoRelacionamiento.REUNION_PROGRAMADA
-          ? dto.fechaReunion ?? null
-          : null,
-      eliminado: false,
-    });
+        const relacionamientoGuardado = await manager.save(relacionamiento);
 
-    const saved = await this.relacionamientoRepository.save(relacionamiento);
+        if (
+          dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
+          dto.contactoReferido
+        ) {
+          await this.contactosService.createForCliente(
+            contactoOrigen.clienteId,
+            {
+              nombre: dto.contactoReferido.nombre,
+              cargo: dto.contactoReferido.cargo,
+              telefono: dto.contactoReferido.telefono,
+              correo: dto.contactoReferido.correo,
+              ubicacionId:
+                dto.contactoReferido.ubicacionId ?? contactoOrigen.ubicacionId,
+              referidoPorContactoId: dto.contactoId,
+            },
+            actorId,
+            paisSesionId,
+            manager,
+          );
+        }
+
+        return relacionamientoGuardado;
+      },
+    );
 
     await this.auditService.log({
       usuarioId: actorId,
@@ -196,7 +250,16 @@ export class RelacionamientosService {
     id: number,
     actorId: number,
     paisSesionId: number,
+    rol: Rol,
   ): Promise<void> {
+    if (rol !== Rol.ADMINISTRADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Solo el Administrador puede eliminar relacionamientos directamente',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const relacionamiento = await this.getActivoOrFail(id, paisSesionId);
 
     relacionamiento.eliminado = true;

@@ -1,6 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
+import { Rol } from '../src/common/enums/rol.enum';
 import { HttpExceptionFilter } from '../src/common/exceptions/http-exception.filter';
 
 export interface E2eMailMockHandlers {
@@ -30,6 +31,15 @@ export function configureE2eEnvironment(): void {
   process.env.JWT_ACCESS_SECRET =
     'test-jwt-access-secret-minimum-32-characters-long';
   process.env.COOKIE_SECURE = 'false';
+}
+
+export function buildE2eUserPayload(
+  nombre: string,
+  correo: string,
+  rol: Rol,
+  paisId = 1,
+): Record<string, unknown> {
+  return { nombre, correo, rol, paisId };
 }
 
 export function configureE2eApp(app: INestApplication): void {

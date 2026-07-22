@@ -9,12 +9,15 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
+import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { ContactosService } from './contactos.service';
+import { ContactosQueryDto } from './dto/contactos-query.dto';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
 
@@ -23,6 +26,23 @@ import { UpdateContactoDto } from './dto/update-contacto.dto';
 @Controller()
 export class ContactosController {
   constructor(private readonly contactosService: ContactosService) {}
+
+  @Get('contactos')
+  @ApiOperation({ summary: 'Listar contactos con filtros (TRX-006)' })
+  async findAll(
+    @Query() query: ContactosQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const result = await this.contactosService.findAll(
+      query,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Contactos obtenidos correctamente',
+      ...result,
+    };
+  }
 
   @Get('clientes/:clienteId/contactos')
   @ApiOperation({ summary: 'Listar contactos de un cliente (CON-001)' })
@@ -106,7 +126,12 @@ export class ContactosController {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    await this.contactosService.softDelete(id, actor.userId, actor.paisSesionId!);
+    await this.contactosService.softDelete(
+      id,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol as Rol,
+    );
 
     return {
       message: 'Contacto eliminado correctamente',

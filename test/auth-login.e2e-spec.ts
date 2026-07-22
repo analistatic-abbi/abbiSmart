@@ -6,7 +6,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
-import { configureE2eApp, configureE2eEnvironment, createE2eMailServiceMock } from './e2e-setup';
+import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
 describe('Auth login (e2e)', () => {
   let app: INestApplication<App>;
@@ -19,14 +19,7 @@ describe('Auth login (e2e)', () => {
     rol: Rol,
     paisId?: number,
   ): Promise<void> {
-    const payload: Record<string, unknown> = {
-      nombre: 'Usuario Login E2E',
-      correo,
-      rol,
-    };
-    if (paisId !== undefined) {
-      payload.paisId = paisId;
-    }
+    const payload = buildE2eUserPayload('Usuario Login E2E', correo, rol, paisId ?? 1);
 
     await request(app.getHttpServer())
       .post('/api/v1/users')

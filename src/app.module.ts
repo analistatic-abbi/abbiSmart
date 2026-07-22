@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthorizationModule } from './common/authorization.module';
+import { SharedServicesModule } from './common/shared-services.module';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -62,6 +63,7 @@ import { UsersModule } from './modules/users/users.module';
       },
     }),
     DatabaseModule,
+    SharedServicesModule,
     AuditModule,
     AuthModule,
     AuthorizationModule,
