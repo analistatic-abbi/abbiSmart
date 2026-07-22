@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "e5f6a7b8-c9d0-1234-ef01-345678901234",
+    "name": "Smart Licitaciones — Fase D (Procesos)",
+    "description": "Pruebas de **Fase D**: `parametros`, `procesos`, `seguimiento`, `validacion`, `solicitudes-eliminacion`, `dashboard`.\n\n**Requisitos:** seed de ubicaciones, API en marcha.\n\n**Flujo rápido:** carpeta **▶ RUN — Flujo automático**.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const body = pm.response.json();",
+          "  if (body.devActivationToken) pm.environment.set('activationToken', body.devActivationToken);",
+          "  if (body.preAuthToken) pm.environment.set('preAuthToken', body.preAuthToken);",
+          "  if (body.accessToken) pm.environment.set('accessToken', body.accessToken);",
+          "  if (body.cliente?.id) pm.environment.set('clienteId', String(body.cliente.id));",
+          "  if (body.parametro?.id) pm.environment.set('parametroId', String(body.parametro.id));",
+          "  if (body.proceso?.id) pm.environment.set('procesoId', String(body.proceso.id));",
+          "  if (body.data?.[0]?.id && pm.request.url.path.join('/').includes('ubicaciones')) {",
+          "    pm.environment.set('ubicacionId', String(body.data[0].id));",
+          "  }",
+          "  if (Array.isArray(body.data) && pm.request.url.path.join('/').includes('/tareas')) {",
+          "    const tarea = body.data.find((t) => t.aplica);",
+          "    if (tarea) pm.environment.set('tareaId', String(tarea.id));",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "▶ RUN — Flujo automático (ejecutar en orden)",
+      "item": [
+        {
+          "name": "1. Setup",
+          "event": [{ "listen": "prerequest", "script": { "exec": ["const ts = Date.now();", "pm.environment.set('adminCorreo', `admin-fased-${ts}@local.test`);"], "type": "text/javascript" } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        },
+        {
+          "name": "2. POST Crear Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Admin-Dev-Key", "value": "{{adminDevKey}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Admin Procesos\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}" },
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "3. POST Activar Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/activate"
+          }
+        },
+        {
+          "name": "4. POST Login + Select Country",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "5. POST Select Country",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Pre-Auth-Token", "value": "{{preAuthToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"paisId\": {{paisId}}\n}" },
+            "url": "{{baseUrl}}/auth/select-country"
+          }
+        },
+        {
+          "name": "6. GET Ubicación",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/catalogos/ubicaciones?departamento=Antioquia&limit=1"
+          }
+        },
+        {
+          "name": "7. POST Parámetro KTNO",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"indicadorCodigo\": \"KTNO\",\n  \"anio\": 2026,\n  \"valor\": 1.5,\n  \"reglaCumplimiento\": \"Mayor o igual al requerido\"\n}" },
+            "url": "{{baseUrl}}/parametros"
+          }
+        },
+        {
+          "name": "8. POST Cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"empresa\": \"Empresa Proceso Demo\",\n  \"ubicacionId\": {{ubicacionId}},\n  \"segmento\": \"Minería\"\n}" },
+            "url": "{{baseUrl}}/clientes"
+          }
+        },
+        {
+          "name": "9. POST Registrar proceso",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDigitado\": \"DEMO-PROC-001\",\n  \"empresaClienteId\": {{clienteId}},\n  \"ubicacionId\": {{ubicacionId}},\n  \"cuantia\": 1500000,\n  \"segmento\": \"Gas Natural\",\n  \"tipoProceso\": \"Periódico\",\n  \"tipoInstrumento\": \"Licitación\",\n  \"plazoEjecucionMeses\": 12,\n  \"experiencia\": false,\n  \"fechaApertura\": \"2026-01-01\",\n  \"fechaCierre\": \"2026-06-30\",\n  \"confirmarIndicadoresVacios\": true,\n  \"indicadores\": [\n    {\"indicadorCodigo\": \"KTNO\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"PN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROE\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"ROA\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"MDN\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"IL\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"E\", \"valorRequerido\": null},\n    {\"indicadorCodigo\": \"RCI\", \"valorRequerido\": null}\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/procesos"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));", "pm.test('codigo generado', () => pm.expect(pm.response.json().proceso.codigo).to.be.a('string');"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "10. GET Tareas del proceso",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/tareas"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('12 tareas', () => pm.expect(pm.response.json().data.length).to.eql(12));"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "11. PATCH Completar tarea",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"evidencia\": \"Carpeta creada en SharePoint\"\n}" },
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/tareas/{{tareaId}}/completar"
+          }
+        },
+        {
+          "name": "12. PATCH Estado En Proceso",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"estado\": \"En Proceso\"\n}" },
+            "url": "{{baseUrl}}/procesos/{{procesoId}}/estado"
+          }
+        },
+        {
+          "name": "13. GET Dashboard resumen",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/dashboard/resumen"
+          }
+        },
+        {
+          "name": "14. GET Dashboard procesos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/dashboard/procesos"
+          }
+        }
+      ]
+    }
+  ]
+}

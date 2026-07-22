@@ -3,6 +3,29 @@ import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 import { HttpExceptionFilter } from '../src/common/exceptions/http-exception.filter';
 
+export interface E2eMailMockHandlers {
+  onActivationToken?: (token: string) => void;
+  onResetToken?: (token: string) => void;
+}
+
+export function createE2eMailServiceMock(
+  handlers: E2eMailMockHandlers = {},
+) {
+  return {
+    shouldExposeDevTokens: jest.fn().mockReturnValue(true),
+    sendActivationEmail: jest.fn(
+      async (_to: string, _nombre: string, token: string) => {
+        handlers.onActivationToken?.(token);
+      },
+    ),
+    sendPasswordResetEmail: jest.fn(
+      async (_to: string, _nombre: string, token: string) => {
+        handlers.onResetToken?.(token);
+      },
+    ),
+  };
+}
+
 export function configureE2eEnvironment(): void {
   process.env.JWT_ACCESS_SECRET =
     'test-jwt-access-secret-minimum-32-characters-long';

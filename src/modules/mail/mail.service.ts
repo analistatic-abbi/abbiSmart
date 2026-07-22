@@ -87,6 +87,34 @@ export class MailService {
     this.logger.log(`Correo de restablecimiento enviado a ${to}`);
   }
 
+  async sendValidacionAsignadaEmail(
+    to: string,
+    nombre: string,
+    codigoProceso: string,
+  ): Promise<void> {
+    const from = this.configService.get<string>('mail.from') ?? 'noreply@abbi.com';
+    const subject = 'Proceso pendiente de validación — Smart Licitaciones ABBI';
+    const text = [
+      `Hola ${nombre},`,
+      '',
+      `Se le asignó el proceso ${codigoProceso} para validación.`,
+      'Ingrese al sistema para revisar la documentación y emitir su veredicto.',
+    ].join('\n');
+
+    const host = this.configService.get<string>('mail.host');
+
+    if (!host) {
+      this.logger.warn(
+        `MAIL_HOST no configurado — validación asignada a ${to} para proceso ${codigoProceso}`,
+      );
+      return;
+    }
+
+    const transporter = this.getTransporter();
+    await transporter.sendMail({ from, to, subject, text });
+    this.logger.log(`Correo de validación enviado a ${to}`);
+  }
+
   private getTransporter(): Transporter {
     if (!this.transporter) {
       this.transporter = nodemailer.createTransport({

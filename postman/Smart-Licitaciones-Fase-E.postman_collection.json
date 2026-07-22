@@ -1,0 +1,406 @@
+{
+  "info": {
+    "_postman_id": "f6a7b8c9-d0e1-2345-f012-456789012345",
+    "name": "Smart Licitaciones — Fase E (Proyecciones y notificaciones)",
+    "description": "Pruebas de **Fase E**: `proyecciones`, `notificaciones`, `carga-masiva/proyecciones`.\\n\\n**Requisitos:** seed de ubicaciones, API en marcha.\\n\\n**Flujo rápido:** carpeta **▶ RUN — Flujo automático**.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const body = pm.response.json();",
+          "  if (body.devActivationToken) pm.environment.set('activationToken', body.devActivationToken);",
+          "  if (body.preAuthToken) pm.environment.set('preAuthToken', body.preAuthToken);",
+          "  if (body.accessToken) pm.environment.set('accessToken', body.accessToken);",
+          "  if (body.proyeccion?.id) pm.environment.set('proyeccionId', String(body.proyeccion.id));",
+          "  if (body.cliente?.id) pm.environment.set('clienteId', String(body.cliente.id));",
+          "  if (body.contacto?.id) pm.environment.set('contactoId', String(body.contacto.id));",
+          "  if (body.relacionamiento?.id) pm.environment.set('relacionamientoId', String(body.relacionamiento.id));",
+          "  if (body.proceso?.id) pm.environment.set('procesoId', String(body.proceso.id));",
+          "  if (body.parametro?.id) pm.environment.set('parametroId', String(body.parametro.id));",
+          "  if (body.data?.[0]?.id && pm.request.url.path.join('/').includes('ubicaciones')) {",
+          "    pm.environment.set('ubicacionId', String(body.data[0].id));",
+          "  }",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "▶ RUN — Flujo automático (ejecutar en orden)",
+      "item": [
+        {
+          "name": "1. Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.environment.set('adminCorreo', `admin-fasee-${ts}@local.test`);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "2. POST Crear Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Admin-Dev-Key",
+                "value": "{{adminDevKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin Fase E\",\n  \"correo\": \"{{adminCorreo}}\",\n  \"rol\": \"Administrador\"\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "3. POST Activar Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{activationToken}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/activate"
+          }
+        },
+        {
+          "name": "4. POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "5. POST Select Country",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Pre-Auth-Token",
+                "value": "{{preAuthToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paisId\": {{paisId}}\n}"
+            },
+            "url": "{{baseUrl}}/auth/select-country"
+          }
+        },
+        {
+          "name": "6. POST Crear proyección manual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anioProyectado\": 2027,\n  \"fechaEstimadaPublicacion\": \"2027-08-01\",\n  \"valorVenta\": 3000000,\n  \"valorFacturacion\": 2500000,\n  \"mercado\": \"General\"\n}"
+            },
+            "url": "{{baseUrl}}/proyecciones"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.test('proyeccion creada', () => pm.expect(pm.response.json().proyeccion.id).to.be.a('number');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7. GET Listar proyecciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/proyecciones?page=1&limit=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('tiene data', () => pm.expect(pm.response.json().data.length).to.be.at.least(1);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "8. GET Proyección por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/proyecciones/{{proyeccionId}}"
+          }
+        },
+        {
+          "name": "9. PATCH Actualizar proyección",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valorVenta\": 3200000\n}"
+            },
+            "url": "{{baseUrl}}/proyecciones/{{proyeccionId}}"
+          }
+        },
+        {
+          "name": "10. GET Notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notificaciones?soloNoLeidas=false"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('array data', () => pm.expect(pm.response.json().data).to.be.an('array');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "11. PATCH Marcar todas leídas",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notificaciones/leer-todas"
+          }
+        },
+        {
+          "name": "12. PATCH Habilitar carga masiva",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": \"true\"\n}"
+            },
+            "url": "{{baseUrl}}/configuracion/carga_masiva_habilitada"
+          }
+        },
+        {
+          "name": "13. POST Carga masiva proyecciones (texto content)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "type": "text",
+                  "value": "anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,mercado,proceso_origen_id\n2028,2028-03-15,1000000,900000,Objetivo,",
+                  "description": "Alternativa fiable en Postman si el adjunto file llega vacío."
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/carga-masiva/proyecciones"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('filas procesadas', () => pm.expect(pm.response.json().filasExitosas).to.be.at.least(1);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "14. GET Logs carga masiva",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/carga-masiva/logs"
+          }
+        },
+        {
+          "name": "15. DELETE Proyección (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/proyecciones/{{proyeccionId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📎 Prueba manual — subir CSV (archivo)",
+      "description": "Prueba de carga masiva con **archivo .csv real**.\n\n**Antes:** ejecute pasos 1–5 y 12 del flujo automático (login + habilitar carga masiva), o use un `accessToken` válido.\n\n**Archivo de ejemplo:** `postman/proyecciones-carga-ejemplo.csv` en este repo.",
+      "item": [
+        {
+          "name": "POST Carga masiva proyecciones — archivo CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "En Postman: tipo File → Select Files → elija proyecciones-carga-ejemplo.csv (NO use Text)."
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/carga-masiva/proyecciones"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const file = pm.request.body?.formdata?.find((row) => row.key === 'file');",
+                  "if (!file || file.type !== 'file') {",
+                  "  console.warn('Configure el campo file como tipo File en Body → form-data');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.test('al menos 1 fila exitosa', () => pm.expect(body.filasExitosas).to.be.at.least(1));",
+                  "} else if (pm.response.code === 400) {",
+                  "  console.warn('Archivo vacío en Postman: abra Body → form-data → file → Select Files y elija el .csv de nuevo.');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

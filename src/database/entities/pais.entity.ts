@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { SesionUsuario } from './sesion-usuario.entity';
+import { UbicacionGeografica } from './ubicacion-geografica.entity';
 import { Usuario } from './usuario.entity';
 
 @Entity('paises')
@@ -18,4 +19,7 @@ export class Pais {
 
   @OneToMany(() => SesionUsuario, (sesion) => sesion.paisSesion)
   sesiones: SesionUsuario[];
+
+  @OneToMany(() => UbicacionGeografica, (ubicacion) => ubicacion.pais)
+  ubicaciones: UbicacionGeografica[];
 }

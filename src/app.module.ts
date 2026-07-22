@@ -9,6 +9,20 @@ import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthorizationDemoModule } from './modules/authorization-demo/authorization-demo.module';
+import { CatalogosModule } from './modules/catalogos/catalogos.module';
+import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
+import { ClientesModule } from './modules/clientes/clientes.module';
+import { ContactosModule } from './modules/contactos/contactos.module';
+import { RelacionamientosModule } from './modules/relacionamientos/relacionamientos.module';
+import { CargaMasivaModule } from './modules/carga-masiva/carga-masiva.module';
+import { ParametrosModule } from './modules/parametros/parametros.module';
+import { ProcesosModule } from './modules/procesos/procesos.module';
+import { ValidacionModule } from './modules/validacion/validacion.module';
+import { SolicitudesEliminacionModule } from './modules/solicitudes-eliminacion/solicitudes-eliminacion.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ProyeccionesModule } from './modules/proyecciones/proyecciones.module';
+import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
+import { JobsModule } from './modules/jobs/jobs.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -54,6 +68,20 @@ import { UsersModule } from './modules/users/users.module';
     HealthModule,
     UsersModule,
     AuthorizationDemoModule,
+    CatalogosModule,
+    ConfiguracionModule,
+    ClientesModule,
+    ContactosModule,
+    RelacionamientosModule,
+    CargaMasivaModule,
+    ParametrosModule,
+    ProcesosModule,
+    ValidacionModule,
+    SolicitudesEliminacionModule,
+    DashboardModule,
+    ProyeccionesModule,
+    NotificacionesModule,
+    JobsModule,
   ],
 })
 export class AppModule {}
