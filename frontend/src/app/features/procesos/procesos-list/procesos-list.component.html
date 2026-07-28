@@ -1,0 +1,66 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Panel de procesos</h1>
+      <p>Listado de procesos licitatorios.</p>
+    </div>
+    @if (puedeEscribir()) {
+      <a class="btn-primary" routerLink="/procesos/nuevo">Crear proceso</a>
+    }
+  </header>
+
+  <div class="filters">
+    <input
+      type="search"
+      placeholder="Buscar por código, ID digitado o empresa..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      (keyup.enter)="onFilter()"
+    />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Buscar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando procesos...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Empresa</th>
+            <th>Estado</th>
+            <th>Segmento</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (proceso of items(); track proceso.id) {
+            <tr>
+              <td>{{ proceso.codigo ?? '—' }}</td>
+              <td>{{ proceso.empresaMostrar }}</td>
+              <td><span class="badge">{{ proceso.estado }}</span></td>
+              <td>{{ proceso.segmento }}</td>
+              <td>
+                <a [routerLink]="['/procesos', proceso.id]">Ver detalle</a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">
+                @if (search()) {
+                  No se encontraron procesos para "{{ search() }}".
+                } @else {
+                  No hay procesos registrados.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (total() > items().length) {
+      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} procesos. Refine la búsqueda para acotar resultados.</p>
+    }
+  }
+</section>

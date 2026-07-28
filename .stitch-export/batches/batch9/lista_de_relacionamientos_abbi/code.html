@@ -1,0 +1,393 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Lista de Relacionamientos - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-secondary-fixed": "#001c38",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-surface": "#2f3034",
+                        "background": "#f9f9fd",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9fd",
+                        "on-primary-container": "#81a6d6",
+                        "surface-bright": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "primary": "#002546",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "on-surface-variant": "#43474f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-surface": "#1a1c1f",
+                        "on-primary": "#ffffff",
+                        "secondary": "#466082",
+                        "surface-container": "#eeedf1",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary-container": "#435d7f",
+                        "surface-tint": "#3b608c",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-fixed": "#d3e4ff",
+                        "tertiary": "#4a0f00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-container": "#bcd6fe",
+                        "surface-container-highest": "#e2e2e6",
+                        "surface-dim": "#dadade",
+                        "on-primary-fixed": "#001c37",
+                        "inverse-on-surface": "#f1f0f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "h3": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F8F9FA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="flex min-h-screen text-on-surface font-body-md bg-background">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest dark:bg-surface-container-low border-r border-outline-variant z-50">
+<div class="px-lg pb-md mb-md border-b border-outline-variant">
+<h2 class="font-h3 text-h3 text-primary font-bold">ABBI</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Gestión Corporativa</p>
+</div>
+<nav class="flex flex-col gap-xs flex-grow overflow-y-auto px-sm">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">business</span>
+<span class="font-body-md text-body-md">Clientes</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high rounded-r-lg" href="#">
+<span class="material-symbols-outlined">contact_phone</span>
+<span class="font-body-md text-body-md font-bold">Contactos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded-lg mt-auto mb-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+</nav>
+</aside>
+<div class="flex-grow flex flex-col min-w-0">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-40 bg-surface-container-lowest dark:bg-surface-container-low h-16 border-b border-outline-variant">
+<div class="flex items-center md:hidden">
+<button class="text-primary p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-h2 text-h2 text-primary ml-sm">ABBI</h1>
+</div>
+<div class="hidden md:flex flex-1 items-center max-w-md ml-lg">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all" placeholder="Buscar en ABBI..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md ml-auto">
+<div class="hidden md:flex items-center gap-sm bg-surface-container-low px-sm py-1 rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-primary">Administrador</span>
+</div>
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors relative cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors hidden md:block cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-sm ml-sm pl-sm border-l border-outline-variant">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkvIbRYoaTsavTR6JMyldlr0NEbyK0vD2HwrLyMzLgOne-SmtNGThluMB2cMDwuqoNep6IjXvFCYddXDqJUtoWg0PzXVSV88bLlqJir_e3XXrDPoTAO_kgb1m8XLv8H7Lh3tvwd_cneJifGOl5fY1FCVG8caRX9vGJwkMjavTRakXJ1JuO1_pN1QiNK2UZ7j9ApEJmGkPdBRBFB-r8qN79ORfH_0_TXQa0l3962DvmHrGFGAyRtf-M">
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow p-margin-mobile md:p-margin-desktop overflow-x-hidden">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-xl gap-md">
+<div>
+<h1 class="font-h1 text-h1 text-primary">Relacionamientos</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-xs">Registro y seguimiento de interacciones con contactos.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary-container text-on-primary font-button text-button h-10 px-lg rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Registrar Relacionamiento
+                </button>
+</div>
+<!-- Filters Section -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg mb-lg shadow-sm">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Buscar Contacto</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-10 pl-9 pr-3 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:border-secondary outline-none" placeholder="Nombre o empresa..." type="text">
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Canal</label>
+<select class="w-full h-10 px-3 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:border-secondary outline-none appearance-none bg-surface-container-lowest">
+<option value="">Todos los canales</option>
+<option value="correo">Correo Electrónico</option>
+<option value="llamada">Llamada</option>
+<option value="mensaje">Mensaje</option>
+<option value="presencial">Presencial</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Resultado</label>
+<select class="w-full h-10 px-3 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:border-secondary outline-none appearance-none bg-surface-container-lowest">
+<option value="">Todos los resultados</option>
+<option value="exitoso">Exitoso</option>
+<option value="pendiente">Pendiente</option>
+<option value="sin_respuesta">Sin Respuesta</option>
+</select>
+</div>
+<div class="flex items-end">
+<button class="w-full md:w-auto h-10 px-lg bg-surface-container-low border border-outline-variant text-primary font-button text-button rounded-lg hover:bg-surface-container-high transition-colors">
+                            Aplicar Filtros
+                        </button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold pl-lg">Contacto</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Canal</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Mensaje (Resumen)</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Fecha Mensaje</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Respuesta (Resumen)</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Fecha Resp.</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Resultado</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold">Emisor</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant font-semibold pr-lg text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm pl-lg">
+<div class="font-semibold text-primary">Carlos Mendoza</div>
+<div class="text-label-sm text-on-surface-variant">TechCorp S.A.</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">mail</span> Correo
+                                    </span>
+</td>
+<td class="p-sm max-w-[200px] truncate" title="Envío de propuesta comercial actualizada para Q3.">
+                                    Envío de propuesta comercial...
+                                </td>
+<td class="p-sm text-on-surface-variant">12 Oct 2023, 10:30</td>
+<td class="p-sm max-w-[200px] truncate" title="Solicita revisión de términos de pago.">
+                                    Solicita revisión de térmi...
+                                </td>
+<td class="p-sm text-on-surface-variant">14 Oct 2023, 09:15</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6] font-label-sm text-label-sm">
+                                        Exitoso
+                                    </span>
+</td>
+<td class="p-sm">Ana Silva</td>
+<td class="p-sm pr-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm pl-lg">
+<div class="font-semibold text-primary">Laura Gómez</div>
+<div class="text-label-sm text-on-surface-variant">Global Logistics</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#FCE8E6] text-[#C5221F] font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">call</span> Llamada
+                                    </span>
+</td>
+<td class="p-sm max-w-[200px] truncate" title="Seguimiento de incidencia técnica #4492.">
+                                    Seguimiento de incidencia t...
+                                </td>
+<td class="p-sm text-on-surface-variant">15 Oct 2023, 14:00</td>
+<td class="p-sm text-on-surface-variant italic text-sm">
+                                    --
+                                </td>
+<td class="p-sm text-on-surface-variant">--</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-[#FFF8E1] text-[#F57F17] border border-[#FFECB3] font-label-sm text-label-sm">
+                                        Pendiente
+                                    </span>
+</td>
+<td class="p-sm">Miguel Rojas</td>
+<td class="p-sm pr-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm pl-lg">
+<div class="font-semibold text-primary">Diego Torres</div>
+<div class="text-label-sm text-on-surface-variant">Inversiones Sur</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#E8F0FE] text-[#1967D2] font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">chat</span> Mensaje
+                                    </span>
+</td>
+<td class="p-sm max-w-[200px] truncate" title="Recordatorio de renovación de contrato anual.">
+                                    Recordatorio de renovación...
+                                </td>
+<td class="p-sm text-on-surface-variant">10 Oct 2023, 16:45</td>
+<td class="p-sm text-on-surface-variant italic text-sm">
+                                    --
+                                </td>
+<td class="p-sm text-on-surface-variant">--</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-surface-variant text-on-surface-variant border border-outline-variant font-label-sm text-label-sm">
+                                        Sin Respuesta
+                                    </span>
+</td>
+<td class="p-sm">Ana Silva</td>
+<td class="p-sm pr-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm pl-lg">
+<div class="font-semibold text-primary">Elena Castro</div>
+<div class="text-label-sm text-on-surface-variant">Ministerio de Salud</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#F3E8FD] text-[#681DA8] font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">meeting_room</span> Presencial
+                                    </span>
+</td>
+<td class="p-sm max-w-[200px] truncate" title="Presentación de portafolio de servicios 2024.">
+                                    Presentación de portafolio...
+                                </td>
+<td class="p-sm text-on-surface-variant">05 Oct 2023, 09:00</td>
+<td class="p-sm max-w-[200px] truncate" title="Interés en módulo de gestión de inventarios.">
+                                    Interés en módulo de gesti...
+                                </td>
+<td class="p-sm text-on-surface-variant">05 Oct 2023, 11:30</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6] font-label-sm text-label-sm">
+                                        Exitoso
+                                    </span>
+</td>
+<td class="p-sm">Roberto Ruiz</td>
+<td class="p-sm pr-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between px-lg py-sm border-t border-outline-variant bg-surface-container-lowest">
+<span class="font-body-md text-body-md text-on-surface-variant">Mostrando 1 - 4 de 24 registros</span>
+<div class="flex items-center gap-2">
+<button class="p-1 text-on-surface-variant hover:bg-surface-container-low rounded disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary-container text-on-primary font-body-md text-body-md">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low font-body-md text-body-md">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low font-body-md text-body-md">3</button>
+<button class="p-1 text-on-surface-variant hover:bg-surface-container-low rounded">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

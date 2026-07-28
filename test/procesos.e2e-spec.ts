@@ -148,11 +148,13 @@ describe('Procesos Fase D (e2e)', () => {
 
     const clienteId = clienteRes.body.cliente.id as number;
 
+    const idDigitado = `PROC-${Date.now()}`;
+
     const procesoRes = await request(app.getHttpServer())
       .post('/api/v1/procesos')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        idDigitado: `PROC-${Date.now()}`,
+        idDigitado,
         empresaClienteId: clienteId,
         ubicacionId,
         cuantia: 1000000,
@@ -181,6 +183,7 @@ describe('Procesos Fase D (e2e)', () => {
 
     const dashboardRes = await request(app.getHttpServer())
       .get('/api/v1/dashboard/procesos')
+      .query({ search: idDigitado })
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
@@ -285,5 +288,33 @@ describe('Procesos Fase D (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ estado: 'En Validación' })
       .expect(400);
+  });
+
+  it('elimina parámetro financiero (solo admin)', async () => {
+    const token = await setupAdminToken();
+    const anioParametro = 2100 + (Date.now() % 50);
+
+    const createRes = await request(app.getHttpServer())
+      .post('/api/v1/parametros')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        indicadorCodigo: IndicadorCodigo.ROE,
+        anio: anioParametro,
+        valor: 9.5,
+        reglaCumplimiento: ReglaCumplimiento.MAYOR_O_IGUAL,
+      })
+      .expect(201);
+
+    const parametroId = createRes.body.parametro.id as number;
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/parametros/${parametroId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/parametros/${parametroId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
   });
 });

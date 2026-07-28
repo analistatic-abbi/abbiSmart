@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Contacto ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-secondary-fixed": "#001c38",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-surface": "#2f3034",
+                        "background": "#f9f9fd",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9fd",
+                        "on-primary-container": "#81a6d6",
+                        "surface-bright": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "primary": "#002546",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "on-surface-variant": "#43474f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-surface": "#1a1c1f",
+                        "on-primary": "#ffffff",
+                        "secondary": "#466082",
+                        "surface-container": "#eeedf1",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary-container": "#435d7f",
+                        "surface-tint": "#3b608c",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-fixed": "#d3e4ff",
+                        "tertiary": "#4a0f00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-container": "#bcd6fe",
+                        "surface-container-highest": "#e2e2e6",
+                        "surface-dim": "#dadade",
+                        "on-primary-fixed": "#001c37",
+                        "inverse-on-surface": "#f1f0f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "h3": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen flex text-on-background font-body-md overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md text-body-md docked full-width top-0 h-16 border-b border-outline-variant flat no shadows flex justify-between items-center px-lg w-full sticky top-0 z-40 fixed">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim">ABBI</span>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search bar placeholder -->
+<div class="hidden md:flex items-center bg-surface-container-high rounded-full px-md py-xs">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md text-on-surface-variant outline-none" placeholder="Buscar..." type="text">
+</div>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-sm rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-sm rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-sm ml-sm pl-sm border-l border-outline-variant">
+<div class="flex flex-col items-end hidden md:flex">
+<span class="font-label-sm text-label-sm font-bold text-primary">Admin User</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-xs py-[2px] rounded">Administrador</span>
+</div>
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small circular avatar image showing a professional headshot of an administrator in a corporate setting. Light mode aesthetic, sharp focus, plain white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaT7os2bQnU_tRNtSsgX9rG0Fp2iuEq9ge5Vw_oDNd0avUuGEByS3x3U6Z3xuu3wclb1lvkm-GHfx4vijxbYCpX-8L3qvQDVs12BX473zMwSp2uuyWBRsuJNjR2Gs2WfnbfAhRsyBa5Le9rvb8K8lUKqA2YztzMd2_5fbIQqQgbGhBXGQDzU_sTuz9I4zQJY_RTncYum-2VvWbIE7tEkm5usRfnyA4bYxiX_AWZq2CSwzt0hEIWdmV">
+</div>
+</div>
+</header>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex w-full mt-16 h-[calc(100vh-64px)]">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md text-body-md docked left-0 w-[260px] h-screen border-r border-outline-variant flat no shadows flex flex-col w-[260px] h-full sticky left-0 top-0 pt-lg hidden md:flex overflow-y-auto">
+<div class="px-lg pb-lg mb-md border-b border-outline-variant flex items-center gap-md">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-on-primary font-bold">
+                    A
+                </div>
+<div>
+<h2 class="font-h3 text-h3 text-primary font-bold">ABBI</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Corporativa</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs px-sm">
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Panel de Control</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Gestión de Usuarios</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reportes Operativos</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Inventario</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span>Validaciones</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">business</span>
+<span>Clientes</span>
+</a>
+<!-- Active State -->
+<a class="text-primary border-l-[3px] border-secondary bg-surface-container-high flex items-center gap-md py-sm px-lg transition-all duration-200 mx-xs rounded-r-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">contact_phone</span>
+<span class="font-bold">Contactos</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-lg mx-xs" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuración</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area (Background) -->
+<main class="flex-1 bg-surface-container-low overflow-y-auto relative p-lg">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h1 class="font-h1 text-h1 text-primary mb-xs">Gestión de Contactos</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Administre la información de los puntos de contacto para cada cliente.</p>
+</div>
+<button class="bg-primary-container text-on-primary font-button text-button px-lg h-[40px] rounded-lg hover:bg-primary transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Nuevo Contacto
+                </button>
+</div>
+<!-- Placeholder content for background to show panel overlay context -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md opacity-50 pointer-events-none">
+<div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant h-64"></div>
+<div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant h-64 md:col-span-2"></div>
+<div class="bg-surface-container-lowest rounded-xl p-lg border border-outline-variant h-96 md:col-span-3"></div>
+</div>
+</main>
+<!-- Contact Form Side Panel (Overlay) -->
+<div class="fixed inset-0 bg-on-background/20 z-50 flex justify-end" id="side-panel-overlay">
+<div class="w-full max-w-[480px] bg-surface-container-lowest h-full shadow-[-4px_0_24px_rgba(0,0,0,0.08)] flex flex-col border-l border-outline-variant transition-transform transform translate-x-0" id="side-panel">
+<!-- Panel Header -->
+<div class="px-lg py-md border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest sticky top-0 z-10">
+<div>
+<h2 class="font-h2 text-h2 text-primary">Nuevo Contacto</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Complete los datos obligatorios (*)</p>
+</div>
+<button class="text-on-surface-variant hover:text-primary hover:bg-surface-container-high p-sm rounded-full transition-colors cursor-pointer">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Panel Body (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-lg">
+<form class="space-y-lg">
+<!-- Cliente Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Cliente <span class="text-error">*</span></label>
+<div class="relative">
+<select class="w-full h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none cursor-pointer">
+<option disabled="" selected="" value="">Seleccione un cliente...</option>
+<option value="1">Empresa Alpha S.A.</option>
+<option value="2">Corporación Beta C.A.</option>
+<option value="3">Industrias Gamma LTDA.</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Obligatorio solo en creación.</p>
+</div>
+<!-- Nombre Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Nombre Completo <span class="text-error">*</span></label>
+<input class="w-full h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Ej. Juan Pérez" type="text">
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+<!-- Región Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Región</label>
+<div class="relative">
+<select class="w-full h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none cursor-pointer">
+<option disabled="" selected="" value="">Seleccionar...</option>
+<option value="latam">LATAM</option>
+<option value="na">Norteamérica</option>
+<option value="emea">EMEA</option>
+<option value="apac">APAC</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Cargo Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Cargo</label>
+<input class="w-full h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Ej. Director de Compras" type="text">
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-outline-variant">
+<h3 class="font-h3 text-h3 text-primary">Datos de Contacto</h3>
+<!-- Teléfono Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Teléfono</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">phone</span>
+<input class="w-full h-[40px] pl-[40px] pr-md bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="+1 (555) 000-0000" type="tel">
+</div>
+</div>
+<!-- Correo Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Correo Electrónico <span class="text-error">*</span></label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+<input class="w-full h-[40px] pl-[40px] pr-md bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="correo@empresa.com" type="email">
+</div>
+</div>
+<!-- Referido Por Field -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm font-bold text-on-surface">Referido Por</label>
+<input class="w-full h-[40px] bg-surface-container-lowest border border-outline-variant rounded-lg px-md font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Nombre de quien refiere" type="text">
+</div>
+</form>
+</div>
+<!-- Panel Footer (Actions) -->
+<div class="p-lg border-t border-outline-variant bg-surface-container-lowest sticky bottom-0 z-10 flex justify-end gap-md">
+<button class="font-button text-button h-[40px] px-lg rounded-lg bg-surface-container-lowest border border-outline-variant text-primary-container hover:bg-surface-container-low transition-colors" type="button">
+                        Cancelar
+                    </button>
+<button class="font-button text-button h-[40px] px-lg rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-colors flex items-center gap-xs" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                        Guardar Contacto
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

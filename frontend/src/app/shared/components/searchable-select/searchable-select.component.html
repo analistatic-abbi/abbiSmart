@@ -1,0 +1,62 @@
+<div
+  class="searchable-select"
+  [class.searchable-select--open]="open()"
+  [class.searchable-select--disabled]="isDisabled()"
+>
+  <button
+    type="button"
+    class="searchable-select__trigger"
+    [disabled]="isDisabled()"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+  >
+    <span class="searchable-select__value" [class.placeholder]="!selectedLabel()">
+      {{ selectedLabel() || placeholder() }}
+    </span>
+    <span class="material-symbols-outlined searchable-select__chevron">expand_more</span>
+  </button>
+
+  @if (open()) {
+    <div class="searchable-select__panel">
+      @if (showSearch()) {
+        <div class="searchable-select__search-wrap">
+          <span class="material-symbols-outlined searchable-select__search-icon">search</span>
+          <input
+            #searchInput
+            type="search"
+            class="searchable-select__search"
+            [placeholder]="searchPlaceholder()"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            (click)="$event.stopPropagation()"
+          />
+        </div>
+      }
+
+      <ul class="searchable-select__list" role="listbox">
+        <li>
+          <button type="button" class="searchable-select__option placeholder-option" (click)="clearSelection($event)">
+            {{ placeholder() }}
+          </button>
+        </li>
+        @for (option of filteredOptions(); track option.value) {
+          <li>
+            <button
+              type="button"
+              class="searchable-select__option"
+              role="option"
+              [class.selected]="isSelected(option)"
+              [disabled]="option.disabled"
+              (click)="selectOption(option)"
+            >
+              {{ option.label }}
+            </button>
+          </li>
+        } @empty {
+          <li class="searchable-select__empty">{{ emptyMessage() }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>

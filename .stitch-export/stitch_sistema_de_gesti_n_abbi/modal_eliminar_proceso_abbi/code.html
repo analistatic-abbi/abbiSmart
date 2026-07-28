@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eliminar Proceso - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#43474f",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "inverse-surface": "#2f3034",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; }
+        .modal-overlay { background-color: rgba(26, 28, 31, 0.4); backdrop-filter: blur(4px); }
+        .modal-shadow { box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-on-surface">
+<!-- Ambient background to simulate app context -->
+<div class="fixed inset-0 z-0">
+<!-- TopAppBar (Simulated background context) -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-margin-desktop h-16 w-full absolute top-0 left-0">
+<div class="font-h2 text-h2 font-bold text-primary">ABBI Bid Management</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</div>
+</header>
+<!-- SideNavBar (Simulated background context) -->
+<nav class="fixed left-0 top-16 h-[calc(100vh-4rem)] flex flex-col py-6 border-r border-outline-variant bg-surface-container-lowest w-64 hidden md:flex">
+<div class="flex items-center gap-3 text-on-surface-variant px-4 py-3">
+<span class="material-symbols-outlined">home</span> <span class="font-button text-button">Home</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant px-4 py-3">
+<span class="material-symbols-outlined">gavel</span> <span class="font-button text-button">Opportunities</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant px-4 py-3">
+<span class="material-symbols-outlined">description</span> <span class="font-button text-button">Active Bids</span>
+</div>
+<!-- ... other items -->
+</nav>
+<!-- Main content area simulation -->
+<main class="ml-64 mt-16 p-lg"></main>
+</div>
+<!-- Modal Overlay -->
+<div class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<!-- Modal Container -->
+<div aria-labelledby="modal-title" aria-modal="true" class="bg-surface modal-shadow rounded-lg w-full max-w-lg border border-outline-variant flex flex-col overflow-hidden" role="dialog">
+<!-- Modal Header -->
+<div class="p-lg border-b border-outline-variant flex items-start gap-md">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<h2 class="font-h3 text-h3 text-on-surface m-0" id="modal-title">Eliminar proceso</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Esta acción es irreversible y afectará a los siguientes registros vinculados al proceso <strong>PR-2023-0891</strong>.</p>
+</div>
+</div>
+<!-- Modal Body (Dependencies List) -->
+<div class="p-lg bg-surface-container-low max-h-64 overflow-y-auto">
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Registros dependientes afectados</h3>
+<ul class="space-y-sm">
+<li class="flex items-start gap-sm bg-surface p-sm rounded-DEFAULT border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mt-xs">description</span>
+<div>
+<div class="font-button text-button text-on-surface">3 Ofertas Activas</div>
+<div class="font-body-md text-body-md text-on-surface-variant text-[12px]">Ofertas de proveedores serán marcadas como huérfanas.</div>
+</div>
+</li>
+<li class="flex items-start gap-sm bg-surface p-sm rounded-DEFAULT border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mt-xs">assessment</span>
+<div>
+<div class="font-button text-button text-on-surface">1 Reporte de Evaluación Preliminar</div>
+<div class="font-body-md text-body-md text-on-surface-variant text-[12px]">El reporte será eliminado permanentemente.</div>
+</div>
+</li>
+<li class="flex items-start gap-sm bg-surface p-sm rounded-DEFAULT border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mt-xs">folder_open</span>
+<div>
+<div class="font-button text-button text-on-surface">12 Documentos Adjuntos</div>
+<div class="font-body-md text-body-md text-on-surface-variant text-[12px]">Pliegos, especificaciones técnicas y anexos serán borrados.</div>
+</div>
+</li>
+</ul>
+</div>
+<!-- Confirmation Checkbox -->
+<div class="px-lg py-md border-t border-outline-variant bg-surface">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="w-5 h-5 rounded border-outline-variant text-error focus:ring-error-container focus:ring-2 focus:ring-offset-0 bg-surface cursor-pointer" id="confirm-delete" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface select-none group-hover:text-error transition-colors">Confirmo que entiendo las dependencias y deseo continuar.</span>
+</label>
+</div>
+<!-- Modal Footer (Actions) -->
+<div class="p-lg border-t border-outline-variant bg-surface-bright flex justify-end gap-md">
+<button class="h-10 px-lg rounded-DEFAULT font-button text-button border border-outline-variant text-primary-container bg-surface hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-primary-fixed-dim" type="button">
+                    Cancelar
+                </button>
+<button class="h-10 px-lg rounded-DEFAULT font-button text-button bg-error text-on-error opacity-50 cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-error-container focus:ring-offset-1 flex items-center gap-2" disabled="" id="delete-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">delete_forever</span>
+                    Eliminar
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Simple logic to enable/disable the delete button based on the checkbox
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkbox = document.getElementById('confirm-delete');
+            const deleteBtn = document.getElementById('delete-btn');
+
+            checkbox.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    deleteBtn.classList.add('hover:bg-on-error-container', 'shadow-sm');
+                } else {
+                    deleteBtn.disabled = true;
+                    deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    deleteBtn.classList.remove('hover:bg-on-error-container', 'shadow-sm');
+                }
+            });
+        });
+    </script>
+</body></html>

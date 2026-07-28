@@ -15,7 +15,7 @@ import { RequireWriteAccess } from '../../common/decorators/require-write-access
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
-import { CreateSolicitudEliminacionDto } from './dto/solicitud-eliminacion.dto';
+import { CreateSolicitudEliminacionDto, ResolverSolicitudDto } from './dto/solicitud-eliminacion.dto';
 import { SolicitudesEliminacionService } from './solicitudes-eliminacion.service';
 
 @ApiTags('Solicitudes de eliminación')
@@ -86,6 +86,7 @@ export class SolicitudesEliminacionController {
   @ApiOperation({ summary: 'Rechazar solicitud de eliminación (Admin)' })
   async rechazar(
     @Param('id', ParseIntPipe) id: number,
+    @Body() _dto: ResolverSolicitudDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     const solicitud = await this.solicitudesService.rechazar(

@@ -1,17 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional } from 'class-validator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
+import {
+  DashboardProcesosQueryDto,
+  DashboardProyeccionesQueryDto,
+} from './dto/dashboard-query.dto';
 import { DashboardService } from './dashboard.service';
-
-class DashboardProyeccionesQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  anio?: number;
-}
 
 @ApiTags('Dashboard')
 @ApiBearerAuth()
@@ -32,8 +27,14 @@ export class DashboardController {
 
   @Get('procesos')
   @ApiOperation({ summary: 'Listado de procesos con avance y métricas SGP (REV-001)' })
-  async getProcesos(@CurrentUser() user: AuthUserPayload) {
-    const data = await this.dashboardService.getProcesos(user.paisSesionId!);
+  async getProcesos(
+    @Query() query: DashboardProcesosQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.dashboardService.getProcesos(
+      user.paisSesionId!,
+      query.search,
+    );
 
     return {
       message: 'Procesos del dashboard obtenidos correctamente',

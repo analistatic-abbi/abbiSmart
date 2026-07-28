@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ABBI - Iniciar Sesión</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9fd",
+                        "surface-dim": "#dadade",
+                        "surface-container-low": "#f4f3f7",
+                        "on-tertiary-container": "#f9825e",
+                        "tertiary": "#4a0f00",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "surface-tint": "#3b608c",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "surface-variant": "#e2e2e6",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "outline": "#73777f",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "surface": "#f9f9fd",
+                        "surface-bright": "#f9f9fd",
+                        "surface-container-high": "#e8e8ec",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#466082",
+                        "primary": "#002546",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#6f1c01",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-highest": "#e2e2e6",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-fixed-variant": "#204873",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-secondary-container": "#435d7f",
+                        "on-surface": "#1a1c1f"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "8px"
+                    },
+                    fontFamily: {
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "button": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    fontSize: {
+                        "h3": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "h1-mobile": ["24px", { lineHeight: "32px", fontWeight: "700" }],
+                        "button": ["14px", { lineHeight: "20px", fontWeight: "600" }],
+                        "h2": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "h1": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }]
+                    },
+                    animation: {
+                        'slide-in-right': 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F9FA; /* Required neutral background */
+        }
+        .corp-shadow {
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .input-corp {
+            height: 40px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center font-body-md text-on-surface relative overflow-hidden">
+<!-- Ambient Background Elements for Corporate Feel -->
+<div class="absolute inset-0 z-0 pointer-events-none flex justify-between">
+<div class="w-1/3 h-full bg-gradient-to-br from-primary-fixed/20 to-transparent"></div>
+<div class="w-1/3 h-full bg-gradient-to-bl from-secondary-fixed/20 to-transparent"></div>
+</div>
+<!-- Error Toast Notification -->
+<div class="fixed top-lg right-lg z-50 flex items-start gap-md p-md bg-error-container border-l-4 border-error rounded-lg shadow-lg animate-slide-in-right max-w-sm" id="error-toast">
+<span class="material-symbols-outlined text-error mt-0.5" style="font-variation-settings: 'FILL' 1;">error</span>
+<div class="flex-1">
+<h4 class="font-button text-button text-on-error-container">Error de Autenticación</h4>
+<p class="font-body-md text-body-md text-on-error-container mt-1">Credenciales incorrectas. Por favor, verifique su usuario y contraseña.</p>
+</div>
+<button class="text-on-error-container hover:bg-error/10 p-1 rounded-full transition-colors flex items-center justify-center" onclick="document.getElementById('error-toast').style.display='none'">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Main Login Card -->
+<main class="relative z-10 w-full max-w-[420px] bg-surface-container-lowest rounded-xl corp-shadow border border-outline-variant p-xl flex flex-col mx-margin-mobile md:mx-0">
+<!-- Header / Branding -->
+<div class="flex flex-col items-center mb-xl text-center">
+<div class="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center mb-md shadow-sm">
+<span class="material-symbols-outlined text-on-primary text-3xl" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</div>
+<h1 class="font-h2 text-h2 text-primary-container font-bold">Gestión ABBI</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Acceso seguro a la plataforma corporativa</p>
+</div>
+<!-- Login Form -->
+<form class="flex flex-col gap-md" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="email">Correo Electrónico</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline">mail</span>
+<input class="input-corp w-full pl-10 pr-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface font-body-md focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-primary-container transition-all" id="email" placeholder="usuario@empresa.com" type="email" value="admin@empresa.com"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="password">Contraseña</label>
+<a class="font-label-sm text-label-sm text-primary-container hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline">lock</span>
+<input class="input-corp w-full pl-10 pr-10 bg-surface-container-lowest border border-error border-2 rounded-lg text-on-surface font-body-md focus:outline-none focus:ring-2 focus:ring-error focus:border-error transition-all" id="password" placeholder="Ingresa tu contraseña" type="password" value="••••••••"/>
+<button class="absolute right-3 flex items-center justify-center text-outline hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-error mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">error</span>
+                    Credenciales incorrectas
+                </span>
+</div>
+<!-- Submit Button -->
+<button class="input-corp mt-sm bg-primary-container text-on-primary font-button text-button rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm" type="submit">
+                Iniciar Sesión
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- Footer Info -->
+<div class="mt-lg pt-lg border-t border-outline-variant flex flex-col items-center gap-2 text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant">
+                Al iniciar sesión, aceptas nuestros <a class="text-primary-container hover:underline" href="#">Términos de Servicio</a> y <a class="text-primary-container hover:underline" href="#">Política de Privacidad</a>.
+            </p>
+</div>
+</main>
+</body></html>

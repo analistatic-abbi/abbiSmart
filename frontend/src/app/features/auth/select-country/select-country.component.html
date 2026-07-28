@@ -1,0 +1,47 @@
+<div class="country-page">
+  <div class="country-content">
+    <header class="country-header">
+      <h2 class="country-header__brand">ABBI</h2>
+      <div class="country-header__accent" aria-hidden="true"></div>
+      <h1>{{ title() }}</h1>
+    </header>
+
+    @if (errorMessage()) {
+      <div class="alert">{{ errorMessage() }}</div>
+    }
+
+    @if (loading()) {
+      <p class="country-loading">Configurando país...</p>
+    }
+
+    <div class="country-grid">
+      @for (pais of paises; track pais.id) {
+        <button
+          type="button"
+          class="country-option"
+          [disabled]="loading()"
+          (click)="selectPais(pais)"
+        >
+          <div class="country-option__flag-wrap">
+            <img
+              class="country-option__flag"
+              [src]="flagUrl(pais.nombre)"
+              [alt]="'Bandera de ' + pais.nombre"
+              loading="lazy"
+            />
+          </div>
+          <span class="country-option__name">{{ pais.nombre }}</span>
+        </button>
+      }
+    </div>
+
+    <p class="country-footer-text">
+      ¿No encuentras tu región? Contacta con el administrador de tu cuenta.
+    </p>
+
+    <a class="help-btn" routerLink="/login" fragment="faq">
+      <span class="help-btn__icon material-symbols-outlined">help</span>
+      Centro de ayuda
+    </a>
+  </div>
+</div>

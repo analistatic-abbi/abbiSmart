@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ABBI - Carga Masiva</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-primary-fixed": "#001c37",
+                        "surface-container-highest": "#e2e2e6",
+                        "inverse-on-surface": "#f1f0f4",
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "surface-tint": "#3b608c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "surface": "#f9f9fd",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-container": "#435d7f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#4a0f00",
+                        "on-background": "#1a1c1f",
+                        "surface-container-low": "#f4f3f7",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f9f9fd",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary": "#466082",
+                        "surface-dim": "#dadade",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-surface": "#1a1c1f",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "primary-container": "#0e3b65",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "background": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "primary": "#002546",
+                        "inverse-surface": "#2f3034",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "button": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-hidden flex flex-col h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md text-body-md docked full-width top-0 h-16 border-b border-outline-variant flat no shadows cursor-pointer active:opacity-80 flex justify-between items-center px-lg w-full sticky top-0 z-40 shrink-0">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim font-bold">ABBI</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex gap-md h-full items-center">
+<!-- Spacer for centered search if needed, but search is on left usually -->
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full hover:bg-surface-container-high transition-colors flex items-center justify-center text-on-surface-variant relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="w-10 h-10 rounded-full hover:bg-surface-container-high transition-colors flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-sm pl-sm border-l border-outline-variant">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="Avatar de usuario corporativo, perfil profesional en oficina moderna, luz suave, 400x400" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-rcemvZPVU2HbI0TuMMnq9yZrtXOVDgLHUVBJHGAfXZ1iy7qAVBWDl-MKgRIYtRm2OS-msaKb3eYwGtmH5aInMc4iDdvoZ5ft0kqa8gRV1HKprdA-MtXFawD7MDMaiIaypXrt2QolCy-OZ3Su2xaDqQMxhPxf_yY5ZVROmDJpbsgTr5aQVCH9eUBIwnEZ2nbo-45pBQDKpARvmIQIKpPoLl0l2czQ-dBmAO_bwA1EjPS7BqS6vR-a">
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md text-body-md docked left-0 w-[260px] h-full border-r border-outline-variant flat no shadows flex-col w-[260px] h-full sticky left-0 top-0 pt-lg shrink-0 overflow-y-auto">
+<div class="px-lg pb-md mb-md border-b border-outline-variant">
+<h2 class="font-h3 text-h3 text-primary font-bold">ABBI</h2>
+<p class="text-on-surface-variant text-label-sm font-label-sm mt-xs">Gestión Corporativa</p>
+</div>
+<div class="flex flex-col gap-xs py-sm">
+<!-- Panel de Control -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Panel de Control</span>
+</a>
+<!-- Gestión de Usuarios -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Gestión de Usuarios</span>
+</a>
+<!-- Reportes Operativos -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reportes Operativos</span>
+</a>
+<!-- Inventario -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-bold">Inventario</span>
+</a>
+<!-- Validaciones -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span>Validaciones</span>
+</a>
+<!-- Clientes -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">business</span>
+<span>Clientes</span>
+</a>
+<!-- Contactos -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">contact_phone</span>
+<span>Contactos</span>
+</a>
+<!-- Configuración -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all mt-auto border-t border-outline-variant pt-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuración</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto bg-background p-lg relative flex flex-col">
+<!-- Page Header -->
+<div class="mb-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<div>
+<h1 class="font-h1 text-h1 text-primary">Carga Masiva de Datos</h1>
+<p class="text-on-surface-variant mt-xs">Sube tu archivo CSV o Excel para procesar múltiples registros a la vez.</p>
+</div>
+<div class="flex gap-sm">
+<button class="h-10 px-md flex items-center gap-sm bg-surface-container-lowest border border-outline text-primary rounded-lg font-button text-button hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Descargar plantilla
+                    </button>
+</div>
+</div>
+<!-- Upload Area -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center border-dashed border-2 mb-lg hover:border-primary hover:bg-surface-container-low transition-all cursor-pointer group h-64 shrink-0">
+<div class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-[32px]">cloud_upload</span>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-xs">Arrastra y suelta tu archivo aquí</h3>
+<p class="text-on-surface-variant text-body-md mb-md">o haz clic para explorar en tu dispositivo</p>
+<p class="text-on-surface-variant text-label-sm font-label-sm">Formatos soportados: .csv, .xlsx (Max 5MB)</p>
+</div>
+<!-- Preview & Actions (Initially hidden, shown for demonstration) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col overflow-hidden mb-lg flex-1 min-h-[300px]">
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">description</span>
+<span class="font-button text-button text-primary">inventario_lote_45.csv</span>
+<span class="text-on-surface-variant text-label-sm bg-surface-variant px-sm py-xs rounded-full ml-2">2.4 MB</span>
+</div>
+<button class="text-error hover:bg-error-container p-xs rounded-full transition-colors flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-md border-b border-outline-variant">
+<h4 class="font-button text-button text-primary mb-sm">Vista Previa (Primeras 3 filas)</h4>
+<div class="overflow-x-auto border border-outline-variant rounded-lg">
+<table class="w-full text-left border-collapse min-w-max">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant border-r border-outline-variant">SKU</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant border-r border-outline-variant">Nombre Producto</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant border-r border-outline-variant">Categoría</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant text-right">Precio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant">
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">PROD-001</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Laptop Pro 15"</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Electrónica</td>
+<td class="p-sm text-body-md text-right text-on-background">$1,299.00</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface">
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">PROD-002</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Monitor 4K 27"</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Electrónica</td>
+<td class="p-sm text-body-md text-right text-on-background">$399.50</td>
+</tr>
+<tr>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">PROD-003</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Teclado Mecánico</td>
+<td class="p-sm text-body-md border-r border-outline-variant text-on-background">Periféricos</td>
+<td class="p-sm text-body-md text-right text-on-background">$89.99</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="p-md flex justify-end gap-sm mt-auto">
+<button class="h-10 px-lg bg-surface-container-lowest border border-outline text-primary rounded-lg font-button text-button hover:bg-surface-container-low transition-colors">
+                        Cancelar
+                    </button>
+<button class="h-10 px-lg bg-primary-container text-on-primary rounded-lg font-button text-button hover:opacity-90 transition-opacity flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                        Iniciar Carga
+                    </button>
+</div>
+</div>
+<!-- Results Summary (Example of post-upload state) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden mt-lg hidden"> <!-- Hidden by default, would be toggled via JS -->
+<div class="p-lg border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-primary">Resumen de Procesamiento</h3>
+<div class="flex gap-md">
+<div class="bg-surface-container border border-outline-variant px-md py-sm rounded-lg flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-[#10b981]"></span>
+<span class="text-on-background font-button text-button">142 Exitosos</span>
+</div>
+<div class="bg-error-container border border-error px-md py-sm rounded-lg flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-on-error-container font-button text-button">3 Rechazados</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

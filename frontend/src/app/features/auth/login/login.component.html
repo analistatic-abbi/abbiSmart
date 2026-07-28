@@ -1,0 +1,182 @@
+<div class="login-shell">
+  @if (faqOpen()) {
+    <div class="login-faq-backdrop" (click)="closeFaqPanel()" role="presentation"></div>
+    <aside
+      id="login-faq-panel"
+      class="login-faq-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-faq-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="login-faq-panel__header">
+        <h2 id="login-faq-title">Preguntas frecuentes</h2>
+        <button type="button" class="login-faq-panel__close" (click)="closeFaqPanel()" aria-label="Cerrar">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+
+      <div class="login-faq-panel__body">
+        @for (item of faqItems; track item.id) {
+          <div class="login-faq__item" [class.login-faq__item--open]="expandedFaq() === item.id">
+            <button type="button" class="login-faq__question" (click)="toggleFaq(item.id)">
+              <span>{{ item.question }}</span>
+              <span class="material-symbols-outlined">
+                {{ expandedFaq() === item.id ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+            @if (expandedFaq() === item.id) {
+              <p class="login-faq__answer">{{ item.answer }}</p>
+            }
+          </div>
+        }
+
+        <p class="login-faq-panel__footer">
+          ¿Necesita acceso al sistema? Contacte a su administrador.
+        </p>
+      </div>
+    </aside>
+  }
+
+  <main class="login-main">
+    <div class="login-main__content">
+      <header class="login-brand">
+        <img class="login-brand__logo" [src]="logoUrl" alt="abbi — construyendo progreso" />
+        <div>
+          <h1>Sistema de Gestión de Licitaciones</h1>
+          <p>Acceda para gestionar sus procesos de contratación corporativa.</p>
+        </div>
+      </header>
+
+      <div class="login-card">
+        @if (errorMessage()) {
+          <div class="alert" [class.alert--blocked]="errorType() === 'blocked'">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label for="correo">Correo electrónico</label>
+          <div class="field">
+            <span class="material-symbols-outlined">mail</span>
+            <input
+              id="correo"
+              type="email"
+              formControlName="correo"
+              placeholder="ejemplo@abbi.com"
+              autocomplete="username"
+            />
+          </div>
+
+          <label for="password">Contraseña</label>
+          <div class="field">
+            <span class="material-symbols-outlined">lock</span>
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <span class="material-symbols-outlined">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+
+          <div class="login-card__forgot">
+            <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button class="btn-submit" type="submit" [disabled]="loading()">
+            <span>{{ loading() ? 'Procesando...' : 'Iniciar sesión' }}</span>
+            @if (!loading()) {
+              <span class="material-symbols-outlined">arrow_forward</span>
+            }
+          </button>
+        </form>
+
+        @if (isDev) {
+          <section class="login-dev" aria-label="Acceso rápido de desarrollo">
+            <p class="login-dev__title">Acceso rápido (solo desarrollo)</p>
+            <div class="login-dev__grid">
+              @for (account of devAccounts; track account.correo) {
+                <button
+                  type="button"
+                  class="login-dev__btn"
+                  [disabled]="loading()"
+                  (click)="quickLogin(account)"
+                >
+                  {{ account.label }}
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+      </div>
+
+      <footer class="login-footer">
+        <span>© 2026 ABBI Bid Management</span>
+      </footer>
+    </div>
+
+    <button
+      type="button"
+      class="login-help-btn"
+      (click)="toggleFaqPanel()"
+      [class.login-help-btn--active]="faqOpen()"
+      [attr.aria-expanded]="faqOpen()"
+      aria-controls="login-faq-panel"
+      aria-label="Ayuda y preguntas frecuentes"
+      title="Ayuda"
+    >
+      <span aria-hidden="true">?</span>
+    </button>
+  </main>
+
+  <aside class="login-aside" aria-hidden="true">
+    <div class="login-aside__inner">
+      <div class="bento">
+        <div
+          class="bento__hero"
+          [style.background-image]="'url(' + loginHeroEquipo + ')'"
+        >
+          <div class="bento__hero-overlay"></div>
+          <div class="bento__hero-text">
+            <p>Operaciones en Colombia y Perú</p>
+            <h3>Construyendo progreso</h3>
+          </div>
+        </div>
+        <div class="bento__stat">
+          <span class="bento__stat-value">2003</span>
+          <span class="bento__stat-label">Funcionando desde</span>
+        </div>
+        <div class="bento__shield">
+          <span class="material-symbols-outlined">verified_user</span>
+        </div>
+        <div
+          class="bento__operador"
+          [style.background-image]="'url(' + loginOperador + ')'"
+        ></div>
+        <div class="bento__talent">
+          <div class="bento__talent-head">
+            <span class="bento__talent-icon material-symbols-outlined">trending_up</span>
+            <h4>Trayectoria en Licitaciones Públicas</h4>
+          </div>
+          <p>
+            Contratos adjudicados con Vanti, EPM, EDEQ y Contugas en gas natural, energía
+            eléctrica y obras civiles.
+          </p>
+        </div>
+      </div>
+      <p class="login-aside__quote">
+        "Desde 2003 construyendo progreso, confianza, compromiso y resultados"
+      </p>
+    </div>
+  </aside>
+</div>

@@ -38,6 +38,12 @@ export class ProyeccionesQueryDto extends PaginationQueryDto {
   @IsString()
   search?: string;
 
+  @ApiPropertyOptional({ description: 'Filtrar por proceso origen (1:1)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  procesoOrigenId?: number;
+
   @ApiPropertyOptional({ description: 'Incluir registros eliminados (Admin/Supervisor)' })
   @IsOptional()
   incluirEliminados?: boolean;
@@ -96,11 +102,6 @@ export class UpdateProyeccionDto {
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   valorFacturacion?: number;
-
-  @ApiPropertyOptional({ enum: EstadoProyeccion })
-  @IsOptional()
-  @IsEnum(EstadoProyeccion)
-  estado?: EstadoProyeccion;
 }
 
 export class VincularProcesoResultanteDto {
@@ -142,6 +143,9 @@ export class ProyeccionResponseDto {
   procesoOrigenId: number | null;
   procesoResultanteId: number | null;
   procesoCodigo?: string | null;
+  procesoOrigenCodigo?: string | null;
+  procesoResultanteCodigo?: string | null;
+  proyeccionSiguienteId?: number | null;
   empresa?: string | null;
   segmento?: string | null;
   anioProyectado: number;

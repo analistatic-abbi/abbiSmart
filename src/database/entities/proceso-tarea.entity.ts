@@ -32,6 +32,12 @@ export class ProcesoTarea {
   @Column({ type: 'text', nullable: true })
   evidencia: string | null;
 
+  @Column({ name: 'evidencia_archivo_nombre', type: 'varchar', length: 255, nullable: true })
+  evidenciaArchivoNombre: string | null;
+
+  @Column({ name: 'evidencia_archivo_ruta', type: 'varchar', length: 500, nullable: true })
+  evidenciaArchivoRuta: string | null;
+
   @Column({ type: 'boolean', default: false })
   completada: boolean;
 

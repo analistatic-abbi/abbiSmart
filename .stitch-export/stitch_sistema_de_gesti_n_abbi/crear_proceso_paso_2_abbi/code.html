@@ -1,0 +1,360 @@
+<!DOCTYPE html><html class="h-full bg-[#f8f9fa]" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Crear Proceso - Paso 2: Indicadores Financieros</title>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Config from Brand Anchors -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#0e3b65",
+                        "outline-variant": "#c3c6d0",
+                        "surface-container-highest": "#e2e2e6",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "on-surface-variant": "#43474f",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeedf1",
+                        "tertiary-container": "#6f1c01",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-tertiary-container": "#f9825e",
+                        "background": "#f9f9fd",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "on-error": "#ffffff",
+                        "surface": "#f9f9fd",
+                        "on-primary-container": "#81a6d6",
+                        "on-secondary-container": "#435d7f",
+                        "surface-container-high": "#e8e8ec",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "secondary": "#466082",
+                        "surface-variant": "#e2e2e6",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-surface": "#2f3034",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadade",
+                        "on-surface": "#1a1c1f",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-container-low": "#f4f3f7",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-fixed": "#001c37",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "inverse-on-surface": "#f1f0f4",
+                        "surface-bright": "#f9f9fd",
+                        "on-primary-fixed-variant": "#204873",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "error-container": "#ffdad6",
+                        "outline": "#73777f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "button": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body class="h-full bg-background font-body-md text-on-background antialiased flex flex-col">
+<!-- TopNavBar (Linear flow suppression - only keeping logo/basic structure for 'Close/Cancel' intent if needed, but keeping it minimal as it's a process screen) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16">
+<div class="flex items-center gap-md">
+<!-- Brand Logo from data -->
+<img alt="Logo de la empresa" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_-Xdp-FS92DubXPux7sWjLEhsrOjeJjZK7QZo1qLQUhjnnwwoVPxN5zR1ZwihxnFIFcAVxjt2L9Hec77RzcWrlstxE7LausuR4Pna9C1gt9DnZke3b9TsUrYwZH9tPxqnki4rQTtMit-I7PqfUxgWi9SE3u53hQeR8UuTxhuiFrnnAQ09Rc2P4UEuP8tzMym7kjCcGaPghEIfCq_i1ZQIZ-PIpzOLuqxro1KYUAYOj4vSas0-nh4vzO4ri_VdUDicjQ">
+<span class="font-h3 text-h3 text-primary border-l border-outline-variant pl-md hidden md:block">Nuevo Proceso de Validación</span>
+</div>
+<div class="flex items-center gap-lg">
+<button class="flex items-center gap-sm text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+<span class="font-button text-button hidden md:block">Cancelar Proceso</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 mt-16 p-margin-mobile md:p-margin-desktop max-w-[1024px] mx-auto w-full flex flex-col gap-xl">
+<!-- Header Section with Stepper -->
+<section class="flex flex-col gap-lg">
+<div>
+<h1 class="font-h1 text-h1 text-primary">Configuración de Indicadores</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-sm">Define los valores requeridos para cada indicador financiero en este proceso.</p>
+</div>
+<!-- PrimeNG Style Stepper -->
+<div class="bg-surface-container-lowest p-lg rounded-lg border border-outline-variant flex items-center justify-between relative">
+<!-- Connecting Line -->
+<div class="absolute top-1/2 left-[10%] right-[10%] h-[2px] bg-surface-container-highest -z-10 -translate-y-1/2"></div>
+<!-- Step 1 (Completed) -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-md z-10">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-button text-button">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Datos Generales</span>
+</div>
+<!-- Step 2 (Active) -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-md z-10">
+<div class="w-10 h-10 rounded-full border-2 border-primary-container bg-surface-container-lowest text-primary-container flex items-center justify-center font-button text-button shadow-[0_0_0_4px_rgba(14,59,101,0.1)]">
+                        2
+                    </div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Indicadores</span>
+</div>
+<!-- Step 3 (Pending) -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-md z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-button text-button">
+                        3
+                    </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Confirmación</span>
+</div>
+</div>
+</section>
+<!-- Data Table Section -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant flex flex-col overflow-hidden shadow-sm">
+<!-- Table Header / Toolbar -->
+<div class="p-lg border-b border-outline-variant bg-surface flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+<h2 class="font-h3 text-h3 text-primary">Matriz de Indicadores</h2>
+</div>
+<div class="flex gap-sm">
+<button class="p-2 border border-outline-variant rounded bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant transition-colors" title="Restaurar valores">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="p-sm px-md border-b border-outline-variant font-button text-button text-primary w-1/3">Nombre del Indicador</th>
+<th class="p-sm px-md border-b border-outline-variant font-button text-button text-primary w-1/3">Valor Requerido (%)</th>
+<th class="p-sm px-md border-b border-outline-variant font-button text-button text-primary w-1/3">Estado Actual</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1: KTNO -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">KTNO</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Capital de Trabajo Neto Operativo</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="15.0">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] font-label-sm text-label-sm border border-[#CEEAD6]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 2: PN -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">PN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Patrimonio Neto</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="25.5">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] font-label-sm text-label-sm border border-[#CEEAD6]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 3: ROE -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">ROE</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rentabilidad Financiera</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="12.0">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#FCE8E6] text-[#A50E0E] font-label-sm text-label-sm border border-[#FAD2CF]">
+<span class="material-symbols-outlined text-[16px]">error</span>
+                                    No Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 4: ROA -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">ROA</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rentabilidad Económica</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="8.5">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] font-label-sm text-label-sm border border-[#CEEAD6]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 5: MDN -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group bg-error-container/10">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">MDN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Margen Neto</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-error rounded focus:outline-none focus:ring-2 focus:ring-error focus:border-transparent font-body-md text-body-md transition-shadow bg-surface-container-lowest" step="0.1" type="number" value="5.0">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#FCE8E6] text-[#A50E0E] font-label-sm text-label-sm border border-[#FAD2CF]">
+<span class="material-symbols-outlined text-[16px]">error</span>
+                                    No Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 6: IL -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">IL</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Índice de Liquidez</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="1.5">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] font-label-sm text-label-sm border border-[#CEEAD6]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Cumple
+                                </span>
+</td>
+</tr>
+<!-- Row 7: E -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">E</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Endeudamiento</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="45.0">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#FEF7E0] text-[#B06000] font-label-sm text-label-sm border border-[#FCE8B2]">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                                    En Riesgo
+                                </span>
+</td>
+</tr>
+<!-- Row 8: RCI -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="p-sm px-md">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-background font-medium">RCI</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rotación de Capital</span>
+</div>
+</td>
+<td class="p-sm px-md">
+<div class="relative max-w-[150px]">
+<input class="w-full h-10 px-md py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent font-body-md text-body-md transition-shadow" step="0.1" type="number" value="2.1">
+</div>
+</td>
+<td class="p-sm px-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded bg-[#E6F4EA] text-[#137333] font-label-sm text-label-sm border border-[#CEEAD6]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                    Cumple
+                                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Actions / Navigation -->
+<section class="flex justify-between items-center mt-md pt-lg border-t border-outline-variant">
+<button class="h-10 px-lg bg-surface-container-lowest border border-outline-variant text-primary-container rounded flex items-center justify-center font-button text-button hover:bg-surface-container-low transition-colors gap-sm">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                Atrás
+            </button>
+<button class="h-10 px-lg bg-[#0E3B65] text-on-primary rounded flex items-center justify-center font-button text-button hover:bg-primary transition-colors gap-sm shadow-md">
+                Siguiente
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</section>
+</main>
+</body></html>

@@ -1,0 +1,78 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Proyecciones</h1>
+      <p>Proyecciones de mercado y publicación.</p>
+    </div>
+    <div class="header-actions">
+      <app-proyecciones-vista-toggle vistaActual="tabla" [anio]="anio()" />
+      @if (puedeAsignarMercado()) {
+        <a class="btn-secondary" routerLink="/proyecciones/asignar-mercado">Asignar mercado</a>
+      }
+      @if (puedeEscribir()) {
+        <a class="btn-primary" routerLink="/proyecciones/nuevo">Nueva proyección</a>
+      }
+    </div>
+  </header>
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <select [ngModel]="estado()" (ngModelChange)="estado.set($event); onFilter()">
+      <option value="">Todos los estados</option>
+      @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
+    </select>
+    <select [ngModel]="mercado()" (ngModelChange)="mercado.set($event); onFilter()">
+      <option value="">Todos los mercados</option>
+      @for (m of mercados; track m) { <option [value]="m">{{ m }}</option> }
+    </select>
+    <input
+      type="number"
+      placeholder="Todos los años"
+      [ngModel]="anio()"
+      (ngModelChange)="anio.set($event === '' || $event === null ? null : +$event)"
+      (keyup.enter)="onFilter()"
+    />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Proceso origen</th>
+            <th>Empresa</th>
+            <th>Año</th>
+            <th>Fecha est. publicación</th>
+            <th>Valor venta</th>
+            <th>Valor facturación</th>
+            <th>Estado</th>
+            <th>Mercado</th>
+            <th>Días faltantes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of items(); track p.id) {
+            <tr>
+              <td>{{ p.procesoCodigo ?? (p.procesoOrigenId ? 'ID ' + p.procesoOrigenId : 'Manual') }}</td>
+              <td>{{ p.empresa ?? '—' }}</td>
+              <td>{{ p.anioProyectado }}</td>
+              <td>{{ p.fechaEstimadaPublicacion }}</td>
+              <td>{{ p.valorVenta }}</td>
+              <td>{{ p.valorFacturacion }}</td>
+              <td><span [class]="estadoClass(p.estado)">{{ p.estado }}</span></td>
+              <td>{{ p.mercado ?? '—' }}</td>
+              <td>{{ p.diasFaltantes ?? '—' }}</td>
+              <td><a [routerLink]="['/proyecciones', p.id]">Ver detalle</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="10">No hay proyecciones registradas.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

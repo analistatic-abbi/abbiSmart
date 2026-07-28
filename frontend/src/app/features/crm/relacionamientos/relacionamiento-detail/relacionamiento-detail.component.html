@@ -1,0 +1,50 @@
+@if (loading()) {
+  <p>Cargando...</p>
+} @else if (error() && !item()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  @if (item(); as r) {
+  <section class="page">
+    <a class="back" routerLink="/crm/relacionamientos">← Volver a relacionamientos</a>
+
+    <header class="page__header">
+      <div>
+        <h1>Relacionamiento #{{ r.id }}</h1>
+        <p>Contacto #{{ r.contactoId }} · Emisor usuario #{{ r.emisorUsuarioId }}</p>
+      </div>
+    </header>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <div class="panel form-grid">
+      <label>Canal
+        <select [disabled]="!puedeEscribir()" [ngModel]="canal()" (ngModelChange)="canal.set($event)">
+          @for (c of canales; track c) { <option [value]="c">{{ c }}</option> }
+        </select>
+      </label>
+      <label>Resultado
+        <select [disabled]="!puedeEscribir()" [ngModel]="resultado()" (ngModelChange)="resultado.set($event)">
+          @for (res of resultados; track res) { <option [value]="res">{{ res }}</option> }
+        </select>
+      </label>
+      <label class="full">Mensaje <textarea [disabled]="!puedeEscribir()" [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea></label>
+      <label>Fecha mensaje <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" /></label>
+      @if (resultado() === resultadoReunion) {
+        <label>Fecha reunión <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaReunion()" (ngModelChange)="fechaReunion.set($event)" /></label>
+      }
+      <label class="full">Respuesta <textarea [disabled]="!puedeEscribir()" [ngModel]="respuesta()" (ngModelChange)="respuesta.set($event)"></textarea></label>
+      <label>Fecha respuesta <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaRespuesta()" (ngModelChange)="fechaRespuesta.set($event)" /></label>
+    </div>
+
+    @if (puedeEscribir()) {
+    <div class="form-actions">
+      <button type="button" class="btn-primary" [disabled]="saving()" (click)="guardar()">
+        {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+    }
+  </section>
+  }
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal - Asignar Validadores</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface-variant h-screen w-screen overflow-hidden flex items-center justify-center antialiased">
+<!-- Mock Background App Content for Context -->
+<div class="absolute inset-0 flex flex-col pointer-events-none opacity-40 blur-sm grayscale-[30%]">
+<header class="h-16 w-full bg-surface-container-lowest border-b border-outline-variant flex items-center px-lg"></header>
+<div class="flex flex-1">
+<aside class="w-[260px] border-r border-outline-variant bg-surface-container-lowest hidden md:block"></aside>
+<main class="flex-1 bg-background p-lg flex flex-col gap-md">
+<div class="h-32 bg-surface-container-lowest rounded-xl border border-outline-variant w-full"></div>
+<div class="h-64 bg-surface-container-lowest rounded-xl border border-outline-variant w-full"></div>
+</main>
+</div>
+</div>
+<!-- Backdrop Overlay -->
+<div class="fixed inset-0 bg-on-background/40 z-40 backdrop-blur-[1px] transition-opacity flex items-center justify-center p-md">
+<!-- Modal Container (PrimeNG Inspired: Corporate, Clean, Structured) -->
+<div class="bg-surface-container-lowest w-full max-w-[520px] rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.08)] border border-outline-variant/30 flex flex-col transform transition-all overflow-hidden relative z-50">
+<!-- Modal Header -->
+<div class="px-lg py-md border-b border-outline-variant/50 flex items-center justify-between bg-surface-bright">
+<h2 class="font-h3 text-h3 text-primary">Asignar Validadores</h2>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors rounded-full p-xs hover:bg-surface-container focus:outline-none focus:ring-2 focus:ring-secondary-fixed">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-lg flex flex-col gap-lg">
+<!-- Multi-select Input Area -->
+<div class="flex flex-col gap-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Buscar por nombre o correo</label>
+<div class="relative group cursor-text">
+<div class="flex items-center justify-between border border-outline-variant rounded-DEFAULT h-[40px] px-sm bg-surface-container-lowest transition-all focus-within:border-primary-container focus-within:ring-1 focus-within:ring-primary-container">
+<div class="flex items-center gap-sm flex-1">
+<span class="material-symbols-outlined text-outline text-[20px]" data-icon="search">search</span>
+<input type="text" placeholder="Seleccionar rol Validador..." class="w-full bg-transparent outline-none border-none focus:ring-0 font-body-md text-body-md text-on-surface placeholder:text-outline-variant p-0">
+</div>
+<button class="text-outline hover:text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Selected Chips Area -->
+<div class="flex flex-col gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Validadores seleccionados (2)</span>
+<div class="flex flex-wrap gap-sm p-sm bg-surface-container-low border border-outline-variant/30 rounded-DEFAULT min-h-[48px] items-center">
+<!-- Chip 1 -->
+<div class="inline-flex items-center gap-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1 shadow-sm hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined text-[16px] text-secondary" data-icon="person">person</span>
+<span class="font-body-md text-body-md text-on-surface text-[13px] font-medium">Ana López</span>
+<button class="text-on-surface-variant hover:text-error flex items-center justify-center ml-xs" aria-label="Remover">
+<span class="material-symbols-outlined text-[16px]" data-icon="cancel">cancel</span>
+</button>
+</div>
+<!-- Chip 2 -->
+<div class="inline-flex items-center gap-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1 shadow-sm hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined text-[16px] text-secondary" data-icon="person">person</span>
+<span class="font-body-md text-body-md text-on-surface text-[13px] font-medium">Carlos Ruiz</span>
+<button class="text-on-surface-variant hover:text-error flex items-center justify-center ml-xs" aria-label="Remover">
+<span class="material-symbols-outlined text-[16px]" data-icon="cancel">cancel</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Information Helper -->
+<div class="flex items-start gap-sm bg-secondary-fixed-dim/20 p-sm rounded-DEFAULT border border-secondary-fixed-dim/50">
+<span class="material-symbols-outlined text-primary-container text-[20px] mt-0.5" data-icon="info">info</span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                        Se enviará un correo a cada Validador seleccionado para notificarle de su asignación a este flujo operativo.
+                    </p>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-lg py-md border-t border-outline-variant/50 bg-surface flex justify-end gap-md items-center">
+<button class="h-[40px] px-lg rounded-lg border border-outline-variant bg-surface-container-lowest font-button text-button text-primary-container hover:bg-surface-container-low hover:border-primary-container transition-all focus:outline-none focus:ring-2 focus:ring-secondary-fixed">
+                    Cancelar
+                </button>
+<button class="h-[40px] px-lg rounded-lg bg-primary-container font-button text-button text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-1 focus:ring-offset-surface-container-lowest">
+                    Enviar a validación
+                </button>
+</div>
+</div>
+</div>
+</body></html>

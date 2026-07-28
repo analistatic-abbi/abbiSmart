@@ -1,0 +1,22 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <img class="auth-card__logo" [src]="logoUrl" alt="abbi" />
+    <h1>Activar cuenta</h1>
+    <p>Defina su contraseña para activar el acceso.</p>
+
+    @if (message()) {
+      <p class="success">{{ message() }}</p>
+      <a routerLink="/login">Ir al inicio de sesión</a>
+    } @else if (tokenInvalido()) {
+      <p class="error">{{ error() }}</p>
+      <a routerLink="/login">Ir al inicio de sesión</a>
+    } @else {
+      @if (error()) { <p class="error">{{ error() }}</p> }
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label>Contraseña <input type="password" formControlName="password" /></label>
+        <label>Confirmar <input type="password" formControlName="confirm" /></label>
+        <button type="submit" class="btn-primary" [disabled]="loading()">Activar</button>
+      </form>
+    }
+  </div>
+</section>

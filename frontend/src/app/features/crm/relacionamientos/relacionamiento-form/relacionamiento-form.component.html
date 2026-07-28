@@ -1,0 +1,56 @@
+<section class="page">
+  <a class="back" routerLink="/crm/relacionamientos">← Volver a relacionamientos</a>
+
+  <header class="page__header">
+    <div>
+      <h1>Nuevo relacionamiento</h1>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="panel form-grid">
+    <label>Contacto
+      <app-searchable-select
+        [options]="contactoOptions()"
+        [ngModel]="contactoId()"
+        (ngModelChange)="contactoId.set($event)"
+        placeholder="Seleccione..."
+        searchPlaceholder="Buscar contacto..."
+      />
+    </label>
+
+    <label>Canal
+      <select [ngModel]="canal()" (ngModelChange)="canal.set($event)">
+        @for (c of canales; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </label>
+
+    <label class="full">Mensaje <textarea [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea></label>
+    <label>Fecha mensaje <input type="date" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" /></label>
+
+    <label>Resultado
+      <select [ngModel]="resultado()" (ngModelChange)="resultado.set($event)">
+        @for (r of resultados; track r) { <option [value]="r">{{ r }}</option> }
+      </select>
+    </label>
+
+    @if (resultado() === resultadoReunion) {
+      <label>Fecha reunión <input type="date" [ngModel]="fechaReunion()" (ngModelChange)="fechaReunion.set($event)" /></label>
+    }
+
+    @if (resultado() === resultadoReferido) {
+      <label class="full">Nombre referido <input type="text" [ngModel]="refNombre()" (ngModelChange)="refNombre.set($event)" /></label>
+      <label>Cargo <input type="text" [ngModel]="refCargo()" (ngModelChange)="refCargo.set($event)" /></label>
+      <label>Teléfono <input type="text" [ngModel]="refTelefono()" (ngModelChange)="refTelefono.set($event)" /></label>
+      <label>Correo <input type="email" [ngModel]="refCorreo()" (ngModelChange)="refCorreo.set($event)" /></label>
+    }
+  </div>
+
+  <div class="form-actions">
+    <a class="btn-secondary" routerLink="/crm/relacionamientos">Cancelar</a>
+    <button type="button" class="btn-primary" [disabled]="loading()" (click)="guardar()">Guardar</button>
+  </div>
+</section>

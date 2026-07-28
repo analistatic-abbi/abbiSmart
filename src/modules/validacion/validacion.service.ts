@@ -17,6 +17,7 @@ import { Usuario } from '../../database/entities/usuario.entity';
 import { ValidacionProceso } from '../../database/entities/validacion-proceso.entity';
 import { AuditService } from '../audit/audit.service';
 import { MailService } from '../mail/mail.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { AsignarValidadoresDto, VeredictoValidacionDto } from '../procesos/dto/proceso.dto';
 import { ProcesosService } from '../procesos/procesos.service';
 
@@ -40,8 +41,28 @@ export class ValidacionService {
     private readonly procesosService: ProcesosService,
     private readonly permisosService: PermisosService,
     private readonly mailService: MailService,
+    private readonly notificacionesService: NotificacionesService,
     private readonly auditService: AuditService,
   ) {}
+
+  async findValidadoresDisponibles(): Promise<
+    Array<{ id: number; nombre: string; correo: string }>
+  > {
+    const validadores = await this.usuarioRepository.find({
+      where: {
+        rol: Rol.VALIDADOR,
+        estado: EstadoUsuario.ACTIVO,
+        eliminado: false,
+      },
+      order: { nombre: 'ASC' },
+    });
+
+    return validadores.map((validador) => ({
+      id: validador.id,
+      nombre: validador.nombre,
+      correo: validador.correo,
+    }));
+  }
 
   async findPendientes(
     validadorId: number,
@@ -225,6 +246,7 @@ export class ValidacionService {
     await this.validacionRepository.save(validacion);
 
     const proceso = validacion.proceso;
+    const estadoAntes = proceso.estado;
     const validaciones = await this.validacionRepository.find({
       where: { procesoId: proceso.id },
     });
@@ -244,6 +266,14 @@ export class ValidacionService {
     }
 
     await this.procesoRepository.save(proceso);
+
+    if (
+      validacion.veredicto === VeredictoValidacion.REQUIERE_CORRECCION &&
+      estadoAntes === EstadoProceso.EN_VALIDACION &&
+      proceso.estado === EstadoProceso.EN_PROCESO
+    ) {
+      await this.notificarProcesoDevueltoValidacion(proceso, validacion.comentario);
+    }
 
     await this.auditService.log({
       usuarioId: actorId,
@@ -303,5 +333,60 @@ export class ValidacionService {
       fechaAsignacion: item.fechaAsignacion,
       fechaVeredicto: item.fechaVeredicto,
     }));
+  }
+
+  private async notificarProcesoDevueltoValidacion(
+    proceso: Proceso,
+    comentario: string | null,
+  ): Promise<void> {
+    const procesoLabel = proceso.codigo ?? proceso.idDigitado ?? `ID ${proceso.id}`;
+    const comentarioResumen = comentario?.trim()
+      ? ` Comentario: ${comentario.trim().slice(0, 200)}`
+      : '';
+    const mensaje = `El proceso ${procesoLabel} fue devuelto de validación y requiere correcciones.${comentarioResumen}`;
+
+    const destinatarios = await this.resolverDestinatariosCorreccionProceso(
+      proceso.paisId,
+      proceso.usuarioCreadorId,
+    );
+
+    for (const usuarioId of destinatarios) {
+      await this.notificacionesService.crear({
+        usuarioId,
+        tipo: 'proceso_validacion_correccion',
+        mensaje,
+        entidadTipo: 'proceso',
+        entidadId: proceso.id,
+      });
+    }
+  }
+
+  private async resolverDestinatariosCorreccionProceso(
+    paisId: number,
+    usuarioCreadorId: number,
+  ): Promise<number[]> {
+    const rows = await this.usuarioRepository.query(
+      `SELECT id
+       FROM usuarios
+       WHERE eliminado = FALSE
+         AND estado = ?
+         AND (
+           id = ?
+           OR rol IN (?, ?)
+           OR (rol = ? AND pais_id = ?)
+         )`,
+      [
+        EstadoUsuario.ACTIVO,
+        usuarioCreadorId,
+        Rol.ADMINISTRADOR,
+        Rol.SUPERVISOR_SISTEMA,
+        Rol.OPERADOR,
+        paisId,
+      ],
+    );
+
+    return Array.from(
+      new Set(rows.map((row: { id: number }) => Number(row.id))),
+    );
   }
 }

@@ -1,0 +1,19 @@
+<section class="page">
+  <a class="back" routerLink="/proyecciones">← Volver a proyecciones</a>
+  <header class="page__header"><div><h1>Nueva proyección</h1></div></header>
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+
+  <div class="panel form-grid">
+    <label>Proceso origen (opcional) <input type="number" [ngModel]="procesoOrigenId()" (ngModelChange)="procesoOrigenId.set(+$event || null)" /></label>
+    <label>Año proyectado <input type="number" [ngModel]="anioProyectado()" (ngModelChange)="anioProyectado.set(+$event)" /></label>
+    <label>Fecha est. publicación <input type="date" [ngModel]="fechaEstimadaPublicacion()" (ngModelChange)="fechaEstimadaPublicacion.set($event)" /></label>
+    <label>Valor venta <input type="number" step="0.01" [ngModel]="valorVenta()" (ngModelChange)="valorVenta.set(+$event)" /></label>
+    <label>Valor facturación <input type="number" step="0.01" [ngModel]="valorFacturacion()" (ngModelChange)="valorFacturacion.set(+$event)" /></label>
+  </div>
+
+  <div class="form-actions">
+    <a class="btn-secondary" routerLink="/proyecciones">Cancelar</a>
+    <button type="button" class="btn-primary" [disabled]="loading()" (click)="guardar()">Crear</button>
+  </div>
+</section>

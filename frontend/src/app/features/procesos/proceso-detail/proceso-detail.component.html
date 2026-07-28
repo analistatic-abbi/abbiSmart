@@ -1,0 +1,545 @@
+@if (loading()) {
+
+  <p>Cargando proceso...</p>
+
+} @else if (error()) {
+
+  <p class="error">{{ error() }}</p>
+
+} @else {
+
+  @if (proceso(); as p) {
+
+  <section class="detail">
+
+    <header class="detail__header">
+
+      <div>
+
+        <a routerLink="/procesos" class="back">← Volver a procesos</a>
+
+        <h1>{{ p.codigo ?? p.idDigitado }}</h1>
+
+        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · <span class="badge">{{ p.estado }}</span></p>
+
+      </div>
+
+      <div class="detail__actions">
+
+        @if (puedeEscribir()) {
+
+        @if (puedeAsignarValidadores()) {
+
+          <button type="button" class="btn-primary" (click)="abrirValidadores()">Asignar validadores</button>
+
+        }
+
+        @if (estadosPermitidos().length > 0) {
+
+          <button
+            type="button"
+            [class]="soloPuedeDescartar() ? 'btn-secondary' : 'btn-primary'"
+            (click)="abrirCambioEstado()"
+          >
+            {{ soloPuedeDescartar() ? 'Descartar proceso' : 'Cambiar estado' }}
+          </button>
+
+        }
+
+        @if (puedeEliminarDirecto() || puedeSolicitarEliminacion()) {
+
+          <button type="button" class="btn-danger" (click)="abrirEliminar()">
+
+            {{ puedeEliminarDirecto() ? 'Eliminar' : 'Solicitar eliminación' }}
+
+          </button>
+
+        }
+
+        }
+
+      </div>
+
+    </header>
+
+    @if (guiaSiguientePaso(); as guia) {
+      <div class="guide">{{ guia }}</div>
+    }
+
+    @if (proyeccionRecienGeneradaId(); as proyeccionId) {
+      <div class="guide guide--success">
+        Se generó la proyección de mercado.
+        <a [routerLink]="['/proyecciones', proyeccionId]">Ver proyección (ID {{ proyeccionId }})</a>
+      </div>
+    }
+
+    <nav class="tabs">
+
+      <button type="button" [class.active]="tab() === 'info'" (click)="setTab('info')">Información</button>
+
+      <button type="button" [class.active]="tab() === 'fechas'" (click)="setTab('fechas')">Fechas</button>
+
+      <button type="button" [class.active]="tab() === 'tareas'" (click)="setTab('tareas')">Tareas</button>
+
+    </nav>
+
+
+
+    @if (tab() === 'info') {
+
+      <div class="panel grid">
+
+        <div><span>Segmento</span><strong>{{ p.segmento }}</strong></div>
+
+        <div><span>Tipo proceso</span><strong>{{ p.tipoProceso }}</strong></div>
+
+        <div><span>Instrumento</span><strong>{{ p.tipoInstrumento }}</strong></div>
+
+        <div><span>Cuantía</span><strong>{{ p.cuantia }} {{ p.moneda }}</strong></div>
+
+        <div><span>Plazo</span><strong>{{ p.plazoEjecucionMeses }} meses</strong></div>
+
+        <div>
+          <span>Avance</span>
+          <strong>{{ avancePorcentaje() }}%</strong>
+          @if (tareas().length) {
+            <small class="muted">{{ tareasCompletadas().length }}/{{ tareasAplicables().length }} tareas aplicables</small>
+          }
+        </div>
+
+        @if (proyeccionAsociadaId(); as proyeccionId) {
+          <div>
+            <span>Proyección de mercado</span>
+            <strong>
+              <a [routerLink]="['/proyecciones', proyeccionId]">ID {{ proyeccionId }}</a>
+            </strong>
+          </div>
+        }
+
+      </div>
+
+
+
+      @if (p.indicadores?.length) {
+
+        <div class="panel">
+
+          <h3>Indicadores financieros</h3>
+
+          <table>
+
+            <thead><tr><th>Código</th><th>Valor</th><th>Cumple</th></tr></thead>
+
+            <tbody>
+
+              @for (ind of p.indicadores; track ind.indicadorCodigo) {
+
+                <tr>
+
+                  <td>{{ ind.indicadorCodigo }}</td>
+
+                  <td>{{ ind.valorRequerido ?? '—' }}</td>
+
+                  <td>{{ ind.cumple ?? '—' }}</td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      }
+
+    }
+
+
+
+    @if (tab() === 'fechas') {
+
+      <div class="panel">
+
+        @if (puedeEditarFechas() && !editandoFechas()) {
+
+          <div class="panel__toolbar">
+
+            <button type="button" class="btn-secondary" (click)="iniciarEdicionFechas()">Editar fechas</button>
+
+          </div>
+
+        }
+
+
+
+        @if (editandoFechas()) {
+
+          <div class="grid form-grid">
+
+            <label>Fecha apertura <input type="date" [ngModel]="fechasForm().fechaApertura" (ngModelChange)="updateFecha('fechaApertura', $event)" /></label>
+
+            <label>Fecha cierre <input type="date" [ngModel]="fechasForm().fechaCierre" (ngModelChange)="updateFecha('fechaCierre', $event)" /></label>
+
+            <label>Manifestación interés <input type="date" [ngModel]="fechasForm().fechaManifestacionInteres" (ngModelChange)="updateFecha('fechaManifestacionInteres', $event)" /></label>
+
+            <label>Adquisición derecho <input type="date" [ngModel]="fechasForm().fechaAdquisicionDerecho" (ngModelChange)="updateFecha('fechaAdquisicionDerecho', $event)" /></label>
+
+            <label>Reunión aclaratoria <input type="date" [ngModel]="fechasForm().fechaReunionAclaratoria" (ngModelChange)="updateFecha('fechaReunionAclaratoria', $event)" /></label>
+
+            <label>Visita técnica <input type="date" [ngModel]="fechasForm().fechaVisitaTecnica" (ngModelChange)="updateFecha('fechaVisitaTecnica', $event)" /></label>
+
+            <label>Solicitudes aclaración <input type="date" [ngModel]="fechasForm().fechaSolicitudesAclaracion" (ngModelChange)="updateFecha('fechaSolicitudesAclaracion', $event)" /></label>
+
+            <label>Respuesta aclaración <input type="date" [ngModel]="fechasForm().fechaRespuestaAclaracion" (ngModelChange)="updateFecha('fechaRespuestaAclaracion', $event)" /></label>
+
+            <label>Limitación Mypymes <input type="date" [ngModel]="fechasForm().fechaLimitacionMypymes" (ngModelChange)="updateFecha('fechaLimitacionMypymes', $event)" /></label>
+
+          </div>
+
+          <div class="panel__toolbar">
+
+            <button type="button" class="btn-secondary" (click)="cancelarEdicionFechas()">Cancelar</button>
+
+            <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="guardarFechas()">
+
+              {{ actionLoading() ? 'Guardando...' : 'Guardar fechas' }}
+
+            </button>
+
+          </div>
+
+        } @else {
+
+          <div class="grid">
+
+            <div><span>Apertura</span><strong>{{ p.fechaApertura ?? '—' }}</strong></div>
+
+            <div><span>Cierre</span><strong>{{ p.fechaCierre ?? '—' }}</strong></div>
+
+            <div><span>Manifestación interés</span><strong>{{ p.fechaManifestacionInteres ?? '—' }}</strong></div>
+
+            <div><span>Adquisición derecho</span><strong>{{ p.fechaAdquisicionDerecho ?? '—' }}</strong></div>
+
+            <div><span>Reunión aclaratoria</span><strong>{{ p.fechaReunionAclaratoria ?? '—' }}</strong></div>
+
+            <div><span>Visita técnica</span><strong>{{ p.fechaVisitaTecnica ?? '—' }}</strong></div>
+
+            <div><span>Solicitudes aclaración</span><strong>{{ p.fechaSolicitudesAclaracion ?? '—' }}</strong></div>
+
+            <div><span>Respuesta aclaración</span><strong>{{ p.fechaRespuestaAclaracion ?? '—' }}</strong></div>
+
+            <div><span>Limitación Mypymes</span><strong>{{ p.fechaLimitacionMypymes ?? '—' }}</strong></div>
+
+          </div>
+
+        }
+
+      </div>
+
+      <div class="panel">
+        <h3>Historial de cambios</h3>
+        <table>
+          <thead><tr><th>Campo</th><th>Valor anterior</th><th>Valor nuevo</th><th>Fecha</th></tr></thead>
+          <tbody>
+            @for (h of historialFechas(); track h.id) {
+              <tr>
+                <td>{{ h.campo ?? '—' }}</td>
+                <td>{{ h.valorAnterior ?? '—' }}</td>
+                <td>{{ h.valorNuevo ?? '—' }}</td>
+                <td>{{ h.fecha }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4">Sin historial de fechas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    }
+
+
+
+    @if (tab() === 'tareas') {
+
+      <div class="panel">
+
+        <div class="tareas-summary">
+          <strong>Avance: {{ avancePorcentaje() }}%</strong>
+          <span class="muted">
+            {{ tareasCompletadas().length }} de {{ tareasAplicables().length }} aplicables completadas
+            · {{ tareas().length - tareasAplicables().length }} no aplican
+          </span>
+        </div>
+
+        <table>
+
+          <thead><tr><th>Tarea</th><th>Estado</th><th>Evidencia</th>@if (puedeEscribir()) { <th>Acción</th> }</tr></thead>
+
+          <tbody>
+
+            @for (t of tareas(); track t.id) {
+
+              <tr [class.tarea--na]="!t.aplica">
+
+                <td>{{ labelTarea(t.tareaCodigo) }}</td>
+
+                <td>
+                  <span
+                    class="tarea-estado"
+                    [class.tarea-estado--ok]="t.aplica && t.completada"
+                    [class.tarea-estado--pending]="t.aplica && !t.completada"
+                    [class.tarea-estado--na]="!t.aplica"
+                  >
+                    {{ estadoTareaLabel(t) }}
+                  </span>
+                </td>
+
+                <td class="evidencia-cell">
+                  @if (t.evidenciaArchivoNombre) {
+                    <button type="button" class="link" (click)="descargarEvidencia(t)">
+                      Ver archivo: {{ t.evidenciaArchivoNombre }}
+                    </button>
+                  }
+                  @if (t.evidencia?.trim()) {
+                    <span class="evidencia-text">{{ t.evidencia }}</span>
+                  }
+                  @if (!t.evidenciaArchivoNombre && !t.evidencia?.trim()) {
+                    <span class="muted">—</span>
+                  }
+                </td>
+
+                @if (puedeEscribir()) {
+                <td>
+
+                  @if (!t.completada && t.aplica) {
+
+                    <button type="button" class="link" (click)="tareaSeleccionada.set(t)">Completar</button>
+
+                  } @else if (!t.aplica) {
+                    <span class="muted">—</span>
+                  }
+
+                </td>
+                }
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </section>
+
+
+
+  @if (showEstadoModal()) {
+
+    <div class="modal-backdrop">
+
+      <div class="modal">
+
+        <h3>Cambiar estado</h3>
+
+        <select [ngModel]="nuevoEstado()" (ngModelChange)="nuevoEstado.set($event)">
+
+          @for (e of estadosPermitidos(); track e) {
+
+            <option [value]="e">{{ e }}</option>
+
+          }
+
+        </select>
+
+        <div class="modal__actions">
+
+          <button type="button" class="btn-secondary" (click)="showEstadoModal.set(false)">Cancelar</button>
+
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="confirmarCambioEstado()">Confirmar</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+
+  @if (showValidadoresModal()) {
+
+    <div class="modal-backdrop">
+
+      <div class="modal modal--wide">
+
+        <h3>Asignar validadores</h3>
+
+        <p class="modal__hint">Seleccione uno o más validadores para enviar el proceso a validación.</p>
+
+        <div class="validadores-list">
+
+          @for (v of validadores(); track v.id) {
+
+            <label class="checkbox-row">
+
+              <input
+
+                type="checkbox"
+
+                [checked]="isValidadorSeleccionado(v.id)"
+
+                (change)="toggleValidador(v.id, $any($event.target).checked)"
+
+              />
+
+              <span>{{ v.nombre }} <small>{{ v.correo }}</small></span>
+
+            </label>
+
+          }
+
+        </div>
+
+        <div class="modal__actions">
+
+          <button type="button" class="btn-secondary" (click)="showValidadoresModal.set(false)">Cancelar</button>
+
+          <button
+
+            type="button"
+
+            class="btn-primary"
+
+            [disabled]="actionLoading() || validadoresSeleccionados().length === 0"
+
+            (click)="confirmarValidadores()"
+
+          >
+
+            Asignar
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+
+  @if (showEliminarModal()) {
+
+    <div class="modal-backdrop">
+
+      <div class="modal">
+
+        @if (puedeEliminarDirecto()) {
+
+          <h3>Eliminar proceso</h3>
+
+          @if (dependencias().length > 0) {
+
+            <p>Este proceso tiene dependencias:</p>
+
+            <ul class="dependencias">
+
+              @for (dep of dependencias(); track dep.tipo + dep.id) {
+
+                <li>{{ dep.descripcion }}</li>
+
+              }
+
+            </ul>
+
+            <label class="checkbox-row">
+
+              <input type="checkbox" [ngModel]="confirmarDependientes()" (ngModelChange)="confirmarDependientes.set($event)" />
+
+              <span>Confirmo eliminar aunque existan dependencias</span>
+
+            </label>
+
+          } @else {
+
+            <p>¿Confirma que desea eliminar este proceso?</p>
+
+          }
+
+        } @else {
+
+          <h3>Solicitar eliminación</h3>
+
+          <label>Motivo <textarea [ngModel]="motivoEliminacion()" (ngModelChange)="motivoEliminacion.set($event)" minlength="5"></textarea></label>
+
+        }
+
+        <div class="modal__actions">
+
+          <button type="button" class="btn-secondary" (click)="showEliminarModal.set(false)">Cancelar</button>
+
+          <button type="button" class="btn-danger" [disabled]="actionLoading()" (click)="confirmarEliminacion()">
+
+            {{ puedeEliminarDirecto() ? 'Eliminar' : 'Enviar solicitud' }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+
+  @if (tareaSeleccionada(); as tarea) {
+
+    <div class="modal-backdrop">
+
+      <div class="modal">
+
+        <h3>Completar tarea: {{ labelTarea(tarea.tareaCodigo) }}</h3>
+
+        <label class="file-field">
+          Adjuntar evidencia (archivo)
+          <input type="file" (change)="onArchivoSeleccionado($event)" />
+        </label>
+        @if (archivoEvidencia(); as file) {
+          <p class="muted">Seleccionado: {{ file.name }}</p>
+        }
+
+        <label>Nota adicional (opcional)
+          <textarea [ngModel]="evidencia()" (ngModelChange)="evidencia.set($event)" placeholder="Descripción breve del adjunto"></textarea>
+        </label>
+
+        <div class="modal__actions">
+
+          <button type="button" class="btn-secondary" (click)="tareaSeleccionada.set(null); archivoEvidencia.set(null)">Cancelar</button>
+
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="completarTarea(tarea)">Confirmar</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+  }
+
+}
+
+

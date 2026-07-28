@@ -1,0 +1,66 @@
+<section class="page">
+  <a class="back" routerLink="/proyecciones">← Volver a proyecciones</a>
+
+  <header class="page__header">
+    <div>
+      <h1>Asignación de mercado anual</h1>
+      <p>Asigne mercado General u Objetivo a las proyecciones del año siguiente.</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <label>
+      Año proyectado
+      <input type="number" [ngModel]="anio()" (ngModelChange)="anio.set(+$event); onAnioChange()" />
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" [ngModel]="soloSinMercado()" (ngModelChange)="soloSinMercado.set($event); onFiltroChange()" />
+      Solo sin mercado asignado
+    </label>
+  </div>
+
+  @if (message()) {
+    <p class="success">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Proceso</th>
+            <th>Empresa</th>
+            <th>Mercado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.proyeccionId; let i = $index) {
+            <tr>
+              <td>{{ row.procesoCodigo ?? 'Manual' }}</td>
+              <td>{{ row.empresa }}</td>
+              <td>
+                <select [ngModel]="row.mercado" (ngModelChange)="updateMercado(i, $event)">
+                  <option value="">Sin asignar</option>
+                  @for (m of mercados; track m) { <option [value]="m">{{ m }}</option> }
+                </select>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="3">No hay proyecciones para este año.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-primary" [disabled]="saving()" (click)="guardar()">
+        {{ saving() ? 'Guardando...' : 'Guardar asignaciones' }}
+      </button>
+    </div>
+  }
+</section>

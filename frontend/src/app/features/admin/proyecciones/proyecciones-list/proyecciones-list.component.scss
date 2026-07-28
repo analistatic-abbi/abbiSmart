@@ -1,0 +1,9 @@
+@use '../../shared/admin-page';
+@use '../estado-proyeccion-badges';
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}

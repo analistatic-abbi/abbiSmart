@@ -10,8 +10,14 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { memoryStorage } from 'multer';
+import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
@@ -171,7 +177,7 @@ export class ProcesosController {
     @Body() dto: CambiarEstadoProcesoDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const proceso = await this.procesosService.cambiarEstado(
+    const result = await this.procesosService.cambiarEstado(
       id,
       dto,
       actor.userId,
@@ -181,7 +187,8 @@ export class ProcesosController {
 
     return {
       message: 'Estado del proceso actualizado correctamente',
-      proceso,
+      proceso: result.proceso,
+      proyeccionGenerada: result.proyeccionGenerada,
     };
   }
 
@@ -221,13 +228,38 @@ export class ProcesosController {
     };
   }
 
+  @Get(':id/tareas/:tareaId/evidencia')
+  @ApiOperation({ summary: 'Descargar archivo de evidencia de una tarea' })
+  async descargarEvidencia(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('tareaId', ParseIntPipe) tareaId: number,
+    @CurrentUser() user: AuthUserPayload,
+    @Res() res: Response,
+  ) {
+    const archivo = await this.procesosService.getArchivoEvidencia(
+      id,
+      tareaId,
+      user.paisSesionId!,
+    );
+
+    return res.download(archivo.absolutePath, archivo.nombre);
+  }
+
   @Patch(':id/tareas/:tareaId/completar')
   @RequireWriteAccess()
-  @ApiOperation({ summary: 'Completar tarea con evidencia (SEG-002)' })
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @UseInterceptors(
+    FileInterceptor('archivo', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  @ApiOperation({ summary: 'Completar tarea con evidencia escrita y/o archivo (SEG-002)' })
   async completarTarea(
     @Param('id', ParseIntPipe) id: number,
     @Param('tareaId', ParseIntPipe) tareaId: number,
     @Body() dto: CompletarTareaDto,
+    @UploadedFile() archivo: Express.Multer.File | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     const tarea = await this.procesosService.completarTarea(
@@ -237,6 +269,7 @@ export class ProcesosController {
       actor.userId,
       actor.paisSesionId!,
       actor.rol as Rol,
+      archivo,
     );
 
     return {

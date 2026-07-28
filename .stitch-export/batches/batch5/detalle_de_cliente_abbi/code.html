@@ -1,0 +1,418 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Detalle de Cliente - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-secondary-fixed": "#001c38",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-surface": "#2f3034",
+                        "background": "#f9f9fd",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9fd",
+                        "on-primary-container": "#81a6d6",
+                        "surface-bright": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "primary": "#002546",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "on-surface-variant": "#43474f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-surface": "#1a1c1f",
+                        "on-primary": "#ffffff",
+                        "secondary": "#466082",
+                        "surface-container": "#eeedf1",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary-container": "#435d7f",
+                        "surface-tint": "#3b608c",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-fixed": "#d3e4ff",
+                        "tertiary": "#4a0f00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-container": "#bcd6fe",
+                        "surface-container-highest": "#e2e2e6",
+                        "surface-dim": "#dadade",
+                        "on-primary-fixed": "#001c37",
+                        "inverse-on-surface": "#f1f0f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "h3": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest dark:bg-surface-container-low border-r border-outline-variant flex-shrink-0 z-30">
+<div class="px-lg mb-xl flex items-center gap-md">
+<img alt="Logo ABBI" class="w-8 h-8 object-contain rounded" data-alt="A clean, modern corporate logo for ABBI, featuring deep blue colors and sharp geometric shapes, isolated on a white background, highly professional and minimal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2NWSXVR1eSdCAiftWZkX0wrfJMppK50ybil7E2JxP9ekFj8vOexyS05a5Xx2qyHx_K8yRIAp27vI20c3UEdD0j7wJsUFy9mgYSvhZJPUgekfwR56tzTFPlV8jMiM325ZwS7MuATunv8sL1OsVQr0ola-tFArdaKLn1bwjoNpbG3dnB9NQ7FrgqVfW6mClRHCzE8eck29IfeBOhQGylDLi8s3EiO-i0jXUNl64JKULtTsSKIDPZQAZ">
+<div>
+<h1 class="font-h3 text-h3 text-primary font-bold">ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Corporativa</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto w-full">
+<ul class="flex flex-col w-full">
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">fact_check</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">business</span>
+<span class="font-body-md text-body-md font-semibold">Clientes</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">contact_phone</span>
+<span class="font-body-md text-body-md">Contactos</span>
+</a>
+</li>
+<li class="w-full">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+</li>
+</ul>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-40 bg-surface-container-lowest dark:bg-surface-container-low docked full-width top-0 h-16 border-b border-outline-variant flex-shrink-0">
+<div class="flex items-center gap-md">
+<!-- Mobile Menu Button -->
+<button class="md:hidden p-sm text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-high border-none rounded-full font-body-md text-body-md focus:ring-2 focus:ring-secondary w-64 text-on-surface" placeholder="Buscar en ABBI..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="hidden sm:flex items-center px-3 py-1 bg-surface-container-high rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-[#0E3B65] mr-2"></span>
+<span class="font-label-sm text-label-sm text-primary-container font-semibold">Administrador</span>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full border border-surface-container-lowest"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors hidden sm:block">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-8 w-px bg-outline-variant hidden sm:block"></div>
+<button class="flex items-center gap-sm cursor-pointer hover:opacity-80 transition-opacity">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a corporate administrator, wearing a dark blue suit, neutral gray background, confident expression, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2_a9YEz5eVaBP0xKeVdfFlSzREtLBDRnUf0eG9UyVKmFcjnZVAXXAhO5KCptmw7QrPwiAnaDxHpDnq7R1f_sOuQCPGK2aUcF4jTdKpW62hYx04UGlvHL0EvOySO6mO9KbtMxfAvObe06ihTSV54e7wiQJ61sHbrTYwj6igKjVg8B96X5j85iTtq4CORUiH8M_pyyqXi2gQDQp_tuNcC6kM0QTVWwnzKfcQ_dfM5Az8lfqgkL59mMj">
+<div class="hidden md:flex flex-col items-start">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Ana López</span>
+<span class="text-[10px] text-on-surface-variant">Cerrar Sesión</span>
+</div>
+</button>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 overflow-y-auto bg-background p-margin-mobile md:p-margin-desktop">
+<!-- Breadcrumbs -->
+<nav aria-label="Breadcrumb" class="flex text-on-surface-variant mb-lg">
+<ol class="inline-flex items-center space-x-1 md:space-x-3">
+<li class="inline-flex items-center">
+<a class="inline-flex items-center font-body-md text-body-md hover:text-primary transition-colors" href="#">
+                            Clientes
+                        </a>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+<span aria-current="page" class="font-body-md text-body-md text-on-surface font-medium">CorpTech Solutions S.A.</span>
+</div>
+</li>
+</ol>
+</nav>
+<!-- Action Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-xl gap-md">
+<h2 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-on-surface">Detalle de Cliente</h2>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-4 py-2 bg-white border border-outline-variant text-primary-container font-button text-button rounded hover:bg-surface-container-low transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                        Editar Cliente
+                    </button>
+<!-- Admin Special Action -->
+<button class="flex items-center gap-xs px-4 py-2 bg-primary-container text-on-primary font-button text-button rounded hover:bg-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                        Reasignar Procesos
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+<!-- Client Info Card (Spans 2 columns on large screens) -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+<div class="flex items-start justify-between mb-lg">
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 bg-surface-container-high rounded-lg flex items-center justify-center text-primary-container border border-outline-variant">
+<span class="material-symbols-outlined text-3xl">domain</span>
+</div>
+<div>
+<h3 class="font-h2 text-h2 text-on-surface">CorpTech Solutions S.A.</h3>
+<div class="flex items-center gap-sm mt-1">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-fixed text-on-primary-fixed">
+                                        Empresa
+                                    </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-fixed text-on-secondary-fixed">
+                                        Activo
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-md">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Identificador Fiscal</span>
+<span class="font-body-md text-body-md text-on-surface font-medium mt-1">B-12345678</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Segmento</span>
+<span class="font-body-md text-body-md text-on-surface font-medium mt-1">Tecnología y Servicios</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Fecha de Alta</span>
+<span class="font-body-md text-body-md text-on-surface font-medium mt-1">15 Mar 2022</span>
+</div>
+</div>
+</div>
+<!-- Location & Stats Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm flex flex-col justify-between">
+<div>
+<h4 class="font-h3 text-h3 text-on-surface mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">location_on</span>
+                            Ubicación Principal
+                        </h4>
+<address class="not-italic font-body-md text-body-md text-on-surface-variant mb-md">
+                            Av. de la Innovación 123, Edificio Prisma<br>
+                            Planta 4, Oficina 402<br>
+                            Madrid, 28045<br>
+                            España
+                        </address>
+</div>
+<div class="pt-md border-t border-outline-variant mt-auto">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Procesos Activos</span>
+<span class="font-h3 text-h3 text-primary-container font-bold">14</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Contacts Table Section -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col h-full min-h-[400px]">
+<!-- Table Header -->
+<div class="p-lg border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md bg-surface-container-lowest">
+<h3 class="font-h3 text-h3 text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">groups</span>
+                        Contactos Asociados
+                    </h3>
+<div class="flex items-center gap-sm w-full sm:w-auto">
+<div class="relative flex-grow sm:flex-grow-0">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="pl-9 pr-4 py-1.5 h-10 bg-white border border-outline-variant rounded font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:border-secondary w-full sm:w-64 text-on-surface" placeholder="Buscar contacto..." type="text">
+</div>
+<button class="h-10 px-4 bg-white border border-outline-variant text-primary-container font-button text-button rounded hover:bg-surface-container-low transition-colors whitespace-nowrap">
+                            Añadir
+                        </button>
+</div>
+</div>
+<!-- Table Content -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-sm px-lg font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider w-[25%]">Nombre</th>
+<th class="p-sm px-lg font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider w-[20%]">Cargo</th>
+<th class="p-sm px-lg font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider w-[20%]">Teléfono</th>
+<th class="p-sm px-lg font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider w-[25%]">Correo</th>
+<th class="p-sm px-lg font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider w-[10%] text-center">Tipo</th>
+<th class="p-sm px-lg w-[5%]"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-sm px-lg font-medium flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-xs">JP</div>
+                                    Javier Pérez
+                                </td>
+<td class="p-sm px-lg text-on-surface-variant">Director IT</td>
+<td class="p-sm px-lg">+34 600 123 456</td>
+<td class="p-sm px-lg">j.perez@corptech.com</td>
+<td class="p-sm px-lg text-center">
+<!-- Empty, specific contact -->
+</td>
+<td class="p-sm px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-sm px-lg font-medium flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-semibold text-xs">S</div>
+                                    Soporte Técnico
+                                </td>
+<td class="p-sm px-lg text-on-surface-variant">Centro de Ayuda</td>
+<td class="p-sm px-lg">+34 900 888 777</td>
+<td class="p-sm px-lg">soporte@corptech.com</td>
+<td class="p-sm px-lg text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant/50">
+                                        ES GENÉRICO
+                                    </span>
+</td>
+<td class="p-sm px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-sm px-lg font-medium flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-xs">MG</div>
+                                    María Gómez
+                                </td>
+<td class="p-sm px-lg text-on-surface-variant">Responsable de Compras</td>
+<td class="p-sm px-lg">+34 611 222 333</td>
+<td class="p-sm px-lg">m.gomez@corptech.com</td>
+<td class="p-sm px-lg text-center">
+</td>
+<td class="p-sm px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-sm px-lg font-medium flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-semibold text-xs">F</div>
+                                    Facturación
+                                </td>
+<td class="p-sm px-lg text-on-surface-variant">Dpto. Contabilidad</td>
+<td class="p-sm px-lg">+34 912 345 678</td>
+<td class="p-sm px-lg">facturacion@corptech.com</td>
+<td class="p-sm px-lg text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant/50">
+                                        ES GENÉRICO
+                                    </span>
+</td>
+<td class="p-sm px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination -->
+<div class="p-sm px-lg border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest mt-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mostrando 4 de 4 contactos</span>
+<div class="flex items-center gap-xs">
+<button class="p-1 text-on-surface-variant hover:bg-surface-container-high rounded disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:bg-surface-container-high rounded disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

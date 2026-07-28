@@ -27,6 +27,7 @@ export enum AuditAccion {
   CARGA_MASIVA = 'carga_masiva',
   PARAMETRO_CREAR = 'parametro_crear',
   PARAMETRO_EDITAR = 'parametro_editar',
+  PARAMETRO_ELIMINAR = 'parametro_eliminar',
   PROCESO_CREAR = 'proceso_crear',
   PROCESO_EDITAR = 'proceso_editar',
   PROCESO_FECHA_EDITAR = 'proceso_fecha_editar',

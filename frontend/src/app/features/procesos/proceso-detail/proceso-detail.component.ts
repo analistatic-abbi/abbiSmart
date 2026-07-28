@@ -1,0 +1,497 @@
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { ProcesosService } from '../../../core/services/procesos.service';
+import { ProyeccionesService } from '../../../core/services/proyecciones.service';
+import { SolicitudesEliminacionService } from '../../../core/services/solicitudes-eliminacion.service';
+import { ValidacionService, ValidadorOption } from '../../../core/services/validacion.service';
+import { Rol } from '../../../core/models/rol.enum';
+import {
+  EstadoProceso,
+  Proceso,
+  ProcesoTarea,
+  TipoProceso,
+  TRANSICIONES_ESTADO,
+} from '../../../core/models/proceso.model';
+import { labelTarea } from '../../../core/constants/tarea-labels';
+import { mensajeErrorApi } from '../../../core/utils/api-error.util';
+
+type Tab = 'info' | 'fechas' | 'tareas';
+
+interface FechasForm {
+  fechaApertura: string;
+  fechaCierre: string;
+  fechaManifestacionInteres: string;
+  fechaAdquisicionDerecho: string;
+  fechaReunionAclaratoria: string;
+  fechaVisitaTecnica: string;
+  fechaSolicitudesAclaracion: string;
+  fechaRespuestaAclaracion: string;
+  fechaLimitacionMypymes: string;
+}
+
+interface FechaHistorialItem {
+  id: number;
+  campo: string | null;
+  valorAnterior: string | null;
+  valorNuevo: string | null;
+  fecha: string;
+}
+
+interface DependenciaItem {
+  tipo: string;
+  id: number;
+  descripcion: string;
+}
+
+@Component({
+  selector: 'app-proceso-detail',
+  standalone: true,
+  imports: [FormsModule, RouterLink],
+  templateUrl: './proceso-detail.component.html',
+  styleUrl: './proceso-detail.component.scss',
+})
+export class ProcesoDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly procesos = inject(ProcesosService);
+  private readonly proyecciones = inject(ProyeccionesService);
+  private readonly validacion = inject(ValidacionService);
+  private readonly solicitudes = inject(SolicitudesEliminacionService);
+  private readonly auth = inject(AuthService);
+
+  protected readonly proceso = signal<Proceso | null>(null);
+  protected readonly tareas = signal<ProcesoTarea[]>([]);
+  protected readonly tab = signal<Tab>('info');
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly actionLoading = signal(false);
+  protected readonly proyeccionRecienGeneradaId = signal<number | null>(null);
+  protected readonly proyeccionAsociadaId = signal<number | null>(null);
+
+  protected readonly showEstadoModal = signal(false);
+  protected readonly nuevoEstado = signal<EstadoProceso | null>(null);
+  protected readonly evidencia = signal('');
+  protected readonly archivoEvidencia = signal<File | null>(null);
+  protected readonly tareaSeleccionada = signal<ProcesoTarea | null>(null);
+
+  protected readonly editandoFechas = signal(false);
+  protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
+  protected readonly historialFechas = signal<FechaHistorialItem[]>([]);
+
+  protected readonly showValidadoresModal = signal(false);
+  protected readonly validadores = signal<ValidadorOption[]>([]);
+  protected readonly validadoresSeleccionados = signal<number[]>([]);
+
+  protected readonly showEliminarModal = signal(false);
+  protected readonly dependencias = signal<DependenciaItem[]>([]);
+  protected readonly confirmarDependientes = signal(false);
+  protected readonly motivoEliminacion = signal('');
+
+  protected readonly rol = computed(() => this.auth.rol());
+
+  protected readonly puedeEscribir = computed(() => this.auth.puedeEscribir());
+
+  protected readonly puedeEditarFechas = computed(() => {
+    const rol = this.rol();
+    return rol === Rol.Administrador || rol === Rol.SupervisorSistema;
+  });
+
+  protected readonly puedeEliminarDirecto = computed(() => this.rol() === Rol.Administrador);
+
+  protected readonly puedeSolicitarEliminacion = computed(() => {
+    const rol = this.rol();
+    return rol === Rol.Operador || rol === Rol.SupervisorSistema;
+  });
+
+  protected readonly tareasAplicables = computed(() =>
+    this.tareas().filter((t) => Boolean(t.aplica)),
+  );
+
+  protected readonly tareasCompletadas = computed(() =>
+    this.tareasAplicables().filter((t) => Boolean(t.completada)),
+  );
+
+  protected readonly tareasPendientes = computed(() =>
+    this.tareasAplicables().filter((t) => !t.completada),
+  );
+
+  /** Preferir cálculo local desde tareas (se actualiza al completar); fallback al valor del API. */
+  protected readonly avancePorcentaje = computed(() => {
+    const aplicables = this.tareasAplicables();
+    if (aplicables.length > 0) {
+      return Math.round((1000 * this.tareasCompletadas().length) / aplicables.length) / 10;
+    }
+    return Number(this.proceso()?.avancePorcentaje ?? 0);
+  });
+
+  protected readonly puedeAsignarValidadores = computed(() => {
+    if (!this.puedeEscribir()) return false;
+    const p = this.proceso();
+    if (!p) return false;
+    return p.estado === EstadoProceso.EnProceso && this.avancePorcentaje() >= 100;
+  });
+
+  protected readonly guiaSiguientePaso = computed(() => {
+    if (!this.puedeEscribir()) return null;
+    const p = this.proceso();
+    if (!p) return null;
+
+    if (p.estado === EstadoProceso.PorValidar) {
+      return 'Siguiente paso: use «Cambiar estado» para pasar a En Proceso (o Descartado).';
+    }
+
+    if (p.estado === EstadoProceso.EnProceso) {
+      if (this.avancePorcentaje() < 100) {
+        const pendientes = this.tareasPendientes().length;
+        const total = this.tareasAplicables().length;
+        return pendientes > 0
+          ? `Para enviar a validación debe completar el 100% de tareas aplicables (${this.tareasCompletadas().length}/${total}). Pendientes: ${pendientes}.`
+          : `Avance actual: ${this.avancePorcentaje()}%. Complete todas las tareas aplicables para habilitar «Asignar validadores».`;
+      }
+      return 'Tareas al 100%. Use «Asignar validadores» para pasar a En Validación. «Cambiar estado» solo permite Descartar.';
+    }
+
+    if (p.estado === EstadoProceso.EnValidacion) {
+      return 'Este estado solo cambia con los veredictos de los validadores (no con «Cambiar estado»).';
+    }
+
+    if (p.estado === EstadoProceso.Presentado) {
+      return 'Puede pasar a Subsanación, Adjudicado o Cerrado con «Cambiar estado». Si es Periódico y pasa a Adjudicado, se genera la proyección.';
+    }
+
+    return null;
+  });
+
+  protected readonly labelTarea = labelTarea;
+
+  private procesoId = 0;
+
+  ngOnInit(): void {
+    this.procesoId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadProceso();
+    this.loadTareas();
+  }
+
+  protected setTab(tab: Tab): void {
+    this.tab.set(tab);
+
+    if (tab === 'tareas') {
+      this.loadTareas();
+    }
+
+    if (tab === 'fechas') {
+      this.procesos.getFechasHistorial(this.procesoId).subscribe({
+        next: (r) => this.historialFechas.set(r.data),
+        error: () => this.historialFechas.set([]),
+      });
+    }
+  }
+
+  protected estadosPermitidos(): EstadoProceso[] {
+    if (!this.puedeEscribir()) return [];
+    const p = this.proceso();
+    if (!p) return [];
+    return TRANSICIONES_ESTADO[p.estado] ?? [];
+  }
+
+  protected soloPuedeDescartar(): boolean {
+    const permitidos = this.estadosPermitidos();
+    return permitidos.length === 1 && permitidos[0] === EstadoProceso.Descartado;
+  }
+
+  protected estadoTareaLabel(tarea: ProcesoTarea): string {
+    if (!tarea.aplica) return 'No aplica';
+    return tarea.completada ? 'Completada' : 'Pendiente';
+  }
+
+  protected abrirCambioEstado(): void {
+    const permitidos = this.estadosPermitidos();
+    if (permitidos.length === 0) return;
+    this.nuevoEstado.set(permitidos[0]);
+    this.showEstadoModal.set(true);
+  }
+
+  protected confirmarCambioEstado(): void {
+    const estado = this.nuevoEstado();
+    if (!estado) return;
+
+    this.actionLoading.set(true);
+    this.procesos.cambiarEstado(this.procesoId, estado).subscribe({
+      next: (r) => {
+        this.proceso.set(r.proceso);
+        this.showEstadoModal.set(false);
+        this.actionLoading.set(false);
+        this.error.set(null);
+        if (r.proyeccionGenerada?.id) {
+          this.proyeccionRecienGeneradaId.set(r.proyeccionGenerada.id);
+          this.proyeccionAsociadaId.set(r.proyeccionGenerada.id);
+        } else if (
+          estado === EstadoProceso.Adjudicado &&
+          r.proceso.tipoProceso === TipoProceso.Periodico
+        ) {
+          this.cargarProyeccionAsociada((id) => this.proyeccionRecienGeneradaId.set(id));
+        }
+        this.loadProceso();
+      },
+      error: (err) => {
+        this.error.set(mensajeErrorApi(err, 'No fue posible cambiar el estado.'));
+        this.actionLoading.set(false);
+      },
+    });
+  }
+
+  private cargarProyeccionAsociada(onFound?: (id: number) => void): void {
+    this.proyecciones
+      .list({ procesoOrigenId: this.procesoId, limit: 1 })
+      .subscribe({
+        next: (r) => {
+          const id = r.data[0]?.id ?? null;
+          this.proyeccionAsociadaId.set(id);
+          if (id !== null) {
+            onFound?.(id);
+          }
+        },
+        error: () => this.proyeccionAsociadaId.set(null),
+      });
+  }
+
+  protected iniciarEdicionFechas(): void {
+    const p = this.proceso();
+    if (!p) return;
+
+    this.fechasForm.set({
+      fechaApertura: p.fechaApertura ?? '',
+      fechaCierre: p.fechaCierre ?? '',
+      fechaManifestacionInteres: p.fechaManifestacionInteres ?? '',
+      fechaAdquisicionDerecho: p.fechaAdquisicionDerecho ?? '',
+      fechaReunionAclaratoria: p.fechaReunionAclaratoria ?? '',
+      fechaVisitaTecnica: p.fechaVisitaTecnica ?? '',
+      fechaSolicitudesAclaracion: p.fechaSolicitudesAclaracion ?? '',
+      fechaRespuestaAclaracion: p.fechaRespuestaAclaracion ?? '',
+      fechaLimitacionMypymes: p.fechaLimitacionMypymes ?? '',
+    });
+    this.editandoFechas.set(true);
+  }
+
+  protected cancelarEdicionFechas(): void {
+    this.editandoFechas.set(false);
+  }
+
+  protected updateFecha(campo: keyof FechasForm, valor: string): void {
+    this.fechasForm.update((current) => ({ ...current, [campo]: valor }));
+  }
+
+  protected guardarFechas(): void {
+    const form = this.fechasForm();
+    const payload: Record<string, string | null> = {};
+
+    if (form.fechaApertura) payload['fechaApertura'] = form.fechaApertura;
+    if (form.fechaCierre) payload['fechaCierre'] = form.fechaCierre;
+    payload['fechaManifestacionInteres'] = form.fechaManifestacionInteres || null;
+    payload['fechaAdquisicionDerecho'] = form.fechaAdquisicionDerecho || null;
+    payload['fechaReunionAclaratoria'] = form.fechaReunionAclaratoria || null;
+    payload['fechaVisitaTecnica'] = form.fechaVisitaTecnica || null;
+    payload['fechaSolicitudesAclaracion'] = form.fechaSolicitudesAclaracion || null;
+    payload['fechaRespuestaAclaracion'] = form.fechaRespuestaAclaracion || null;
+    payload['fechaLimitacionMypymes'] = form.fechaLimitacionMypymes || null;
+
+    this.actionLoading.set(true);
+    this.procesos.updateFechas(this.procesoId, payload).subscribe({
+      next: (r) => {
+        this.proceso.set(r.proceso);
+        this.editandoFechas.set(false);
+        this.actionLoading.set(false);
+        this.loadTareas();
+      },
+      error: () => {
+        this.error.set('No fue posible actualizar las fechas.');
+        this.actionLoading.set(false);
+      },
+    });
+  }
+
+  protected abrirValidadores(): void {
+    this.validadoresSeleccionados.set([]);
+    this.validacion.listValidadores().subscribe({
+      next: (r) => {
+        this.validadores.set(r.data);
+        this.showValidadoresModal.set(true);
+      },
+      error: () => this.error.set('No fue posible cargar los validadores.'),
+    });
+  }
+
+  protected toggleValidador(id: number, checked: boolean): void {
+    this.validadoresSeleccionados.update((current) => {
+      if (checked) {
+        return current.includes(id) ? current : [...current, id];
+      }
+      return current.filter((item) => item !== id);
+    });
+  }
+
+  protected isValidadorSeleccionado(id: number): boolean {
+    return this.validadoresSeleccionados().includes(id);
+  }
+
+  protected confirmarValidadores(): void {
+    const ids = this.validadoresSeleccionados();
+    if (ids.length === 0) return;
+
+    this.actionLoading.set(true);
+    this.validacion.asignarValidadores(this.procesoId, ids).subscribe({
+      next: () => {
+        this.showValidadoresModal.set(false);
+        this.actionLoading.set(false);
+        this.loadProceso();
+      },
+      error: () => {
+        this.error.set('No fue posible asignar validadores.');
+        this.actionLoading.set(false);
+      },
+    });
+  }
+
+  protected abrirEliminar(): void {
+    this.confirmarDependientes.set(false);
+    this.motivoEliminacion.set('');
+    this.dependencias.set([]);
+
+    if (this.puedeEliminarDirecto()) {
+      this.procesos.getDependencias(this.procesoId).subscribe({
+        next: (r) => {
+          this.dependencias.set(r.data.dependientes);
+          this.showEliminarModal.set(true);
+        },
+        error: () => this.error.set('No fue posible consultar dependencias.'),
+      });
+      return;
+    }
+
+    this.showEliminarModal.set(true);
+  }
+
+  protected confirmarEliminacion(): void {
+    if (this.puedeEliminarDirecto()) {
+      this.actionLoading.set(true);
+      this.procesos.eliminar(this.procesoId, this.confirmarDependientes()).subscribe({
+        next: () => {
+          this.actionLoading.set(false);
+          void this.router.navigate(['/procesos']);
+        },
+        error: () => {
+          this.error.set('No fue posible eliminar el proceso.');
+          this.actionLoading.set(false);
+        },
+      });
+      return;
+    }
+
+    const motivo = this.motivoEliminacion().trim();
+    if (motivo.length < 5) return;
+
+    this.actionLoading.set(true);
+    this.solicitudes.solicitar('proceso', this.procesoId, motivo).subscribe({
+      next: () => {
+        this.showEliminarModal.set(false);
+        this.actionLoading.set(false);
+      },
+      error: () => {
+        this.error.set('No fue posible registrar la solicitud de eliminación.');
+        this.actionLoading.set(false);
+      },
+    });
+  }
+
+  protected onArchivoSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.archivoEvidencia.set(input.files?.[0] ?? null);
+  }
+
+  protected completarTarea(tarea: ProcesoTarea): void {
+    const evidencia = this.evidencia().trim();
+    const archivo = this.archivoEvidencia();
+    if (!evidencia && !archivo) {
+      this.error.set('Debe adjuntar un archivo o escribir una evidencia.');
+      return;
+    }
+
+    this.actionLoading.set(true);
+    this.error.set(null);
+    this.procesos.completarTarea(this.procesoId, tarea.id, evidencia, archivo).subscribe({
+      next: (r) => {
+        this.evidencia.set('');
+        this.archivoEvidencia.set(null);
+        this.tareaSeleccionada.set(null);
+        this.actionLoading.set(false);
+        this.tareas.update((list) =>
+          list.map((item) => (item.id === tarea.id ? { ...item, ...r.tarea } : item)),
+        );
+        if (r.tarea.avancePorcentaje !== undefined) {
+          this.proceso.update((p) =>
+            p ? { ...p, avancePorcentaje: r.tarea.avancePorcentaje ?? p.avancePorcentaje } : p,
+          );
+        }
+        this.loadTareas();
+        this.loadProceso();
+      },
+      error: () => {
+        this.error.set('No fue posible completar la tarea.');
+        this.actionLoading.set(false);
+      },
+    });
+  }
+
+  protected descargarEvidencia(tarea: ProcesoTarea): void {
+    if (!tarea.evidenciaArchivoNombre) return;
+    this.procesos.descargarEvidencia(
+      this.procesoId,
+      tarea.id,
+      tarea.evidenciaArchivoNombre,
+    );
+  }
+
+  private loadProceso(): void {
+    this.procesos.getById(this.procesoId).subscribe({
+      next: (r) => {
+        this.proceso.set(r.proceso);
+        this.loading.set(false);
+        if (
+          r.proceso.estado === EstadoProceso.Adjudicado &&
+          r.proceso.tipoProceso === TipoProceso.Periodico
+        ) {
+          this.cargarProyeccionAsociada();
+        } else {
+          this.proyeccionAsociadaId.set(null);
+        }
+      },
+      error: () => {
+        this.error.set('No fue posible cargar el proceso.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadTareas(): void {
+    this.procesos.getTareas(this.procesoId).subscribe({
+      next: (r) => this.tareas.set(r.data),
+      error: () => this.tareas.set([]),
+    });
+  }
+
+  private emptyFechasForm(): FechasForm {
+    return {
+      fechaApertura: '',
+      fechaCierre: '',
+      fechaManifestacionInteres: '',
+      fechaAdquisicionDerecho: '',
+      fechaReunionAclaratoria: '',
+      fechaVisitaTecnica: '',
+      fechaSolicitudesAclaracion: '',
+      fechaRespuestaAclaracion: '',
+      fechaLimitacionMypymes: '',
+    };
+  }
+}

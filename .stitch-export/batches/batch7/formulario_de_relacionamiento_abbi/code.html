@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ABBI - Formulario de Relacionamiento</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#73777f",
+                    "tertiary-container": "#6f1c01",
+                    "tertiary-fixed": "#ffdbd1",
+                    "on-secondary-fixed": "#001c38",
+                    "on-secondary-fixed-variant": "#2e4869",
+                    "secondary-fixed-dim": "#aec8ef",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#d2e4ff",
+                    "inverse-surface": "#2f3034",
+                    "background": "#f9f9fd",
+                    "on-error-container": "#93000a",
+                    "surface": "#f9f9fd",
+                    "on-primary-container": "#81a6d6",
+                    "surface-bright": "#f9f9fd",
+                    "surface-variant": "#e2e2e6",
+                    "tertiary-fixed-dim": "#ffb59f",
+                    "primary-fixed-dim": "#a4c9fb",
+                    "primary": "#002546",
+                    "inverse-primary": "#a4c9fb",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#0e3b65",
+                    "on-surface-variant": "#43474f",
+                    "on-tertiary-fixed": "#3a0a00",
+                    "on-surface": "#1a1c1f",
+                    "on-primary": "#ffffff",
+                    "secondary": "#466082",
+                    "surface-container": "#eeedf1",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f4f3f7",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e8e8ec",
+                    "on-tertiary-fixed-variant": "#81290c",
+                    "on-secondary-container": "#435d7f",
+                    "surface-tint": "#3b608c",
+                    "outline-variant": "#c3c6d0",
+                    "secondary-fixed": "#d3e4ff",
+                    "tertiary": "#4a0f00",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#204873",
+                    "on-error": "#ffffff",
+                    "on-background": "#1a1c1f",
+                    "on-tertiary-container": "#f9825e",
+                    "secondary-container": "#bcd6fe",
+                    "surface-container-highest": "#e2e2e6",
+                    "surface-dim": "#dadade",
+                    "on-primary-fixed": "#001c37",
+                    "inverse-on-surface": "#f1f0f4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "margin-desktop": "32px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "base": "4px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "button": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "h1-mobile": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "h2": [
+                            "Inter"
+                    ],
+                    "h1": [
+                            "Inter"
+                    ],
+                    "h3": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "button": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "h1-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "h2": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h1": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "h3": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col md:flex-row">
+<!-- Mobile Header -->
+<header class="md:hidden flex justify-between items-center px-margin-mobile h-16 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-40">
+<div class="font-h2 text-h2 text-primary font-bold">ABBI</div>
+<div class="flex gap-md items-center">
+<button class="text-on-surface-variant"><span class="material-symbols-outlined">menu</span></button>
+</div>
+</header>
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest border-r border-outline-variant z-40 shrink-0">
+<div class="px-lg pb-xl border-b border-outline-variant flex items-center gap-md">
+<div class="font-h3 text-h3 text-primary font-bold">ABBI</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant mt-1">Gestión Corporativa</div>
+</div>
+<div class="flex-1 overflow-y-auto py-md">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary mb-xs" href="#">
+<span class="material-symbols-outlined">business</span>
+<span class="font-body-md text-body-md">Clientes</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high mb-xs" href="#">
+<span class="material-symbols-outlined filled-icon">contact_phone</span>
+<span class="font-body-md text-body-md font-bold">Contactos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+</div>
+<div class="p-lg border-t border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">person</span>
+</div>
+<div class="overflow-hidden">
+<div class="font-label-sm text-label-sm text-on-surface truncate">Admin Usuario</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="#">Cerrar Sesión</a>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Desktop Header Utility Area (Secondary Top Nav) -->
+<header class="hidden md:flex justify-between items-center px-margin-desktop h-16 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30 w-full shrink-0">
+<div class="flex items-center gap-md">
+<span class="font-h3 text-h3 text-on-surface">Registro de Relacionamiento</span>
+</div>
+<div class="flex items-center gap-lg">
+<div class="bg-surface-container px-md py-xs rounded-full flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-primary">Administrador</span>
+</div>
+<div class="flex gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-high p-sm rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+</div>
+</div>
+</header>
+<!-- Form Canvas -->
+<div class="p-margin-mobile md:p-margin-desktop flex-1 overflow-y-auto">
+<div class="max-w-4xl mx-auto">
+<!-- Page Title Area -->
+<div class="mb-xl flex items-center gap-sm md:hidden">
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-sm rounded-full hover:bg-surface-container-high" href="#">
+<span class="material-symbols-outlined">arrow_back</span>
+</a>
+<h1 class="font-h1-mobile text-h1-mobile text-on-surface">Registro de Relacionamiento</h1>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg md:p-xl shadow-sm relative overflow-hidden">
+<form class="space-y-xl" id="relacionamiento-form">
+<!-- Contacto Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium flex items-center gap-xs" for="contacto">
+                                    Contacto Relacionado
+                                    <span class="text-error">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent appearance-none" id="contacto" name="contacto" required="">
+<option disabled="" selected="" value="">Seleccione un contacto registrado</option>
+<option value="1">Juan Pérez - TechCorp</option>
+<option value="2">María Gómez - Inversiones Globales</option>
+<option value="3">Carlos Ruiz - Consultora ABC</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Busque el contacto principal con el que interactuó.</span>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium flex items-center gap-xs" for="fecha_mensaje">
+                                    Fecha de la Interacción
+                                    <span class="text-error">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-md py-sm pl-10 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="fecha_mensaje" name="fecha_mensaje" required="" type="date"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">calendar_today</span>
+</div>
+</div>
+</div>
+<!-- Canal Section -->
+<div class="flex flex-col gap-sm border-t border-outline-variant pt-lg">
+<label class="font-label-sm text-label-sm text-on-surface font-medium">Canal de Comunicación</label>
+<div class="flex flex-wrap gap-md">
+<label class="relative flex-1 min-w-[120px] cursor-pointer group">
+<input checked="" class="peer sr-only" name="canal" type="radio" value="correo"/>
+<div class="h-10 flex items-center justify-center gap-sm px-md rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container text-on-surface-variant transition-all hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+<span class="font-body-md text-body-md">Correo</span>
+</div>
+</label>
+<label class="relative flex-1 min-w-[120px] cursor-pointer group">
+<input class="peer sr-only" name="canal" type="radio" value="llamada"/>
+<div class="h-10 flex items-center justify-center gap-sm px-md rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container text-on-surface-variant transition-all hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">call</span>
+<span class="font-body-md text-body-md">Llamada</span>
+</div>
+</label>
+<label class="relative flex-1 min-w-[120px] cursor-pointer group">
+<input class="peer sr-only" name="canal" type="radio" value="mensaje"/>
+<div class="h-10 flex items-center justify-center gap-sm px-md rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container text-on-surface-variant transition-all hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+<span class="font-body-md text-body-md">Mensaje</span>
+</div>
+</label>
+<label class="relative flex-1 min-w-[120px] cursor-pointer group">
+<input class="peer sr-only" name="canal" type="radio" value="presencial"/>
+<div class="h-10 flex items-center justify-center gap-sm px-md rounded-lg border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary-container peer-checked:text-on-primary peer-checked:border-primary-container text-on-surface-variant transition-all hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">handshake</span>
+<span class="font-body-md text-body-md">Presencial</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Mensaje Section -->
+<div class="flex flex-col gap-xs border-t border-outline-variant pt-lg">
+<label class="font-label-sm text-label-sm text-on-surface font-medium flex items-center gap-xs" for="mensaje">
+                                Resumen del Mensaje / Conversación
+                            </label>
+<textarea class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent resize-none" id="mensaje" name="mensaje" placeholder="Describa los puntos clave tratados en la interacción..." rows="4"></textarea>
+</div>
+<!-- Resultado Section -->
+<div class="flex flex-col gap-md border-t border-outline-variant pt-lg">
+<div class="flex flex-col gap-xs md:w-1/2">
+<label class="font-label-sm text-label-sm text-on-surface font-medium flex items-center gap-xs" for="resultado">
+                                    Resultado de la Interacción
+                                    <span class="text-error">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent appearance-none" id="resultado" name="resultado" required="">
+<option selected="" value="ninguno">Ninguno / Informativo</option>
+<option value="reunion">Reunión programada</option>
+<option value="referido">Referido a tercero</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Conditional: Fecha de Reunión -->
+<div class="hidden mt-md p-lg bg-surface-container-low rounded-lg border border-outline-variant" id="reunion-fields">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-secondary">event_available</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Detalles de Programación</span>
+</div>
+<div class="flex flex-col gap-xs md:w-1/2">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="fecha_reunion">Fecha de reunión acordada</label>
+<div class="relative">
+<input class="w-full h-10 px-md py-sm pl-10 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="fecha_reunion" name="fecha_reunion" type="datetime-local"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">event</span>
+</div>
+</div>
+</div>
+<!-- Conditional: Referido a Tercero -->
+<div class="hidden mt-md p-lg bg-surface-container-low rounded-lg border border-outline-variant" id="referido-fields">
+<div class="flex items-center gap-sm mb-lg border-b border-outline-variant pb-sm">
+<span class="material-symbols-outlined text-secondary">person_add</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Información del Nuevo Referido</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="ref_nombre">Nombre Completo</label>
+<input class="h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="ref_nombre" name="ref_nombre" placeholder="Ej. Ana Silvia" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="ref_cargo">Cargo / Posición</label>
+<input class="h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="ref_cargo" name="ref_cargo" placeholder="Ej. Directora Regional" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="ref_telefono">Teléfono</label>
+<input class="h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="ref_telefono" name="ref_telefono" placeholder="+34 000 000 000" type="tel"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="ref_correo">Correo Electrónico</label>
+<input class="h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="ref_correo" name="ref_correo" placeholder="correo@empresa.com" type="email"/>
+</div>
+<div class="flex flex-col gap-xs md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="ref_region">Región Operativa</label>
+<input class="h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent" id="ref_region" name="ref_region" placeholder="Ej. LATAM Norte" type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex justify-end gap-md pt-lg border-t border-outline-variant mt-xl">
+<button class="h-10 px-lg bg-surface-container-lowest border border-outline-variant rounded-lg text-primary-container font-button text-button hover:bg-surface-container-low transition-colors" type="button">
+                                Cancelar
+                            </button>
+<button class="h-10 px-lg bg-primary-container rounded-lg text-on-primary font-button text-button hover:bg-[#0b2d4d] transition-colors flex items-center gap-sm" type="submit">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                                Guardar Registro
+                            </button>
+</div>
+</form>
+</div>
+</div>
+<div class="h-20 md:h-8"></div> <!-- Spacer for scrolling -->
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoSelect = document.getElementById('resultado');
+            const reunionFields = document.getElementById('reunion-fields');
+            const referidoFields = document.getElementById('referido-fields');
+
+            resultadoSelect.addEventListener('change', (e) => {
+                const value = e.target.value;
+                
+                if (value === 'reunion') {
+                    reunionFields.classList.remove('hidden');
+                    referidoFields.classList.add('hidden');
+                } else if (value === 'referido') {
+                    reunionFields.classList.add('hidden');
+                    referidoFields.classList.remove('hidden');
+                } else {
+                    reunionFields.classList.add('hidden');
+                    referidoFields.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body></html>

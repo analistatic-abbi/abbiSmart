@@ -1,0 +1,55 @@
+<section class="page">
+  <a class="back" routerLink="/crm/clientes">← Volver a clientes</a>
+
+  <header class="page__header">
+    <div>
+      <h1>{{ isEdit() ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
+      <p>Registre la empresa y su ubicación.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="panel form-grid">
+    <label class="full">Empresa <input type="text" [ngModel]="empresa()" (ngModelChange)="empresa.set($event)" /></label>
+
+    <label>Departamento
+      <select [ngModel]="departamento()" (ngModelChange)="onDepartamentoChange($event)">
+        <option value="">Seleccione...</option>
+        @for (d of departamentos(); track d) {
+          <option [value]="d">{{ d }}</option>
+        }
+      </select>
+    </label>
+
+    <label>Municipio
+      <select [ngModel]="ubicacionId()" (ngModelChange)="ubicacionId.set(+$event || null)">
+        <option [ngValue]="null">Seleccione...</option>
+        @for (m of municipios(); track m.id) {
+          <option [ngValue]="m.id">{{ m.municipio }}</option>
+        }
+      </select>
+    </label>
+
+    <label>Segmento
+      <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event)">
+        @for (s of segmentos; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </label>
+
+    @if (segmento() === segmentoOtro) {
+      <label>Segmento otro <input type="text" [ngModel]="segmentoOtroValor()" (ngModelChange)="segmentoOtroValor.set($event)" /></label>
+    }
+  </div>
+
+  <div class="form-actions">
+    <a class="btn-secondary" routerLink="/crm/clientes">Cancelar</a>
+    <button type="button" class="btn-primary" [disabled]="loading()" (click)="guardar()">
+      {{ loading() ? 'Guardando...' : 'Guardar' }}
+    </button>
+  </div>
+</section>

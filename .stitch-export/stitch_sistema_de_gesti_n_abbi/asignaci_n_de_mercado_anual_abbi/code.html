@@ -1,0 +1,352 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Asignación de Mercado Anual</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:flex-row antialiased">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant docked full-width top-0 h-16 flat no shadows">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed">ABBI</span>
+</div>
+<div class="flex items-center gap-lg">
+<div class="hidden md:flex items-center gap-sm bg-surface-container-low px-md py-sm rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md text-on-surface-variant w-48 placeholder:text-outline" placeholder="Buscar..." type="text">
+</div>
+<div class="flex items-center gap-md text-primary dark:text-primary-fixed">
+<button class="relative p-sm rounded-full hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="flag">flag</span>
+</button>
+</div>
+<div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+<div class="text-right hidden md:block">
+<p class="font-button text-button text-on-surface">Nombre de Usuario</p>
+<p class="font-label-sm text-label-sm text-[#233E5E] bg-surface-variant px-sm py-[2px] rounded inline-block mt-xs">Administrador</p>
+</div>
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small circular avatar image showing a professional corporate user portrait in a bright modern office setting, soft lighting, clean corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7LWDEYzMUeCVIRdyL1sS2oEujNoBPOFtEP-9MX5K2zq47cbm19xUAPQDb4Y8E0F1fsYcVRgetdJkzjFwOWT7oADLPaqgBTbQa9wLjgtcDDkTP2hWLz10ViBbVi9vT-xwQYeEoTHS_ENFGfNajgAgj6TyoO3dOXSbGB7uOWkvgSaOaiu8nhO23hdP8bn3Z98iFJ7GRipKzZWkzJb9Gp9IMkdX_Q7plJ43QbfS-Hy-UwvB29HVmu4sZ">
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex flex-col py-md bg-surface-container-lowest border-r border-outline-variant docked left-0 h-full w-[260px] flat no shadows hidden md:flex z-40">
+<div class="flex-1 overflow-y-auto px-sm py-sm space-y-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-primary border-l-[3px] border-primary-container bg-secondary-container dark:bg-primary-container font-button hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-button text-button">Configuración</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+</div>
+<div class="px-sm py-md border-t border-outline-variant space-y-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-body-md text-body-md">Ayuda</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-body-md text-body-md">Soporte</span>
+</a>
+<button class="w-full mt-md px-md py-sm text-left font-button text-button text-error hover:bg-error-container hover:text-on-error-container rounded-lg transition-colors flex items-center gap-md">
+<span class="material-symbols-outlined">logout</span>
+                Cerrar Sesión
+            </button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 mt-16 md:ml-[260px] p-margin-mobile md:p-margin-desktop bg-background min-h-[calc(100vh-64px)] flex flex-col">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-md">
+<div>
+<h1 class="font-h1-mobile text-h1-mobile md:font-h1 md:text-h1 text-on-background flex items-center gap-sm">
+                    Asignación de Mercado
+                    <span class="text-outline">—</span>
+<span class="flex items-center gap-xs">
+                        Año
+                        <select class="ml-sm font-button text-button bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm text-on-surface focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] cursor-pointer appearance-none pr-8 relative">
+<option>2024</option>
+<option>2023</option>
+<option>2022</option>
+</select>
+</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-xs">Gestione y asigne los mercados operativos para los procesos del año seleccionado.</p>
+</div>
+<div class="flex gap-sm">
+<button class="font-button text-button px-lg h-10 bg-surface-container-lowest border border-outline-variant text-[#0E3B65] rounded-lg hover:bg-surface-container transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">filter_list</span>
+                    Filtrar
+                </button>
+<button class="font-button text-button px-lg h-10 bg-surface-container-lowest border border-outline-variant text-[#0E3B65] rounded-lg hover:bg-surface-container transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">download</span>
+                    Exportar
+                </button>
+</div>
+</div>
+<!-- Data Table Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant flex-1 flex flex-col overflow-hidden">
+<!-- Table Toolbar -->
+<div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-10 pl-10 pr-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] placeholder:text-outline" placeholder="Buscar proceso o empresa..." type="text">
+</div>
+<div class="text-label-sm font-label-sm text-outline">
+                    Mostrando 1-10 de 124 registros
+                </div>
+</div>
+<!-- Table -->
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low sticky top-0 z-10">
+<tr>
+<th class="p-sm px-md font-button text-button text-on-surface border-b border-outline-variant whitespace-nowrap">Proceso Origen</th>
+<th class="p-sm px-md font-button text-button text-on-surface border-b border-outline-variant whitespace-nowrap">Empresa</th>
+<th class="p-sm px-md font-button text-button text-on-surface border-b border-outline-variant whitespace-nowrap text-right">Valor Venta</th>
+<th class="p-sm px-md font-button text-button text-on-surface border-b border-outline-variant whitespace-nowrap">Mercado</th>
+<th class="p-sm px-md font-button text-button text-on-surface border-b border-outline-variant whitespace-nowrap w-16"></th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm px-md border-b border-outline-variant">PR-2024-001A</td>
+<td class="p-sm px-md border-b border-outline-variant font-medium">TechCorp Global Solutions</td>
+<td class="p-sm px-md border-b border-outline-variant text-right">$ 1,250,000.00</td>
+<td class="p-sm px-md border-b border-outline-variant">
+<select class="w-full h-10 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm text-body-md focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] cursor-pointer">
+<option selected="" value="general">General</option>
+<option value="objetivo">Objetivo</option>
+</select>
+</td>
+<td class="p-sm px-md border-b border-outline-variant text-center">
+<button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm px-md border-b border-outline-variant">PR-2024-045C</td>
+<td class="p-sm px-md border-b border-outline-variant font-medium">Industrias Orion S.A.</td>
+<td class="p-sm px-md border-b border-outline-variant text-right">$ 845,500.00</td>
+<td class="p-sm px-md border-b border-outline-variant">
+<select class="w-full h-10 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm text-body-md focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] cursor-pointer">
+<option value="general">General</option>
+<option selected="" value="objetivo">Objetivo</option>
+</select>
+</td>
+<td class="p-sm px-md border-b border-outline-variant text-center">
+<button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group bg-surface-container-low/50">
+<td class="p-sm px-md border-b border-outline-variant">PR-2024-088B</td>
+<td class="p-sm px-md border-b border-outline-variant font-medium text-outline">Nexus Logistics (Inactiva)</td>
+<td class="p-sm px-md border-b border-outline-variant text-right text-outline">$ 320,000.00</td>
+<td class="p-sm px-md border-b border-outline-variant">
+<select class="w-full h-10 bg-surface-variant border border-outline-variant rounded-lg px-sm text-body-md text-outline cursor-not-allowed" disabled="">
+<option value="general">General</option>
+<option value="objetivo">Objetivo</option>
+</select>
+</td>
+<td class="p-sm px-md border-b border-outline-variant text-center">
+<button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm px-md border-b border-outline-variant">PR-2024-102A</td>
+<td class="p-sm px-md border-b border-outline-variant font-medium">Horizonte Constructora</td>
+<td class="p-sm px-md border-b border-outline-variant text-right">$ 4,100,000.00</td>
+<td class="p-sm px-md border-b border-outline-variant">
+<select class="w-full h-10 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm text-body-md focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] cursor-pointer border-error ring-1 ring-error">
+<option disabled="" selected="" value="">Seleccione mercado</option>
+<option value="general">General</option>
+<option value="objetivo">Objetivo</option>
+</select>
+</td>
+<td class="p-sm px-md border-b border-outline-variant text-center">
+<button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="p-sm px-md border-b border-outline-variant">PR-2024-115D</td>
+<td class="p-sm px-md border-b border-outline-variant font-medium">Servicios Médicos Avanzados</td>
+<td class="p-sm px-md border-b border-outline-variant text-right">$ 675,200.00</td>
+<td class="p-sm px-md border-b border-outline-variant">
+<select class="w-full h-10 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm text-body-md focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2] cursor-pointer">
+<option selected="" value="general">General</option>
+<option value="objetivo">Objetivo</option>
+</select>
+</td>
+<td class="p-sm px-md border-b border-outline-variant text-center">
+<button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Pagination -->
+<div class="p-md border-t border-outline-variant bg-surface-container-lowest flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">Filas por página:</span>
+<select class="h-8 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-[#2E8EC2] focus:border-[#2E8EC2]">
+<option>10</option>
+<option>20</option>
+<option>50</option>
+</select>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-outline hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-secondary-container text-on-secondary-container font-button">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container transition-colors font-button">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container transition-colors font-button">3</button>
+<span class="text-outline">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-outline hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="mt-lg flex justify-end">
+<button class="font-button text-button px-xl h-10 bg-primary-container text-on-primary rounded-lg hover:bg-[#0A2A4A] transition-colors flex items-center gap-sm shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">save</span>
+                Guardar asignaciones
+            </button>
+</div>
+</main>
+</body></html>

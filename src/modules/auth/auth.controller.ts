@@ -24,11 +24,13 @@ import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { ActivationService } from './activation.service';
 import { AuthTokenService } from './auth-token.service';
 import { ActivateAccountDto } from './dto/activate-account.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SelectCountryDto } from './dto/select-country.dto';
 import type { AuthUserPayload } from './interfaces/auth-user-payload.interface';
 import { LoginService } from './login.service';
+import { PasswordRecoveryService } from './password-recovery.service';
 
 @Controller('auth')
 @ApiTags('Autenticación')
@@ -37,6 +39,7 @@ export class AuthController {
     private readonly activationService: ActivationService,
     private readonly loginService: LoginService,
     private readonly authTokenService: AuthTokenService,
+    private readonly passwordRecoveryService: PasswordRecoveryService,
   ) {}
 
   @Public()
@@ -120,6 +123,16 @@ export class AuthController {
   }
 
   @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Solicitar enlace de restablecimiento de contraseña' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.passwordRecoveryService.requestForgotPassword(dto.correo);
+  }
+
+  @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Restablecer contraseña con token del correo' })
@@ -156,6 +169,28 @@ export class AuthController {
     return {
       message: 'Token renovado correctamente',
       ...tokens,
+    };
+  }
+
+  @Post('prepare-country-change')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Preparar cambio de país de sesión (no Operador)' })
+  async prepareCountryChange(
+    @CurrentUser() user: AuthUserPayload,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.loginService.prepareCountryChange(
+      user.userId,
+      user.sessionId,
+    );
+
+    this.authTokenService.clearRefreshCookie(res);
+
+    return {
+      message: 'Seleccione el nuevo país de trabajo',
+      preAuthToken: result.preAuthToken,
+      paises: result.paises,
     };
   }
 

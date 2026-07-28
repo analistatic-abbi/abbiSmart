@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -120,6 +121,22 @@ export class ParametrosController {
     return {
       message: 'Parámetro financiero actualizado correctamente',
       parametro,
+    };
+  }
+
+  @Delete(':id')
+  @Roles(Rol.ADMINISTRADOR)
+  @RequireWriteAccess()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Eliminar parámetro financiero (PAR-003, solo Admin)' })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    await this.parametrosService.remove(id, actor.userId, actor.paisSesionId!);
+
+    return {
+      message: 'Parámetro financiero eliminado correctamente',
     };
   }
 }

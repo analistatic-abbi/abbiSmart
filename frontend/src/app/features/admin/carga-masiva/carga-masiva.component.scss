@@ -1,0 +1,13 @@
+@use '../shared/admin-page';
+
+.result {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: var(--radius-prime);
+  background: var(--color-secondary-container);
+}
+
+h2 {
+  margin: 24px 0 12px;
+  color: var(--color-primary);
+}

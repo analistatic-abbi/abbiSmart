@@ -6,6 +6,7 @@ import { Usuario } from '../../database/entities/usuario.entity';
 import { ValidacionProceso } from '../../database/entities/validacion-proceso.entity';
 import { AuditModule } from '../audit/audit.module';
 import { MailModule } from '../mail/mail.module';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 import { ProcesosModule } from '../procesos/procesos.module';
 import { ValidacionController } from './validacion.controller';
 import { ValidacionService } from './validacion.service';
@@ -16,6 +17,7 @@ import { ValidacionService } from './validacion.service';
     ProcesosModule,
     AuditModule,
     MailModule,
+    NotificacionesModule,
     AuthorizationModule,
   ],
   controllers: [ValidacionController],

@@ -1,0 +1,84 @@
+<header class="app-header">
+  <div class="app-header__brand">
+    <img class="app-header__logo" [src]="logoUrl" alt="abbi — construyendo progreso" />
+  </div>
+
+  <div class="app-header__actions">
+    <div class="country-wrap">
+      @if (canChangeCountry()) {
+        <button type="button" class="pill pill--clickable" (click)="toggleCountryMenu()">
+          <img class="flag-img" [src]="flagUrl()" [alt]="'Bandera de ' + paisLabel()" width="20" height="15" />
+          <span>{{ paisLabel() }}</span>
+          @if (paisCodigo()) {
+            <span class="country-code">{{ paisCodigo() }}</span>
+          }
+        </button>
+      } @else {
+        <div class="pill">
+          <img class="flag-img" [src]="flagUrl()" [alt]="'Bandera de ' + paisLabel()" width="20" height="15" />
+          <span>{{ paisLabel() }}</span>
+          @if (paisCodigo()) {
+            <span class="country-code">{{ paisCodigo() }}</span>
+          }
+        </div>
+      }
+
+      @if (showCountryMenu()) {
+        <div class="country-panel">
+          <button type="button" class="country-panel__item" [disabled]="changingCountry()" (click)="cambiarPais()">
+            {{ changingCountry() ? 'Preparando...' : 'Cambiar país' }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="pill pill--role">
+      <span>{{ auth.usuario()?.rol }}</span>
+    </div>
+
+    <div class="notif-wrap">
+      <button class="icon-btn" type="button" aria-label="Notificaciones" (click)="toggleNotifs()">
+        <span class="material-symbols-outlined">notifications</span>
+        @if (unreadCount() > 0) {
+          <span class="icon-btn__badge"></span>
+        }
+      </button>
+
+      @if (showNotifs()) {
+        <div class="notif-panel">
+          <div class="notif-panel__header">
+            <strong>Notificaciones</strong>
+            <button type="button" class="link" (click)="marcarTodas()">Marcar todas</button>
+          </div>
+          @for (n of notifs(); track n.id) {
+            <button type="button" class="notif-item" [class.notif-item--unread]="!n.leida" (click)="abrirNotificacion(n)">
+              <div class="notif-item__head">
+                <span class="notif-item__tipo">{{ tipoLabel(n.tipo) }}</span>
+                <time
+                  class="notif-item__time"
+                  [attr.datetime]="n.fechaCreacion"
+                  [attr.title]="fechaCompleta(n.fechaCreacion)"
+                >
+                  {{ tiempoRelativo(n.fechaCreacion) }}
+                </time>
+              </div>
+              <span class="notif-item__msg">{{ n.mensaje }}</span>
+            </button>
+          } @empty {
+            <p class="notif-empty">Sin notificaciones.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="user">
+      <div class="user__avatar">{{ auth.usuario()?.nombre?.charAt(0) ?? 'U' }}</div>
+      <span class="user__name">{{ auth.usuario()?.nombre ?? 'Nombre de Usuario' }}</span>
+    </div>
+
+    <button class="logout-btn" type="button" (click)="logout()" aria-label="Cerrar sesión" title="Cerrar sesión">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="logout-btn__label">Cerrar sesión</span>
+    </button>
+  </div>
+</header>

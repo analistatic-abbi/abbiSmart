@@ -1,0 +1,368 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bandeja de Solicitudes - Gestión ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9fd",
+                        "surface-dim": "#dadade",
+                        "surface-container-low": "#f4f3f7",
+                        "on-tertiary-container": "#f9825e",
+                        "tertiary": "#4a0f00",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "surface-tint": "#3b608c",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "surface-variant": "#e2e2e6",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "outline": "#73777f",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "surface": "#f9f9fd",
+                        "surface-bright": "#f9f9fd",
+                        "surface-container-high": "#e8e8ec",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#466082",
+                        "primary": "#002546",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#6f1c01",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-highest": "#e2e2e6",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-fixed-variant": "#204873",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-secondary-container": "#435d7f",
+                        "on-surface": "#1a1c1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "button": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- SideNavBar (Desktop) -->
+<aside class="hidden md:flex flex-col bg-surface-container-low border-r border-outline-variant w-[260px] h-screen sticky top-0 flex-shrink-0 py-6">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">gavel</span>
+</div>
+<div>
+<h1 class="font-h3 text-h3 font-extrabold text-primary">Gestión ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bid Management System</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container text-on-primary h-[40px] rounded-lg font-button text-button flex items-center justify-center gap-2 hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+                New Bid Request
+            </button>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<!-- Active Tab: Home (mapped as general dashboard context) -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-label-sm text-label-sm">Opportunities</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-sm text-label-sm">Active Bids</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">verified</span>
+<span class="font-label-sm text-label-sm">Contract Awards</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-sm text-label-sm">Reports</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-1 border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-sm text-label-sm">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant h-16 flex items-center justify-between px-margin-desktop flex-shrink-0">
+<div class="flex items-center gap-8 h-full">
+<nav class="hidden md:flex items-center gap-6 h-full">
+<!-- Active: Dashboard -->
+<a class="h-full flex items-center text-primary border-b-2 border-primary pb-1 opacity-80 transition-all duration-200 font-label-sm text-label-sm" href="#">Dashboard</a>
+<a class="h-full flex items-center text-on-surface-variant hover:text-secondary transition-colors font-label-sm text-label-sm" href="#">Bids</a>
+<a class="h-full flex items-center text-on-surface-variant hover:text-secondary transition-colors font-label-sm text-label-sm" href="#">Analytics</a>
+<a class="h-full flex items-center text-on-surface-variant hover:text-secondary transition-colors font-label-sm text-label-sm" href="#">Help</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="h-10 pl-10 pr-4 bg-surface-container-low border border-outline-variant rounded-full font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none w-64" placeholder="Search..." type="text">
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container overflow-hidden border border-outline-variant cursor-pointer">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTjNQnusG6ov5ybqhd4jCquM-xxh_PPACXrnT4UvDE1yWFcpJ7WD5GY2jMknemoFpDeZSwPf3eqvdYlACPPOTn1u6Fo1GNkE7XDfdMYksVfWVWP5VnnQJNHcSIgxJPpxYpuhns2-nqaM0oGo-OipYM1Sw9USWqnI672HMxGS0coBQDpyLGnfAI9FKPNP96TBgYDSVAuISinZ7hZ_uzOYYq08V4KDVSCRSNHzRHOcQQ6gx8PR8NadhN">
+</div>
+</div>
+</header>
+<!-- Page Content (Canvas) -->
+<div class="flex-1 overflow-y-auto p-margin-desktop bg-background">
+<div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div>
+<h2 class="font-h2 text-h2 text-primary mb-1">Bandeja de Solicitudes de Eliminación</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Gestión y aprobación de eliminación de entidades del sistema.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="h-10 px-4 bg-surface-container-lowest border border-outline-variant text-primary rounded-lg font-button text-button flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filtrar
+                    </button>
+<button class="h-10 px-4 bg-surface-container-lowest border border-outline-variant text-primary rounded-lg font-button text-button flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Exportar
+                    </button>
+</div>
+</div>
+<!-- PrimeNG Style Data Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+<!-- Table Header/Toolbar -->
+<div class="p-lg border-b border-outline-variant bg-surface-container-low flex flex-wrap gap-4 justify-between items-center">
+<div class="relative w-full sm:w-72">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none" placeholder="Buscar entidad o solicitante..." type="text">
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span>Mostrando 1-4 de 24 registros</span>
+</div>
+</div>
+<!-- Table Wrapper -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap">Entidad Tipo</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap">Entidad (ID/Nombre)</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap">Usuario Solicitante</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap">Motivo</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap">Fecha</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap text-center">Estado</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface font-semibold whitespace-nowrap text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface-variant">
+<!-- Row 1: Pending -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">Licitación</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-medium text-primary">LIC-2023-001</span>
+<span class="text-[12px] text-outline">Proyecto Alpha Infraestructura</span>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] font-bold">CG</div>
+                                    Carlos Gómez
+                                </td>
+<td class="py-3 px-6 max-w-[200px] truncate" title="Error en carga de pliegos técnicos">Error en carga de pliegos técnicos...</td>
+<td class="py-3 px-6 whitespace-nowrap">24 Oct 2023</td>
+<td class="py-3 px-6 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                        Pendiente
+                                    </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<div class="flex justify-end gap-2">
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant text-green-600 hover:bg-green-50 hover:border-green-300 flex items-center justify-center transition-colors" title="Aprobar">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant text-error hover:bg-error-container hover:border-error flex items-center justify-center transition-colors" title="Rechazar">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Approved -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-6 whitespace-nowrap">Proveedor</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-medium text-primary">PRV-1045</span>
+<span class="text-[12px] text-outline">TechCorp Soluciones S.A.</span>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-primary-container flex items-center justify-center text-[10px] font-bold">MP</div>
+                                    María Pérez
+                                </td>
+<td class="py-3 px-6 max-w-[200px] truncate" title="Cese definitivo de operaciones">Cese definitivo de operaciones</td>
+<td class="py-3 px-6 whitespace-nowrap">22 Oct 2023</td>
+<td class="py-3 px-6 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-100 text-green-800 border border-green-200">
+                                        Aprobada
+                                    </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-right text-outline text-[12px]">
+                                    Procesado
+                                </td>
+</tr>
+<!-- Row 3: Rejected -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-6 whitespace-nowrap">Contrato</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-medium text-primary">CTR-882</span>
+<span class="text-[12px] text-outline">Mantenimiento Anual IT</span>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-dim text-on-surface-variant flex items-center justify-center text-[10px] font-bold">JR</div>
+                                    Juan Ruiz
+                                </td>
+<td class="py-3 px-6 max-w-[200px] truncate" title="Documentación incompleta, falta anexo fiscal">Documentación incompleta...</td>
+<td class="py-3 px-6 whitespace-nowrap">20 Oct 2023</td>
+<td class="py-3 px-6 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-medium bg-error-container text-on-error-container border border-error/20">
+                                        Rechazada
+                                    </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-right text-outline text-[12px]">
+                                    Procesado
+                                </td>
+</tr>
+<!-- Row 4: Pending -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-6 whitespace-nowrap">Documento</td>
+<td class="py-3 px-6 whitespace-nowrap">
+<div class="flex flex-col">
+<span class="font-medium text-primary">DOC-9921</span>
+<span class="text-[12px] text-outline">Anexo B - Términos Ref.</span>
+</div>
+</td>
+<td class="py-3 px-6 whitespace-nowrap flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary-container text-white flex items-center justify-center text-[10px] font-bold">AM</div>
+                                    Ana Martínez
+                                </td>
+<td class="py-3 px-6 max-w-[200px] truncate" title="Versión obsoleta subida por error">Versión obsoleta subida por error</td>
+<td class="py-3 px-6 whitespace-nowrap">25 Oct 2023</td>
+<td class="py-3 px-6 whitespace-nowrap text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                        Pendiente
+                                    </span>
+</td>
+<td class="py-3 px-6 whitespace-nowrap text-right">
+<div class="flex justify-end gap-2">
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant text-green-600 hover:bg-green-50 hover:border-green-300 flex items-center justify-center transition-colors" title="Aprobar">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant text-error hover:bg-error-container hover:border-error flex items-center justify-center transition-colors" title="Rechazar">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest flex justify-end items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Filas por página:</span>
+<select class="bg-surface border border-outline-variant rounded-md text-sm py-1 pl-2 pr-6 outline-none focus:border-secondary">
+<option>10</option>
+<option>20</option>
+<option>50</option>
+</select>
+</div>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-outline opacity-50 cursor-not-allowed">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-primary">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

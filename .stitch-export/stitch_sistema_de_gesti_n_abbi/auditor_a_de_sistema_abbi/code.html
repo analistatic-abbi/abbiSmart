@@ -1,0 +1,416 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Auditoría - Gestión ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "background": "#f9f9fd",
+                      "surface-dim": "#dadade",
+                      "surface-container-low": "#f4f3f7",
+                      "on-tertiary-container": "#f9825e",
+                      "tertiary": "#4a0f00",
+                      "secondary-fixed-dim": "#aec8ef",
+                      "surface-tint": "#3b608c",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#bcd6fe",
+                      "on-background": "#1a1c1f",
+                      "on-error": "#ffffff",
+                      "primary-container": "#0e3b65",
+                      "surface-variant": "#e2e2e6",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "inverse-on-surface": "#f1f0f4",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "outline": "#73777f",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "surface": "#f9f9fd",
+                      "surface-bright": "#f9f9fd",
+                      "surface-container-high": "#e8e8ec",
+                      "on-primary-fixed": "#001c37",
+                      "secondary-fixed": "#d3e4ff",
+                      "on-secondary-fixed": "#001c38",
+                      "on-surface-variant": "#43474f",
+                      "outline-variant": "#c3c6d0",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#466082",
+                      "primary": "#002546",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed": "#ffdbd1",
+                      "tertiary-container": "#6f1c01",
+                      "primary-fixed": "#d2e4ff",
+                      "surface-container-highest": "#e2e2e6",
+                      "error": "#ba1a1a",
+                      "inverse-primary": "#a4c9fb",
+                      "on-primary-fixed-variant": "#204873",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "on-primary-container": "#81a6d6",
+                      "inverse-surface": "#2f3034",
+                      "surface-container": "#eeedf1",
+                      "on-secondary-container": "#435d7f",
+                      "on-surface": "#1a1c1f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-desktop": "32px",
+                      "base": "4px",
+                      "margin-mobile": "16px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "sm": "8px"
+              },
+              "fontFamily": {
+                      "h3": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "h1-mobile": ["Inter"],
+                      "button": ["Inter"],
+                      "h2": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h1": ["Inter"]
+              },
+              "fontSize": {
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+        .input-standard {
+            @apply h-[40px] px-3 border border-outline-variant rounded bg-surface-container-lowest text-on-surface text-body-md focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent transition-shadow;
+        }
+        .btn-primary {
+            @apply h-[40px] px-4 bg-primary-container text-on-primary rounded font-button flex items-center justify-center gap-2 hover:bg-primary transition-colors;
+        }
+        .btn-secondary {
+            @apply h-[40px] px-4 bg-surface-container-lowest border border-outline-variant text-primary-container rounded font-button flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background flex min-h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-surface-container-low dark:bg-surface-container-lowest fixed left-0 top-0 h-full flex-col py-6 border-r border-outline-variant dark:border-outline shadow-sm dark:shadow-none w-[260px] z-20">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="gavel">gavel</span>
+</div>
+<div>
+<h1 class="font-h3 text-h3 font-extrabold text-primary dark:text-primary-fixed">Gestión ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bid Management System</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full btn-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                New Bid Request
+            </button>
+</div>
+<div class="flex-1 px-2 space-y-1 overflow-y-auto">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+                Home
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+                Opportunities
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                Active Bids
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+                Contract Awards
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+                Reports
+            </a>
+<!-- Active State representation for Audit -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-xl px-4 py-3 font-button text-button border-l-4 border-[#2E8EC2]" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+                Auditoría
+            </a>
+</div>
+<div class="px-2 mt-auto border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg font-button text-button" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Sign Out
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[260px] flex flex-col h-screen overflow-hidden">
+<!-- Header Superior -->
+<header class="h-[64px] bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6 z-10 shrink-0">
+<div class="flex items-center md:hidden">
+<button class="text-on-surface-variant mr-4">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-h3 text-h3 font-bold text-primary">Auditoría</h1>
+</div>
+<div class="hidden md:block">
+<h2 class="font-h2 text-h2 text-on-surface">Registro de Auditoría</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center bg-surface-container-low px-3 py-1 rounded-full border border-outline-variant gap-2">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<span class="font-label-sm text-label-sm text-[#233E5E]">Administrador</span>
+</div>
+<div class="flex items-center gap-2 cursor-pointer hover:bg-surface-container-low p-1 rounded transition-colors">
+<img class="w-5 h-5 rounded-full object-cover border border-outline-variant" data-alt="A very small, circular flag of Spain, representing the selected country in a professional enterprise software interface. Clean and crisp colors, simple design suitable for a UI header element." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUbPwVmlgcdfRGlh_IGB2quqkuJdqQTTmXvgNEoMCROHFgRz7tb7a7BUB5gYBvB5IGEp5DrQQvYHlYtFpDEr0dlEC9Yi1T90HZHAv3EUiLIwAnUG4ld85ewDtMOBLnZmRdENKQSdVb9TAg3Iyw4wZrOA_EkBGcOixuRYSipgQYNC0ge8XnM1YFlJ0J5VKXIh9O6L2eZ2tEd58s6HLgnerPzz2GsoyZHOHcKHqtf5YrYQkM7DF0o3S-">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+<div class="relative cursor-pointer text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-button">
+                        JS
+                    </div>
+<div class="hidden md:block">
+<p class="font-label-sm text-label-sm text-on-surface font-semibold">Juan Sánchez</p>
+<p class="text-[10px] text-on-surface-variant">juan.sanchez@abbi.com</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#F8F9FA]">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- Filtros Bento Grid Style -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-h3 text-h3 text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" data-icon="filter_list">filter_list</span>
+                            Filtros de Búsqueda
+                        </h3>
+<button class="text-primary-container hover:text-primary font-button text-button underline">Limpiar Filtros</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+<!-- Usuario -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Usuario</label>
+<div class="relative">
+<select class="input-standard w-full appearance-none pr-8">
+<option value="">Todos los usuarios</option>
+<option value="1">Juan Sánchez</option>
+<option value="2">Ana Gómez</option>
+<option value="3">Sistema</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<!-- Entidad Tipo -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Entidad Tipo</label>
+<div class="relative">
+<select class="input-standard w-full appearance-none pr-8">
+<option value="">Todas las entidades</option>
+<option value="bid">Licitación</option>
+<option value="contract">Contrato</option>
+<option value="user">Usuario</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<!-- Entidad ID -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Entidad ID</label>
+<input class="input-standard w-full" placeholder="Ej. BID-2023-001" type="text">
+</div>
+<!-- Acción -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Acción</label>
+<div class="relative">
+<select class="input-standard w-full appearance-none pr-8">
+<option value="">Todas las acciones</option>
+<option value="create">Creación</option>
+<option value="update">Actualización</option>
+<option value="delete">Eliminación</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<!-- Fechas (Simplified for layout) -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Rango de Fechas</label>
+<div class="relative">
+<input class="input-standard w-full pl-8" placeholder="Desde - Hasta" type="text">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none" data-icon="calendar_month">calendar_month</span>
+</div>
+</div>
+</div>
+<div class="mt-4 flex justify-end">
+<button class="btn-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="search">search</span>
+                            Aplicar Filtros
+                        </button>
+</div>
+</div>
+<!-- Tabla de Resultados -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant shadow-sm flex flex-col overflow-hidden">
+<!-- Table Toolbar -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mostrando 1-10 de 245 registros</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="btn-secondary h-[32px] px-3 text-[13px]">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+                                Exportar
+                            </button>
+</div>
+</div>
+<!-- Table Wrapper -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[1000px]">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-outline-variant">
+<th class="p-sm font-button text-button text-on-surface w-[120px]">
+<div class="flex items-center gap-1 cursor-pointer hover:text-primary">
+                                            Fecha/Hora
+                                            <span class="material-symbols-outlined text-[16px]" data-icon="arrow_downward">arrow_downward</span>
+</div>
+</th>
+<th class="p-sm font-button text-button text-on-surface w-[150px]">Usuario</th>
+<th class="p-sm font-button text-button text-on-surface w-[120px]">Acción</th>
+<th class="p-sm font-button text-button text-on-surface w-[180px]">Entidad</th>
+<th class="p-sm font-button text-button text-on-surface w-[150px]">Campo</th>
+<th class="p-sm font-button text-button text-on-surface">Valor Anterior</th>
+<th class="p-sm font-button text-button text-on-surface">Valor Nuevo</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm text-on-surface-variant">24/10/2023 14:32</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-[10px] text-on-secondary-container font-bold">JS</div>
+                                            Juan Sánchez
+                                        </div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#FFF3E0] text-[#E65100] border border-[#FFE0B2]">
+                                            Actualización
+                                        </span>
+</td>
+<td class="p-sm">Licitación (BID-2023-045)</td>
+<td class="p-sm">Estado</td>
+<td class="p-sm"><span class="text-on-surface-variant line-through">En Revisión</span></td>
+<td class="p-sm font-medium text-primary">Aprobado</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm text-on-surface-variant">24/10/2023 11:15</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-[10px] text-on-primary font-bold">AG</div>
+                                            Ana Gómez
+                                        </div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]">
+                                            Creación
+                                        </span>
+</td>
+<td class="p-sm">Contrato (CON-902-A)</td>
+<td class="p-sm">-</td>
+<td class="p-sm text-on-surface-variant italic">-</td>
+<td class="p-sm">Registro Inicial</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm text-on-surface-variant">23/10/2023 16:45</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center text-[10px] text-on-surface-variant font-bold">
+<span class="material-symbols-outlined text-[14px]" data-icon="smart_toy">smart_toy</span>
+</div>
+                                            Sistema API
+                                        </div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#FFF3E0] text-[#E65100] border border-[#FFE0B2]">
+                                            Actualización
+                                        </span>
+</td>
+<td class="p-sm">Proveedor (PRV-112)</td>
+<td class="p-sm">Fecha Vencimiento</td>
+<td class="p-sm"><span class="text-on-surface-variant line-through">31/12/2023</span></td>
+<td class="p-sm font-medium text-primary">31/12/2024</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm text-on-surface-variant">23/10/2023 09:20</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-[10px] text-on-secondary-container font-bold">JS</div>
+                                            Juan Sánchez
+                                        </div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#FFEBEE] text-[#C62828] border border-[#FFCDD2]">
+                                            Eliminación
+                                        </span>
+</td>
+<td class="p-sm">Documento (DOC-883)</td>
+<td class="p-sm">-</td>
+<td class="p-sm"><span class="text-on-surface-variant">anexo_tecnico_v1.pdf</span></td>
+<td class="p-sm text-on-surface-variant italic">-</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 border-t border-outline-variant flex items-center justify-end bg-surface-container-lowest">
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface-variant disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary-container text-on-primary font-button text-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-sm">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-sm">3</button>
+<span class="w-8 h-8 flex items-center justify-center text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-sm">25</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

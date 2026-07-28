@@ -1,0 +1,326 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bandeja de Validación</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16 flat no shadows">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 font-bold text-primary">ABBI</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-lowest px-sm py-xs mx-md hidden md:flex">
+<span class="material-symbols-outlined text-outline text-[18px]">search</span>
+<input class="border-none bg-transparent focus:ring-0 text-body-md font-body-md w-48 py-0" placeholder="Buscar..." type="text">
+</div>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full cursor-pointer active:opacity-80 flex items-center justify-center h-10 w-10">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full cursor-pointer active:opacity-80 flex items-center justify-center h-10 w-10">
+<span class="material-symbols-outlined">flag</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm cursor-pointer ml-xs hover:bg-surface-container-low transition-colors rounded px-sm py-xs">
+<div class="flex flex-col items-end hidden md:flex">
+<span class="font-button text-button text-on-surface">Nombre de Usuario</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-xs rounded">Administrador</span>
+</div>
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small circular avatar placeholder image showing a generic user silhouette in minimal corporate style against a light grey background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn-TOtOV1-KoAwnFsnKq5ZoEz3zMivQCFEg3ZBvzGmqerUwvkAg-Ya-4bW1XJGvyQ7giWb-qvhtP-Liz3ITs220J_n35gT8e6jw_RAipgt1peEwiGEySHPdYoV0UHMnpHPirjOmgxMWUY73LXP2vRwMMMnqN8Ti6N3qHtklWC5Rl0-xFmm_dYqt9WGLGkO0Svvz-3TlczucbdSHA5TuxR2QfgSOiHu0IkauF6JwYsU8PLtk9KYz3a0">
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex flex-col py-md bg-surface-container-lowest border-r border-outline-variant flat no shadows hidden md:flex overflow-y-auto">
+<div class="flex-1 flex flex-col gap-xs px-sm">
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</div>
+<!-- Active State -->
+<div class="flex items-center gap-md px-md py-sm rounded-r-lg text-primary border-l-[3px] border-primary-container bg-secondary-container font-button cursor-pointer select-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span>Validaciones</span>
+</div>
+</div>
+<div class="mt-auto flex flex-col gap-xs px-sm border-t border-outline-variant pt-md">
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Ayuda</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-body-md text-body-md">Soporte</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm rounded-lg text-error hover:bg-error-container transition-all cursor-pointer select-none mt-sm">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-button text-button">Cerrar Sesión</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="md:ml-[260px] pt-[64px] min-h-screen flex flex-col">
+<div class="p-margin-desktop flex-1 max-w-7xl mx-auto w-full flex flex-col gap-lg">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h1 class="font-h1 text-h1 text-primary mb-xs">Bandeja de Validación</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Procesos pendientes de su revisión</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button px-md py-sm rounded flex items-center gap-sm hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filtros
+                    </button>
+<button class="bg-primary-container text-on-primary font-button text-button px-md py-sm rounded flex items-center gap-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Nueva Validación
+                    </button>
+</div>
+</div>
+<!-- Table Container (PrimeNG clean look) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col flex-1 shadow-sm">
+<!-- Table Toolbar -->
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest rounded-t-lg">
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-sm top-1/2 transform -translate-y-1/2 text-outline-variant">search</span>
+<input class="w-full border border-outline-variant rounded pl-xl pr-md py-sm text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface-container-lowest" placeholder="Buscar por ID, Código o Empresa..." type="text">
+</div>
+<div class="flex gap-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded border border-transparent hover:border-outline-variant transition-all">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded border border-transparent hover:border-outline-variant transition-all">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant font-label-sm text-label-sm">
+<th class="py-md px-lg font-semibold w-12 text-center">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox">
+</th>
+<th class="py-md px-lg font-semibold cursor-pointer hover:text-primary transition-colors select-none group">
+<div class="flex items-center gap-xs">
+                                        ID de Validación
+                                        <span class="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">arrow_downward</span>
+</div>
+</th>
+<th class="py-md px-lg font-semibold">Código de proceso</th>
+<th class="py-md px-lg font-semibold">Empresa</th>
+<th class="py-md px-lg font-semibold">Fecha Ingreso</th>
+<th class="py-md px-lg font-semibold">Estado del proceso</th>
+<th class="py-md px-lg font-semibold text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors bg-surface-container-lowest">
+<td class="py-md px-lg text-center">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox">
+</td>
+<td class="py-md px-lg font-button text-button text-primary-container">VAL-2023-001</td>
+<td class="py-md px-lg">PRC-2023-0891</td>
+<td class="py-md px-lg font-medium">TechCorp S.A.</td>
+<td class="py-md px-lg text-on-surface-variant">12 Oct 2023, 10:30</td>
+<td class="py-md px-lg">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                                        En Validación
+                                    </span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors bg-surface-container-lowest">
+<td class="py-md px-lg text-center">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox">
+</td>
+<td class="py-md px-lg font-button text-button text-primary-container">VAL-2023-002</td>
+<td class="py-md px-lg">PRC-2023-0895</td>
+<td class="py-md px-lg font-medium">Global Logistics LLC</td>
+<td class="py-md px-lg text-on-surface-variant">12 Oct 2023, 11:15</td>
+<td class="py-md px-lg">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                        Pendiente
+                                    </span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors bg-surface-container-lowest">
+<td class="py-md px-lg text-center">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox">
+</td>
+<td class="py-md px-lg font-button text-button text-primary-container">VAL-2023-003</td>
+<td class="py-md px-lg">PRC-2023-0902</td>
+<td class="py-md px-lg font-medium">AgroIndustrias Del Sur</td>
+<td class="py-md px-lg text-on-surface-variant">11 Oct 2023, 16:45</td>
+<td class="py-md px-lg">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                                        En Validación
+                                    </span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-md border-t border-outline-variant bg-surface-container-lowest rounded-b-lg flex flex-col sm:flex-row justify-between items-center gap-md">
+<span class="font-body-md text-body-md text-on-surface-variant">
+                        Mostrando 1 a 3 de 12 registros
+                    </span>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-primary bg-primary-container text-on-primary font-button text-button transition-colors">
+                            1
+                        </button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors font-button text-button">
+                            2
+                        </button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors font-button text-button">
+                            3
+                        </button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

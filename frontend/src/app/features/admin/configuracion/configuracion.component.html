@@ -1,0 +1,35 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Configuración</h1>
+      <p>Parámetros globales del sistema.</p>
+    </div>
+  </header>
+
+  <nav class="admin-links">
+    <a routerLink="/admin/solicitudes-eliminacion">Solicitudes de eliminación</a>
+    <a routerLink="/admin/auditoria">Auditoría</a>
+    <a routerLink="/carga-masiva">Carga masiva</a>
+  </nav>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    @if (error()) { <p class="error">{{ error() }}</p> }
+
+    <div class="panel">
+      @for (item of items(); track item.clave) {
+        <div class="config-row">
+          <div>
+            <strong>{{ titulo(item.clave) }}</strong>
+            <p>{{ item.descripcion }}</p>
+          </div>
+          <input type="text" [ngModel]="valores()[item.clave]" (ngModelChange)="updateValor(item.clave, $event)" />
+          <button type="button" class="btn-secondary" [disabled]="saving() === item.clave" (click)="guardar(item.clave)">
+            {{ saving() === item.clave ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>

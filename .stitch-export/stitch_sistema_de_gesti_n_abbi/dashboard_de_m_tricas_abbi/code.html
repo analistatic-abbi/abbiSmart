@@ -1,0 +1,417 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Panel de Control - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#0e3b65",
+                    "outline-variant": "#c3c6d0",
+                    "surface-container-highest": "#e2e2e6",
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#4a0f00",
+                    "on-surface-variant": "#43474f",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#eeedf1",
+                    "tertiary-container": "#6f1c01",
+                    "primary": "#002546",
+                    "on-primary": "#ffffff",
+                    "secondary-container": "#bcd6fe",
+                    "on-background": "#1a1c1f",
+                    "on-tertiary-fixed": "#3a0a00",
+                    "on-secondary-fixed-variant": "#2e4869",
+                    "secondary-fixed": "#d3e4ff",
+                    "on-tertiary-container": "#f9825e",
+                    "background": "#f9f9fd",
+                    "secondary-fixed-dim": "#aec8ef",
+                    "on-error": "#ffffff",
+                    "surface": "#f9f9fd",
+                    "on-primary-container": "#81a6d6",
+                    "on-secondary-container": "#435d7f",
+                    "surface-container-high": "#e8e8ec",
+                    "tertiary-fixed": "#ffdbd1",
+                    "on-tertiary-fixed-variant": "#81290c",
+                    "secondary": "#466082",
+                    "surface-variant": "#e2e2e6",
+                    "primary-fixed": "#d2e4ff",
+                    "inverse-surface": "#2f3034",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#dadade",
+                    "on-surface": "#1a1c1f",
+                    "on-secondary-fixed": "#001c38",
+                    "surface-container-low": "#f4f3f7",
+                    "primary-fixed-dim": "#a4c9fb",
+                    "on-primary-fixed": "#001c37",
+                    "inverse-primary": "#a4c9fb",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#3b608c",
+                    "inverse-on-surface": "#f1f0f4",
+                    "surface-bright": "#f9f9fd",
+                    "on-primary-fixed-variant": "#204873",
+                    "tertiary-fixed-dim": "#ffb59f",
+                    "error-container": "#ffdad6",
+                    "outline": "#73777f",
+                    "accent-cyan": "#2E8EC2",
+                    "accent-orange": "#BE5535",
+                    "role-admin": "#233E5E"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "lg": "24px",
+                    "margin-mobile": "16px",
+                    "base": "4px",
+                    "margin-desktop": "32px",
+                    "xl": "32px",
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "h2": [
+                            "Inter"
+                    ],
+                    "h1-mobile": [
+                            "Inter"
+                    ],
+                    "h1": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "button": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "h3": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "h2": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h1-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "h1": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "button": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "h3": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-x-hidden flex h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16">
+<div class="flex items-center gap-md">
+<img alt="ABBI Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA29U5ZkX021ESDy1Wv6mbXVGVlkypFF3IgCCUA8LSgJ9CgeIQedEmuFpPe3pN_zJrpLvh3y8nxiC1SiARP3OTTk1BaVBB0Y45XKM3YR5GmjR4cn0wWG7-qjpkgb-qFuzu0Ty68zlIuSLAlbHthCYFhS3RZSNcJXl3_zzJdGrv_XmGZ-3t--L0lYWU-ZoptkEjxpYJNiB8O0MR23ePFGRR54t31714PDVomksfnGlHulq09dtfZ_c0kNGsBqK3UHuko1w">
+</div>
+<div class="flex items-center gap-lg">
+<div class="hidden md:flex items-center gap-sm px-sm py-xs bg-surface-container rounded-full">
+<span class="font-label-sm text-label-sm text-role-admin">Administrador</span>
+</div>
+<button class="relative text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full p-sm flex items-center justify-center cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<span class="absolute top-1 right-2 w-2 h-2 bg-accent-orange rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full p-sm flex items-center justify-center cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">flag</span>
+</button>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container-low transition-colors p-sm rounded-lg active:opacity-80">
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a corporate administrator in a modern office setting, bright and clear lighting, wearing business casual attire, facing the camera with a neutral pleasant expression. The background is slightly blurred showing a light, airy office space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV5nq3zGHjy-PcO-VFfqjiW7S-B9Khoa63ZigknumGpZVRss_qzo762rW-6q8xr0Fmhbhh3C4zFzxY_pQesyDCgAYseuuy7Y3ON2nl8I7iLHpS1Joi94L6ss0cvfwBaOnxl2V0wHsuG1V_nIKhuv6AOUBBwJjXqfsK3GNuyyI3aW0qpZ-yUlBUuFHKcmTPjUJ_fkuD4cJqFFLGCAcS8Yce50NVmJ44EjMWaAfn4kcKCiyt_HuvZrGq">
+<div class="hidden md:flex flex-col">
+<span class="font-button text-button text-primary">Nombre de Usuario</span>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="hidden md:flex fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex-col py-md bg-surface-container-lowest border-r border-outline-variant z-40 select-none">
+<div class="flex-1 overflow-y-auto px-sm flex flex-col gap-sm">
+<a class="flex items-center gap-md px-md py-sm text-primary border-l-[3px] border-primary-container bg-secondary-container font-button rounded-r-lg cursor-pointer transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Panel de Control
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container hover:border-l-[3px] hover:border-transparent transition-all rounded-r-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+                Gestión de Usuarios
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container hover:border-l-[3px] hover:border-transparent transition-all rounded-r-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+                Reportes Operativos
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container hover:border-l-[3px] hover:border-transparent transition-all rounded-r-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+                Configuración
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container hover:border-l-[3px] hover:border-transparent transition-all rounded-r-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+                Inventario
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container hover:border-l-[3px] hover:border-transparent transition-all rounded-r-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">verified_user</span>
+                Validaciones
+            </a>
+</div>
+<div class="mt-auto px-sm pt-md border-t border-outline-variant flex flex-col gap-sm">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">help</span>
+                Ayuda
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg cursor-pointer" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">support_agent</span>
+                Soporte
+            </a>
+<button class="flex items-center justify-center w-full mt-sm py-sm text-error hover:bg-error-container hover:text-on-error-container transition-colors rounded-lg font-button cursor-pointer">
+                Cerrar Sesión
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full pt-[80px] pb-lg px-margin-mobile md:px-margin-desktop md:ml-[260px] overflow-y-auto">
+<header class="mb-lg flex justify-between items-end">
+<div>
+<h1 class="font-h1 text-h1 text-primary-container">Dashboard de Métricas</h1>
+<p class="text-on-surface-variant mt-sm">Resumen operativo general de procesos y estados.</p>
+</div>
+<button class="bg-primary-container text-on-primary font-button px-lg h-[40px] rounded-lg hover:opacity-90 flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                Exportar Reporte
+            </button>
+</header>
+<!-- KPI Cards Row - Bento Grid Style -->
+<section class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-sm mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Por Validar</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-primary-container group-hover:text-accent-cyan transition-colors">45</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">En Proceso</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-primary-container group-hover:text-accent-cyan transition-colors">128</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group border-l-[3px] border-l-error">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Descartado</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-error">12</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">En Validación</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-primary-container group-hover:text-accent-cyan transition-colors">67</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Presentado</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-primary-container group-hover:text-accent-cyan transition-colors">34</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group border-l-[3px] border-l-accent-orange">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Subsanación</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-accent-orange">8</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group border-l-[3px] border-l-[#10B981]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Adjudicado</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-[#10B981]">105</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex flex-col justify-between hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Cerrado</span>
+<div class="flex items-end justify-between">
+<span class="font-h2 text-h2 text-outline">240</span>
+</div>
+</div>
+</section>
+<!-- Main Dashboard Body - Asymmetric Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Processes by Segment Chart -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg lg:col-span-2 flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-h3 text-h3 text-primary-container">Procesos por Segmento</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Chart Mockup (CSS Based) -->
+<div class="flex-1 min-h-[300px] flex items-end justify-around pt-lg gap-sm relative">
+<!-- Y Axis Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-lg">
+<div class="w-full border-t border-dashed border-outline-variant/30 h-0"></div>
+<div class="w-full border-t border-dashed border-outline-variant/30 h-0"></div>
+<div class="w-full border-t border-dashed border-outline-variant/30 h-0"></div>
+<div class="w-full border-t border-dashed border-outline-variant/30 h-0"></div>
+<div class="w-full border-t border-outline-variant h-0"></div>
+</div>
+<!-- Bars -->
+<div class="relative w-full max-w-[60px] h-[80%] bg-primary-container rounded-t-sm group flex flex-col justify-end items-center z-10 cursor-pointer">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 bg-inverse-surface text-inverse-on-surface px-sm py-xs rounded text-label-sm transition-opacity">120</div>
+<span class="absolute -bottom-6 text-label-sm text-on-surface-variant whitespace-nowrap">Gas Natural</span>
+</div>
+<div class="relative w-full max-w-[60px] h-[45%] bg-accent-cyan rounded-t-sm group flex flex-col justify-end items-center z-10 cursor-pointer">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 bg-inverse-surface text-inverse-on-surface px-sm py-xs rounded text-label-sm transition-opacity">65</div>
+<span class="absolute -bottom-6 text-label-sm text-on-surface-variant whitespace-nowrap">Alcantarillado</span>
+</div>
+<div class="relative w-full max-w-[60px] h-[95%] bg-primary-container rounded-t-sm group flex flex-col justify-end items-center z-10 cursor-pointer">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 bg-inverse-surface text-inverse-on-surface px-sm py-xs rounded text-label-sm transition-opacity">145</div>
+<span class="absolute -bottom-6 text-label-sm text-on-surface-variant whitespace-nowrap">Electricidad</span>
+</div>
+<div class="relative w-full max-w-[60px] h-[60%] bg-secondary rounded-t-sm group flex flex-col justify-end items-center z-10 cursor-pointer">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 bg-inverse-surface text-inverse-on-surface px-sm py-xs rounded text-label-sm transition-opacity">90</div>
+<span class="absolute -bottom-6 text-label-sm text-on-surface-variant whitespace-nowrap">Obra Civil</span>
+</div>
+<div class="relative w-full max-w-[60px] h-[25%] bg-outline-variant rounded-t-sm group flex flex-col justify-end items-center z-10 cursor-pointer">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 bg-inverse-surface text-inverse-on-surface px-sm py-xs rounded text-label-sm transition-opacity">35</div>
+<span class="absolute -bottom-6 text-label-sm text-on-surface-variant whitespace-nowrap">Serv. Adicionales</span>
+</div>
+</div>
+</div>
+<!-- Projections Panel -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-h3 text-h3 text-primary-container">Proyecciones</h3>
+<select class="h-[40px] px-sm py-xs border border-outline-variant rounded-lg bg-surface-lowest text-on-surface font-body-md focus:ring-2 focus:ring-accent-cyan outline-none cursor-pointer">
+<option value="2024">2024</option>
+<option value="2023">2023</option>
+</select>
+</div>
+<div class="mb-md">
+<span class="text-on-surface-variant text-body-md">Total Proyectado</span>
+<div class="font-h1 text-h1 text-primary-container mt-xs">$ 4.5M</div>
+</div>
+<!-- Desglose por Estado -->
+<div class="mt-sm flex-1">
+<h4 class="font-button text-button text-on-surface mb-sm border-b border-outline-variant pb-xs">Desglose por Estado</h4>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between items-center text-body-md">
+<span class="text-on-surface-variant">Lejano</span>
+<span class="font-button">15%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-outline h-full w-[15%]"></div>
+</div>
+<div class="flex justify-between items-center text-body-md mt-xs">
+<span class="text-on-surface-variant">Próximo</span>
+<span class="font-button">25%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-accent-cyan h-full w-[25%]"></div>
+</div>
+<div class="flex justify-between items-center text-body-md mt-xs">
+<span class="text-on-surface-variant font-button text-accent-orange">Sale este mes</span>
+<span class="font-button text-accent-orange">10%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-accent-orange h-full w-[10%]"></div>
+</div>
+<div class="flex justify-between items-center text-body-md mt-xs">
+<span class="text-on-surface-variant">Publicado</span>
+<span class="font-button">30%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[30%]"></div>
+</div>
+<div class="flex justify-between items-center text-body-md mt-xs">
+<span class="text-on-surface-variant">Cerrado</span>
+<span class="font-button">20%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-outline-variant h-full w-[20%]"></div>
+</div>
+</div>
+</div>
+<!-- Desglose por Mercado -->
+<div class="mt-lg">
+<h4 class="font-button text-button text-on-surface mb-sm border-b border-outline-variant pb-xs">Mercado</h4>
+<div class="flex gap-md">
+<div class="flex-1 bg-surface p-sm rounded border border-outline-variant flex flex-col items-center justify-center">
+<span class="text-label-sm text-on-surface-variant uppercase">General</span>
+<span class="font-h3 text-h3 text-primary-container mt-xs">65%</span>
+</div>
+<div class="flex-1 bg-primary-container p-sm rounded border border-primary-container flex flex-col items-center justify-center">
+<span class="text-label-sm text-on-primary/80 uppercase">Objetivo</span>
+<span class="font-h3 text-h3 text-on-primary mt-xs">35%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

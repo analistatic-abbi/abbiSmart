@@ -1,0 +1,189 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Panel de Control</h1>
+    <p>Resumen de procesos y métricas del sistema.</p>
+  </header>
+
+  @if (sinPermiso()) {
+    <div class="alert alert--warning">
+      <span>No tiene permiso para acceder a esa sección.</span>
+      <button type="button" class="link" (click)="cerrarSinPermiso()">Cerrar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p>Cargando resumen...</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else {
+    @if (resumen(); as data) {
+      <div class="cards">
+        <article class="card card--highlight">
+          <span class="card__label">Total procesos</span>
+          <strong class="card__value">{{ data.totalProcesos }}</strong>
+        </article>
+
+        @for (item of estadoEntries(data); track item.estado) {
+          <article class="card">
+            <span class="card__label">{{ item.estado }}</span>
+            <strong class="card__value">{{ item.total }}</strong>
+          </article>
+        }
+      </div>
+
+      <section class="panel">
+        <h2>Por segmento</h2>
+        <div class="segment-grid">
+          @for (item of segmentoEntries(data); track item.label) {
+            <div class="segment-item">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.total }}</strong>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="panel">
+      <div class="panel__header-row">
+        <h2>Procesos</h2>
+      </div>
+      <p class="panel__hint">Busque por código, ID digitado o empresa para ver procesos activos.</p>
+      <div class="filters">
+        <input
+          type="search"
+          placeholder="Buscar proceso..."
+          [ngModel]="searchProcesos()"
+          (ngModelChange)="searchProcesos.set($event)"
+          (keyup.enter)="buscarProcesos()"
+        />
+        <button type="button" class="btn-secondary" [disabled]="buscandoProcesos()" (click)="buscarProcesos()">
+          {{ buscandoProcesos() ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </div>
+
+      @if (errorProcesos()) {
+        <p class="error">{{ errorProcesos() }}</p>
+      }
+
+      @if (buscandoProcesos()) {
+        <p>Buscando procesos...</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Empresa</th>
+                <th>Estado</th>
+                <th>Segmento</th>
+                <th>Cuantía</th>
+                <th>% Avance</th>
+                <th>Días restantes</th>
+                <th>Inicio ejecución</th>
+                <th>Finalización</th>
+                <th>Facturación est.</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of procesos(); track p.id) {
+                <tr>
+                  <td><a [routerLink]="['/procesos', p.id]">{{ p.codigo ?? '—' }}</a></td>
+                  <td>{{ p.empresaMostrar }}</td>
+                  <td>{{ p.estado }}</td>
+                  <td>{{ p.segmento }}</td>
+                  <td [title]="moneyTitle(p.cuantia)">{{ formatMoney(p.cuantia) }}</td>
+                  <td>{{ p.avancePorcentaje }}%</td>
+                  <td>{{ p.diasRestantesCierre }}</td>
+                  <td>{{ p.fechaInicioEjecucion ?? '—' }}</td>
+                  <td>{{ p.fechaFinalizacion ?? '—' }}</td>
+                  <td [title]="moneyTitle(p.facturacionEstimadaAnioReporte)">{{ formatMoney(p.facturacionEstimadaAnioReporte) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="10">
+                    @if (procesosBuscados()) {
+                      No se encontraron procesos para "{{ searchProcesos() }}".
+                    } @else {
+                      Ingrese un término de búsqueda para consultar procesos.
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    @if (proyecciones(); as pr) {
+      <section class="panel">
+        <div class="panel__header-row">
+          <h2>Métricas de proyecciones</h2>
+          <label class="anio-filter">
+            Año
+            <input type="number" [ngModel]="anioProyecciones()" (ngModelChange)="anioProyecciones.set(+$event); onAnioChange()" />
+          </label>
+        </div>
+
+        <div class="cards cards--compact">
+          <article class="card">
+            <span class="card__label">Proyecciones activas</span>
+            <strong class="card__value">{{ pr.totalProyeccionesActivas }}</strong>
+          </article>
+          <article class="card">
+            <span class="card__label">Suma venta</span>
+            <strong class="card__value" [title]="moneyTitle(pr.sumaValorVenta)">{{ formatMoney(pr.sumaValorVenta) }}</strong>
+          </article>
+          <article class="card">
+            <span class="card__label">Suma facturación</span>
+            <strong class="card__value" [title]="moneyTitle(pr.sumaValorFacturacion)">{{ formatMoney(pr.sumaValorFacturacion) }}</strong>
+          </article>
+        </div>
+
+        <div class="metrics-grid">
+          <div>
+            <h3>Por estado</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Estado</th><th>Total</th><th>Venta</th><th>Facturación</th></tr>
+                </thead>
+                <tbody>
+                  @for (e of pr.porEstado; track e.estado) {
+                    <tr>
+                      <td><span [class]="badgeClass(e.estado)">{{ e.estado }}</span></td>
+                      <td>{{ e.total }}</td>
+                      <td [title]="moneyTitle(e.sumaVenta)">{{ formatMoney(e.sumaVenta) }}</td>
+                      <td [title]="moneyTitle(e.sumaFacturacion)">{{ formatMoney(e.sumaFacturacion) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3>Por mercado</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Mercado</th><th>Total</th><th>Venta</th><th>Facturación</th></tr>
+                </thead>
+                <tbody>
+                  @for (m of pr.porMercado; track m.mercado) {
+                    <tr>
+                      <td>{{ m.mercado ?? 'Sin asignar' }}</td>
+                      <td>{{ m.total }}</td>
+                      <td [title]="moneyTitle(m.sumaVenta)">{{ formatMoney(m.sumaVenta) }}</td>
+                      <td [title]="moneyTitle(m.sumaFacturacion)">{{ formatMoney(m.sumaFacturacion) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  }
+</section>

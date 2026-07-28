@@ -1,0 +1,151 @@
+<!DOCTYPE html><html lang="es" class="light"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión ABBI - Confirmación</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9fd",
+                        "surface-dim": "#dadade",
+                        "surface-container-low": "#f4f3f7",
+                        "on-tertiary-container": "#f9825e",
+                        "tertiary": "#4a0f00",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "surface-tint": "#3b608c",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "surface-variant": "#e2e2e6",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "outline": "#73777f",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "surface": "#f9f9fd",
+                        "surface-bright": "#f9f9fd",
+                        "surface-container-high": "#e8e8ec",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#466082",
+                        "primary": "#002546",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#6f1c01",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-highest": "#e2e2e6",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-fixed-variant": "#204873",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-secondary-container": "#435d7f",
+                        "on-surface": "#1a1c1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "button": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex items-center justify-center min-h-screen relative font-body-md">
+<!-- The user requested a modal, so we'll simulate the background content with a blurred effect or just gray it out as requested -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-40 transition-opacity flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<!-- Modal Dialog -->
+<div class="bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant w-full max-w-md z-50 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);">
+<div class="p-lg flex flex-col items-center text-center">
+<!-- Warning Icon -->
+<div class="h-16 w-16 rounded-full bg-error-container/20 flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-[32px] text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">
+                        warning
+                    </span>
+</div>
+<!-- Title & Message -->
+<h2 id="modal-title" class="font-h3 text-h3 text-on-surface mb-sm">Indicadores Vacíos</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-xl">
+                    Algunos indicadores quedaron vacíos, ¿deseas continuar de todos modos?
+                </p>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row w-full gap-md">
+<button type="button" class="flex-1 bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button h-10 rounded-lg flex items-center justify-center hover:bg-surface-container-low transition-colors px-md">
+                        Cancelar
+                    </button>
+<button type="button" class="flex-1 bg-primary-container text-on-primary font-button text-button h-10 rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity px-md">
+                        Aceptar
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Behind the modal, a subtle dashboard wireframe to provide context -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none p-margin-desktop" aria-hidden="true">
+<div class="w-full h-16 border-b border-outline-variant mb-lg flex items-center justify-between">
+<div class="w-32 h-6 bg-outline-variant rounded"></div>
+<div class="w-16 h-8 bg-outline-variant rounded-full"></div>
+</div>
+<div class="flex gap-lg h-[calc(100vh-120px)]">
+<div class="w-64 h-full bg-surface-container-low border border-outline-variant rounded-xl hidden md:block"></div>
+<div class="flex-1 flex flex-col gap-lg">
+<div class="w-full h-32 bg-surface-container-lowest border border-outline-variant rounded-xl"></div>
+<div class="w-full flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl"></div>
+</div>
+</div>
+</div>
+</body></html>

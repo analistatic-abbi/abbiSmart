@@ -12,9 +12,11 @@ import { ActivationService } from './activation.service';
 import { AuthController } from './auth.controller';
 import { AuthTokenService } from './auth-token.service';
 import { LoginService } from './login.service';
+import { PasswordRecoveryService } from './password-recovery.service';
 import { PreAuthService } from './pre-auth.service';
 import { SesionService } from './sesion.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -43,11 +45,13 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       SesionUsuario,
       Pais,
     ]),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [
     ActivationService,
     LoginService,
+    PasswordRecoveryService,
     PreAuthService,
     SesionService,
     AuthTokenService,

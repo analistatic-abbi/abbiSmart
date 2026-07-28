@@ -1,0 +1,19 @@
+{
+  "fileKey": "MVZegM7U1VkNe1zbtUEsDu",
+  "screens": [
+    { "screen": "login_abbi_1", "captureId": "7bb1a8f8-9c33-4fa5-89c4-df27f77e1a89", "done": true },
+    { "screen": "login_abbi_2", "captureId": "4c7fbc47-2cdd-4fae-9981-e509f3da6b05", "done": false },
+    { "screen": "selecci_n_de_pa_s_abbi", "captureId": "38da52f5-09f2-4876-8f2e-f227c83e5c5d", "done": false },
+    { "screen": "restablecer_contrase_a_abbi", "captureId": "a7b3925b-4c40-4548-a81e-e35a21c0c059", "done": false },
+    { "screen": "dashboard_de_m_tricas_abbi", "captureId": "fac2d1ec-cd50-4fbe-bec9-6b670878a838", "done": false },
+    { "screen": "lista_de_procesos_abbi", "captureId": "28586339-dcc3-4feb-9954-520a74d655d2", "done": false },
+    { "screen": "crear_proceso_paso_1_abbi", "captureId": "9a5a420a-f05d-471b-84bc-045e99cfb592", "done": false },
+    { "screen": "crear_proceso_paso_2_abbi", "captureId": "0441f46e-5fe0-44c9-a809-853770f8eecc", "done": false },
+    { "screen": "crear_proceso_paso_3_abbi", "captureId": "ac0a13ee-5d77-414a-a4b7-84b99c68cf46", "done": false },
+    { "screen": "detalle_de_proceso_info_general_abbi", "captureId": "3c2d85b2-f8e9-4a5b-94cd-33398314398c", "done": false },
+    { "screen": "detalle_de_proceso_info_general_corregido_abbi", "captureId": "7d19c28d-43bb-4b37-8dd1-434b040219df", "done": false },
+    { "screen": "detalle_de_proceso_fechas_abbi", "captureId": "83878480-4ede-4dbf-95b8-13991aa6c35b", "done": false },
+    { "screen": "detalle_de_proceso_tareas_abbi", "captureId": "4493d0d7-b7c6-4782-9fe2-a44c5be161e4", "done": false },
+    { "screen": "modal_cambio_de_estado_abbi", "captureId": "013958c0-b213-404e-9a76-e9fb74408bc5", "done": false }
+  ]
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="es" class="light"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABBI - Crear Proceso (Paso 3)</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#43474f",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "inverse-surface": "#2f3034",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
+<!-- TopNavBar (Nav SUPPRESSED per rules for linear transactional flow, but Header preserved for branding/actions) -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<span class="font-h2 text-h2 font-extrabold text-primary">Gestión ABBI</span>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<span class="font-body-md text-body-md text-on-surface-variant hidden sm:inline">Crear Proceso de Licitación</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-secondary transition-colors" aria-label="Cerrar">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col items-center justify-start p-margin-mobile md:p-margin-desktop w-full max-w-4xl mx-auto mt-8">
+<!-- Progress Indicator -->
+<div class="w-full mb-12">
+<div class="flex items-center justify-between relative">
+<!-- Line background -->
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-container-high rounded-full -z-10"></div>
+<!-- Active Line -->
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-primary rounded-full -z-10"></div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-button text-button shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary">Datos Básicos</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-button text-button shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary">Requisitos</span>
+</div>
+<!-- Step 3 (Active) -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary border-2 border-primary flex items-center justify-center font-button text-button shadow-sm relative">
+<div class="absolute -inset-1 rounded-full border border-primary opacity-50 animate-pulse"></div>
+                        3
+                    </div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Cronograma</span>
+</div>
+</div>
+</div>
+<!-- Form Container (Bento/Card style) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg w-full shadow-sm">
+<div class="mb-8">
+<h1 class="font-h1 text-h1 text-primary mb-2 hidden md:block">Cronograma del Proceso</h1>
+<h1 class="font-h1-mobile text-h1-mobile text-primary mb-2 md:hidden">Cronograma</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Establezca las fechas clave para la apertura y cierre de recepción de propuestas.</p>
+</div>
+<form class="space-y-6">
+<!-- Date Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Fecha Apertura -->
+<div class="flex flex-col gap-2">
+<label for="fechaApertura" class="font-label-sm text-label-sm text-on-surface">
+                            Fecha de Apertura <span class="text-error">*</span>
+</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<input type="date" id="fechaApertura" name="fechaApertura" required="" class="w-full pl-10 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-shadow">
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Inicio de recepción de ofertas.</p>
+</div>
+<!-- Fecha Cierre -->
+<div class="flex flex-col gap-2">
+<label for="fechaCierre" class="font-label-sm text-label-sm text-on-surface">
+                            Fecha de Cierre <span class="text-error">*</span>
+</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined">event_busy</span>
+</div>
+<input type="date" id="fechaCierre" name="fechaCierre" required="" class="w-full pl-10 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-shadow">
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Límite para recepción de ofertas.</p>
+</div>
+</div>
+<!-- Optional Warning/Info Card -->
+<div class="mt-8 bg-surface-container-low border border-outline-variant rounded-lg p-md flex gap-4 items-start">
+<span class="material-symbols-outlined text-secondary">info</span>
+<div>
+<h4 class="font-h3 text-h3 text-on-surface mb-1" style="font-size: 16px; line-height: 24px;">Confirmación de Plazos</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Asegúrese de que el período entre la apertura y el cierre cumple con las políticas internas de contratación. Una vez guardado, podrá ajustar estas fechas antes de publicar el proceso.</p>
+</div>
+</div>
+<!-- Actions Bottom -->
+<div class="mt-12 pt-6 border-t border-outline-variant flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+<button type="button" class="w-full sm:w-auto px-6 py-2 bg-surface-container-lowest border border-outline-variant text-primary-container rounded-lg font-button text-button hover:bg-surface-container transition-colors flex items-center justify-center gap-2 h-[40px]">
+<span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+                        Atrás
+                    </button>
+<button type="submit" class="w-full sm:w-auto px-6 py-2 bg-primary-container text-on-primary rounded-lg font-button text-button hover:bg-primary transition-colors flex items-center justify-center gap-2 h-[40px] shadow-sm">
+                        Guardar proceso
+                        <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+</button>
+</div>
+</form>
+</div>
+</main>
+</body></html>

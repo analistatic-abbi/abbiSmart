@@ -1,0 +1,44 @@
+<section class="page">
+  <a class="back" routerLink="/configuracion">← Configuración</a>
+  <header class="page__header">
+    <div>
+      <h1>Auditoría</h1>
+      <p>Registro de acciones del sistema.</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input type="text" placeholder="Tipo entidad" [ngModel]="entidadTipo()" (ngModelChange)="entidadTipo.set($event)" />
+    <input type="text" placeholder="Acción" [ngModel]="accion()" (ngModelChange)="accion.set($event)" />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Entidad</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of items(); track log.id) {
+            <tr>
+              <td>{{ log.usuarioId }}</td>
+              <td>{{ log.accion }}</td>
+              <td>{{ log.entidadTipo }} #{{ log.entidadId }}</td>
+              <td>{{ log.fecha }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4">No hay registros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

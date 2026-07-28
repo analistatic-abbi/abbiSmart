@@ -1,0 +1,472 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Detalle de Proceso - Tareas de Seguimiento</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with custom configuration -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#43474f",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "inverse-surface": "#2f3034",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Glassmorphism utility */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex flex-col bg-surface-container-low dark:bg-surface-container-lowest fixed left-0 top-0 h-full w-64 py-6 border-r border-outline-variant dark:border-outline shadow-sm dark:shadow-none z-20">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary font-bold">A</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed">Gestión ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bid Management System</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container text-on-primary-container hover:bg-surface-container-high transition-all font-button text-button py-2 rounded-xl flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                New Bid Request
+            </button>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">home</span>
+                Home
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">gavel</span>
+                Opportunities
+            </a>
+<!-- Active State -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-xl px-4 py-3 scale-95 duration-150 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+                Active Bids
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">verified</span>
+                Contract Awards
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">assessment</span>
+                Reports
+            </a>
+</nav>
+<div class="px-2 mt-auto space-y-1 border-t border-outline-variant pt-4 mx-4">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<div class="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface dark:bg-surface-container flex justify-between items-center w-full px-margin-desktop h-16 border-b border-outline-variant dark:border-outline z-10 sticky top-0">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed md:hidden">ABBI</h2>
+<!-- Navigation Links for Desktop TopBar -->
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<!-- Active Logic Context applied here if it were primary nav, but Sidebar handles primary. Following JSON layout -->
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 opacity-80 transition-all duration-200 font-label-md text-label-md" href="#">Bids</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Analytics</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Help</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-high border-none rounded-full text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Search..." type="text">
+</div>
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small circular user profile image of a professional person in a corporate setting, bright lighting, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhE_jufdKZkpR1v-PXCdWUanlBFxjDpAaYuy9dtzeoJ8n2addkzO2zYs872EiuuoPjoSqMHc-wVcStEcGKFlfUe0ySrBL8T7A4EByUQPt4HXWlDo58f5uytthdnVG_3Saie7O4ZgptxkEiHKwAAsy4BLrX5Uw8IapQQm1hBmNcDfSndG-46zFeG2VYvoGrkxO2KjfNgFXR5iy4hGRSlxuc7cLWYXhMZZ9AM3UEHfRtNSgbDc2y_EYS">
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 p-margin-mobile md:p-margin-desktop overflow-y-auto">
+<!-- Page Header -->
+<div class="mb-lg">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant mb-2">
+<a class="hover:text-primary" href="#">Procesos</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span>Licitación PR-2023-089</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="font-h1 text-h1 text-primary mb-1">Detalle de Proceso</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Licitación Pública Nacional - Infraestructura Redes</p>
+</div>
+<div class="flex gap-3">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm border border-outline-variant">
+                            ID: PR-2023-089
+                        </span>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+                            En Curso
+                        </span>
+</div>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex gap-6 border-b border-outline-variant mb-xl overflow-x-auto">
+<a class="pb-3 font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap hover:text-primary transition-colors" href="#">Información General</a>
+<a class="pb-3 font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap hover:text-primary transition-colors" href="#">Documentos</a>
+<a class="pb-3 font-label-sm text-label-sm text-primary border-b-2 border-primary whitespace-nowrap" href="#">Tareas de Seguimiento</a>
+<a class="pb-3 font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap hover:text-primary transition-colors" href="#">Histórico</a>
+</div>
+<!-- Progress Dashboard (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<div class="md:col-span-2 bg-surface border border-outline-variant rounded-xl p-lg flex flex-col justify-center">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h3 class="font-h3 text-h3 text-primary">Progreso de Preparación</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Completitud de tareas obligatorias para presentación.</p>
+</div>
+<span class="font-h1 text-h1 text-primary">25%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-3 mb-2">
+<div class="bg-primary h-3 rounded-full" style="width: 25%"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>3 de 12 tareas completadas</span>
+<span>Vence en: 14 días</span>
+</div>
+</div>
+<div class="bg-surface border border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center gap-2">
+<div class="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center mb-2">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<h4 class="font-h3 text-h3 text-primary">Acción Requerida</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Documentación técnica pendiente de validación.</p>
+</div>
+</div>
+<!-- Tasks Grid (Avoid Standard List) -->
+<h2 class="font-h2 text-h2 text-primary mb-6">Lista de Tareas</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg pb-xl">
+<!-- Task 1 (Completed Example) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary opacity-50"></div>
+<div class="flex items-start gap-3">
+<input checked="" class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary cursor-not-allowed" disabled="" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary line-through opacity-70">Creación de Carpeta</h4>
+<span class="inline-block mt-2 px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Completada</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant flex justify-between items-center">
+<span class="text-xs text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Evidencia cargada</span>
+</div>
+</div>
+<!-- Task 2 (Completed Example) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary opacity-50"></div>
+<div class="flex items-start gap-3">
+<input checked="" class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary cursor-not-allowed" disabled="" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary line-through opacity-70">Manifestación de Interés</h4>
+<span class="inline-block mt-2 px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Completada</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant flex justify-between items-center">
+<span class="text-xs text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Carta_Intencion.pdf</span>
+</div>
+</div>
+<!-- Task 3 (Completed Example) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary opacity-50"></div>
+<div class="flex items-start gap-3">
+<input checked="" class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary accent-primary cursor-not-allowed" disabled="" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary line-through opacity-70">Adquisición de derecho a participar</h4>
+<span class="inline-block mt-2 px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Completada</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant flex justify-between items-center">
+<span class="text-xs text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Recibo_Pago_089.pdf</span>
+</div>
+</div>
+<!-- Task 4 (Active/Pending) -->
+<div class="glass-card rounded-xl p-6 flex flex-col gap-4 relative shadow-sm border border-secondary-container transition-all hover:shadow-md">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Preparar Doc. Jurídica</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-dashed border-outline-variant flex items-center justify-center gap-2 cursor-pointer hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-outline">upload_file</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Adjuntar archivo...</span>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-primary-container text-on-primary-container hover:bg-surface-tint hover:text-white transition-colors font-button text-button py-2 rounded-lg">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 5 (Active/Pending) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 hover:shadow-sm transition-shadow">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Preparar Doc. Técnica</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg border border-dashed border-outline-variant flex items-center justify-center gap-2 cursor-pointer hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline">upload_file</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Adjuntar archivo...</span>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-white border border-outline text-primary hover:bg-surface-container-low transition-colors font-button text-button py-2 rounded-lg">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 6 (Active/Pending) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 hover:shadow-sm transition-shadow">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Preparar Doc. Financiera</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg border border-dashed border-outline-variant flex items-center justify-center gap-2 cursor-pointer hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline">upload_file</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Adjuntar archivo...</span>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-white border border-outline text-primary hover:bg-surface-container-low transition-colors font-button text-button py-2 rounded-lg">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Repeated structure for remaining tasks to maintain the grid and requirements -->
+<!-- Task 7 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Estructuración de administración</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 8 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Solicitud de pago de póliza</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 9 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Pago de póliza</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 10 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Elaboración de propuesta económica</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 11 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Validación área técnica</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+<!-- Task 12 -->
+<div class="bg-surface border border-outline-variant rounded-xl p-6 flex flex-col gap-4 opacity-75">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer" type="checkbox">
+<div class="flex-1">
+<h4 class="font-h3 text-h3 text-primary">Envío de propuesta</h4>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded">Evidencia Obligatoria</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-surface-container text-on-surface-variant font-button text-button py-2 rounded-lg" disabled="">
+                            Marcar como completada
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
