@@ -43,9 +43,12 @@ export const validationSchema = Joi.object({
 
   MAIL_HOST: Joi.string().allow('').default(''),
   MAIL_PORT: Joi.number().port().default(587),
+  MAIL_SECURE: Joi.boolean().default(false),
   MAIL_USER: Joi.string().allow('').default(''),
   MAIL_PASSWORD: Joi.string().allow('').default(''),
-  MAIL_FROM: Joi.string().email().default('noreply@abbi.com'),
+  MAIL_FROM: Joi.string().default('noreply@abbi.com'),
+  MAIL_FROM_NAME: Joi.string().default('Notificaciones ABBI Smart'),
+  MAIL_SUPPORT_TO: Joi.string().email().allow('').default(''),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:4200'),
 
   SWAGGER_ENABLED: Joi.boolean().default(true),

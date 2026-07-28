@@ -1,0 +1,372 @@
+<!DOCTYPE html><html class="h-full" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Lista de Procesos - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#0e3b65",
+                      "outline-variant": "#c3c6d0",
+                      "surface-container-highest": "#e2e2e6",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#4a0f00",
+                      "on-surface-variant": "#43474f",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container": "#eeedf1",
+                      "tertiary-container": "#6f1c01",
+                      "primary": "#002546",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#bcd6fe",
+                      "on-background": "#1a1c1f",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "secondary-fixed": "#d3e4ff",
+                      "on-tertiary-container": "#f9825e",
+                      "background": "#f9f9fd",
+                      "secondary-fixed-dim": "#aec8ef",
+                      "on-error": "#ffffff",
+                      "surface": "#f9f9fd",
+                      "on-primary-container": "#81a6d6",
+                      "on-secondary-container": "#435d7f",
+                      "surface-container-high": "#e8e8ec",
+                      "tertiary-fixed": "#ffdbd1",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "secondary": "#466082",
+                      "surface-variant": "#e2e2e6",
+                      "primary-fixed": "#d2e4ff",
+                      "inverse-surface": "#2f3034",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#dadade",
+                      "on-surface": "#1a1c1f",
+                      "on-secondary-fixed": "#001c38",
+                      "surface-container-low": "#f4f3f7",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "on-primary-fixed": "#001c37",
+                      "inverse-primary": "#a4c9fb",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#3b608c",
+                      "inverse-on-surface": "#f1f0f4",
+                      "surface-bright": "#f9f9fd",
+                      "on-primary-fixed-variant": "#204873",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "error-container": "#ffdad6",
+                      "outline": "#73777f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem",
+                      "prime": "6px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "lg": "24px",
+                      "margin-mobile": "16px",
+                      "base": "4px",
+                      "margin-desktop": "32px",
+                      "xl": "32px",
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "h2": ["Inter"],
+                      "h1-mobile": ["Inter"],
+                      "h1": ["Inter"],
+                      "body-md": ["Inter"],
+                      "button": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h3": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background h-full text-on-surface flex font-body-md text-body-md overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 flex items-center justify-center">
+<img alt="ABBI Logo" class="max-h-[32px] object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt6r_mQC0HvrvMlRgOBSPQNvl2IQDI59bXF3BPxxbeAALFztk9QcUFgTpESTx1I8xJaiZqPDzCMYcQH9jJBLIoKHWi6dGPTHP61feLutHrEjnXcWeANvPqBXUPg2xxS_cbjXGNRQU9SnMw2Dh8uYsO-7TJPnttIM9v5pCOmOeQb1XKrwqiOpEOKw-s-gP7Rln1SnqnGMSz9tODFcHfBXNFR81R6uu3HfccHzJY50rXpnCv83HShN09PYkLvrxhShwUbA">
+</div>
+<span class="font-h2 text-h2 font-bold text-primary">ABBI</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center bg-surface-container-low px-sm py-xs rounded-prime border border-outline-variant text-[#233E5E] font-label-sm text-label-sm">
+<span class="font-semibold">Administrador</span>
+</div>
+<button aria-label="Notificaciones" class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full cursor-pointer relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full border border-surface-container-lowest"></span>
+</button>
+<button aria-label="Banderas" class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">flag</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container-low px-sm py-xs rounded-prime transition-colors">
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small, professional circular avatar portrait of a corporate user. The portrait features a confident, smiling individual in modern business attire, shot against a clean, light-colored studio background. The lighting is soft and flattering, suitable for a professional profile image in a corporate dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3NTOgkXZ1gRucp3vSS2f6jywx08VdAPo_c4WtAZ90j-aDNV8kAOu_lYckaX9oWnwBhFG2i_p9r5Zqyde41KZ2lhdNu4YKfOuW4FmKQbj43LOTQi1CK_xesaMqc4PvN2opsuvxJUHWnyhdc77mYUfq9c8mkBS6BmDF2rAGnghVvCD5KLOfmbaWVpFUPZoeMlQX2g0Z80vltZW880gDL2X9vbOlIJDUZIZZWtkityIEIjsKtJFW0IPi">
+<div class="hidden md:flex flex-col">
+<span class="font-button text-button text-primary">Juan Pérez</span>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex flex-col py-md bg-surface-container-lowest border-r border-outline-variant z-40">
+<div class="flex flex-col flex-grow">
+<!-- Tabs -->
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<!-- Active State - Assuming this screen is part of 'Reportes Operativos' or 'Panel de Control' - let's map to Dashboard for now or generic -->
+<a class="flex items-center gap-md px-lg py-sm text-primary border-l-[3px] border-primary-container bg-secondary-container font-button text-button transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-button text-button">Gestión de Procesos</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col pt-md border-t border-outline-variant mx-lg">
+<a class="flex items-center gap-md py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none rounded-prime px-sm" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Ayuda</span>
+</a>
+<a class="flex items-center gap-md py-sm text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none rounded-prime px-sm" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-body-md text-body-md">Soporte</span>
+</a>
+<div class="flex items-center justify-between mt-md pt-sm cursor-pointer hover:bg-surface-container px-sm py-xs rounded-prime">
+<div class="flex items-center gap-sm">
+<img alt="Usuario Logueado" class="w-10 h-10 rounded-full object-cover" data-alt="A small, professional circular avatar portrait of a corporate user. The portrait features a confident, smiling individual in modern business attire, shot against a clean, light-colored studio background. The lighting is soft and flattering, suitable for a professional profile image in a corporate dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC0MuTIR_5hylNsm6M8shejIBl5KZ0yvpMtX_kM-4QMM2mT6HFTbLrrfCmyptF38aTLAtzDgN4VRdc0HqTKrGoHULMXt6Bp6V_JqxnZpVZ65_Ob09kDNk5U_S1s_KelUXjAt_-bhKiUmVpy-tUxkwGFdcVo6WzSSNPutZEztETNmD2IVW7bu2I-zRvkTZjfV6k4YylvtnvY-uhZ4S3FPk_ZMuLqHzW7zVN2VlJHGcyuZh_-QEkG_Y4">
+<div class="flex flex-col">
+<span class="font-button text-button text-on-surface line-clamp-1">Nombre de Usuario</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Administrador</span>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[260px] mt-16 p-lg flex-1 h-[calc(100vh-64px)] overflow-y-auto">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h1 class="font-h3 text-h3 text-primary mb-xs">Lista de Procesos</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Gestione y monitorice el estado de los procesos corporativos.</p>
+</div>
+<button class="bg-[#0E3B65] text-white hover:bg-primary-container/90 transition-colors px-lg py-sm rounded-prime font-button text-button flex items-center gap-sm h-10 shadow-sm">
+<span class="material-symbols-outlined text-white" style="font-size: 18px;">add</span>
+                Crear proceso
+            </button>
+</div>
+<!-- Filters Section -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-prime p-lg mb-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-md">
+<!-- Search -->
+<div class="lg:col-span-1 relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-xl pr-sm h-10 border border-outline-variant rounded-prime text-body-md font-body-md bg-surface-container-lowest focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent outline-none" placeholder="Buscar por código, empresa..." type="text">
+</div>
+<!-- Dropdown: Estado -->
+<div class="relative">
+<select class="w-full pl-sm pr-xl h-10 border border-outline-variant rounded-prime text-body-md font-body-md bg-surface-container-lowest appearance-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent outline-none text-on-surface">
+<option disabled="" selected="" value="">Estado</option>
+<option value="activo">Activo</option>
+<option value="pendiente">Pendiente</option>
+<option value="cerrado">Cerrado</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Dropdown: Segmento -->
+<div class="relative">
+<select class="w-full pl-sm pr-xl h-10 border border-outline-variant rounded-prime text-body-md font-body-md bg-surface-container-lowest appearance-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent outline-none text-on-surface">
+<option disabled="" selected="" value="">Segmento</option>
+<option value="corp">Corporativo</option>
+<option value="retail">Retail</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Dropdown: Tipo de Proceso -->
+<div class="relative">
+<select class="w-full pl-sm pr-xl h-10 border border-outline-variant rounded-prime text-body-md font-body-md bg-surface-container-lowest appearance-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent outline-none text-on-surface">
+<option disabled="" selected="" value="">Tipo de Proceso</option>
+<option value="evaluacion">Evaluación</option>
+<option value="auditoria">Auditoría</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Dropdown: Tipo de Instrumento -->
+<div class="relative">
+<select class="w-full pl-sm pr-xl h-10 border border-outline-variant rounded-prime text-body-md font-body-md bg-surface-container-lowest appearance-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent outline-none text-on-surface">
+<option disabled="" selected="" value="">Tipo Instrumento</option>
+<option value="bono">Bono</option>
+<option value="accion">Acción</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex justify-end mt-md gap-sm">
+<button class="bg-surface-container-lowest border border-outline-variant text-[#0E3B65] hover:bg-surface-container-low transition-colors px-md py-sm rounded-prime font-button text-button h-10">
+                    Limpiar Filtros
+                </button>
+<button class="bg-[#0E3B65] text-white hover:bg-primary-container/90 transition-colors px-md py-sm rounded-prime font-button text-button h-10">
+                    Aplicar Filtros
+                </button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-prime overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Código</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Empresa</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Estado</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Segmento</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Tipo de Proceso</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Tipo Instrumento</th>
+<th class="p-sm font-button text-button text-on-surface text-right whitespace-nowrap">Cuantía</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Moneda</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap min-w-[120px]">% Avance</th>
+<th class="p-sm font-button text-button text-on-surface whitespace-nowrap">Fecha de Cierre</th>
+<th class="p-sm font-button text-button text-on-surface text-right whitespace-nowrap">Días Restantes</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant bg-surface-container-lowest">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm font-body-md text-on-surface font-medium">PRC-2023-001</td>
+<td class="p-sm font-body-md text-on-surface-variant">TechCorp S.A.</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary-container text-on-secondary-container border border-on-primary-container/20">En Progreso</span>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">Corporativo</td>
+<td class="p-sm font-body-md text-on-surface-variant">Auditoría Financiera</td>
+<td class="p-sm font-body-md text-on-surface-variant">Bonos Verdes</td>
+<td class="p-sm font-body-md text-on-surface text-right font-medium">5,000,000</td>
+<td class="p-sm font-body-md text-on-surface-variant">USD</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant w-8">45%</span>
+</div>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">2023-11-15</td>
+<td class="p-sm font-body-md text-on-surface text-right font-medium">45</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm font-body-md text-on-surface font-medium">PRC-2023-002</td>
+<td class="p-sm font-body-md text-on-surface-variant">AgroInd Ltda.</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-error-container text-error border border-error/20">Crítico</span>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">Agroindustria</td>
+<td class="p-sm font-body-md text-on-surface-variant">Evaluación Riesgo</td>
+<td class="p-sm font-body-md text-on-surface-variant">Acciones Ordinarias</td>
+<td class="p-sm font-body-md text-on-surface text-right font-medium">1,250,000</td>
+<td class="p-sm font-body-md text-on-surface-variant">EUR</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-error h-1.5 rounded-full" style="width: 15%"></div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant w-8">15%</span>
+</div>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">2023-10-05</td>
+<td class="p-sm font-body-md text-on-surface text-right font-medium text-error">3</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-sm font-body-md text-on-surface font-medium">PRC-2023-003</td>
+<td class="p-sm font-body-md text-on-surface-variant">RetailMax C.A.</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-container-highest text-on-surface-variant border border-outline-variant">Completado</span>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">Retail</td>
+<td class="p-sm font-body-md text-on-surface-variant">Fusión y Adquisición</td>
+<td class="p-sm font-body-md text-on-surface-variant">N/A</td>
+<td class="p-sm font-body-md text-on-surface text-right font-medium">10,000,000</td>
+<td class="p-sm font-body-md text-on-surface-variant">USD</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-[#2E8EC2] h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant w-8">100%</span>
+</div>
+</td>
+<td class="p-sm font-body-md text-on-surface-variant">2023-09-01</td>
+<td class="p-sm font-body-md text-on-surface-variant text-right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-lowest border-t border-outline-variant p-sm flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant">Mostrando 1 a 3 de 45 registros</span>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-prime border border-outline-variant text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-prime bg-primary-container text-on-primary-container font-button text-button border border-primary-container">
+                        1
+                    </button>
+<button class="w-8 h-8 flex items-center justify-center rounded-prime border border-outline-variant text-on-surface hover:bg-surface-container-low font-button text-button">
+                        2
+                    </button>
+<button class="w-8 h-8 flex items-center justify-center rounded-prime border border-outline-variant text-on-surface hover:bg-surface-container-low font-button text-button">
+                        3
+                    </button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-prime border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

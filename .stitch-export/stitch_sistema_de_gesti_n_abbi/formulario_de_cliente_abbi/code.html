@@ -1,0 +1,413 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ABBI - Formulario de Cliente</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#73777f",
+                      "tertiary-container": "#6f1c01",
+                      "tertiary-fixed": "#ffdbd1",
+                      "on-secondary-fixed": "#001c38",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "secondary-fixed-dim": "#aec8ef",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#d2e4ff",
+                      "inverse-surface": "#2f3034",
+                      "background": "#f9f9fd",
+                      "on-error-container": "#93000a",
+                      "surface": "#f9f9fd",
+                      "on-primary-container": "#81a6d6",
+                      "surface-bright": "#f9f9fd",
+                      "surface-variant": "#e2e2e6",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "primary": "#002546",
+                      "inverse-primary": "#a4c9fb",
+                      "on-secondary": "#ffffff",
+                      "primary-container": "#0e3b65",
+                      "on-surface-variant": "#43474f",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "on-surface": "#1a1c1f",
+                      "on-primary": "#ffffff",
+                      "secondary": "#466082",
+                      "surface-container": "#eeedf1",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f4f3f7",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-high": "#e8e8ec",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "on-secondary-container": "#435d7f",
+                      "surface-tint": "#3b608c",
+                      "outline-variant": "#c3c6d0",
+                      "secondary-fixed": "#d3e4ff",
+                      "tertiary": "#4a0f00",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#204873",
+                      "on-error": "#ffffff",
+                      "on-background": "#1a1c1f",
+                      "on-tertiary-container": "#f9825e",
+                      "secondary-container": "#bcd6fe",
+                      "surface-container-highest": "#e2e2e6",
+                      "surface-dim": "#dadade",
+                      "on-primary-fixed": "#001c37",
+                      "inverse-on-surface": "#f1f0f4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "margin-desktop": "32px",
+                      "lg": "24px",
+                      "md": "16px",
+                      "base": "4px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "button": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h1-mobile": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "h2": ["Inter"],
+                      "h1": ["Inter"],
+                      "h3": ["Inter"]
+              },
+              "fontSize": {
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Drawer Animations */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .drawer-open {
+            animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .drawer-close {
+            animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .overlay-open {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .overlay-close {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md h-screen overflow-hidden flex">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md border-b border-outline-variant flex justify-between items-center px-lg w-full sticky top-0 z-40 docked full-width top-0 h-16 flat no shadows fixed w-full top-0 left-0">
+<div class="flex items-center gap-md">
+<h2 class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim">ABBI</h2>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full ml-sm object-cover border border-outline-variant" data-alt="A small circular avatar placeholder for a user profile in a corporate dashboard setting. The image should be abstract, professional, and use deep blue tones consistent with the ABBI brand identity. Clean, minimal, and high-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5_rh8Gg7zGLYZUqYgmZRdKw_5s7wBnhRkYERwmqdy7LPNNlBdVGUUXqQ9IMHsvxUZep5VSgMo92YeqE2qu7W1r-6FgPl6bFFbPRdkit4DPjJBCAR1jnNIVvrhEZm1EcqfbbQXikG11p2g-P1-8NlYqyWbqlNb51fvjTExdGzGmo_SCp-pLhfeal3gV8gAP-x9Z6l_9AUNrkxW9zCbAP25slj0czuACuWiTpeAsYTDjB4NYtP9IxQH">
+</div>
+</header>
+<!-- SideNavBar & Main Layout -->
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-low text-primary dark:text-primary-fixed-dim font-body-md border-r border-outline-variant flex flex-col w-[260px] h-[calc(100vh-64px)] sticky left-0 top-0 pt-lg docked left-0 w-[260px] h-screen flat no shadows hidden md:flex">
+<div class="px-lg pb-md mb-md border-b border-outline-variant">
+<h3 class="font-h3 text-h3 text-primary font-bold">ABBI</h3>
+<p class="text-on-surface-variant font-label-sm mt-xs">Gestión Corporativa</p>
+</div>
+<div class="flex flex-col gap-xs px-sm">
+<!-- Panel de Control (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Panel de Control</span>
+</a>
+<!-- Gestión de Usuarios (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Gestión de Usuarios</span>
+</a>
+<!-- Reportes Operativos (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reportes Operativos</span>
+</a>
+<!-- Inventario (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Inventario</span>
+</a>
+<!-- Validaciones (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span>Validaciones</span>
+</a>
+<!-- Clientes (Active) -->
+<a class="text-primary border-l-[3px] border-secondary bg-surface-container-high flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-r-md" href="#">
+<span class="material-symbols-outlined filled">business</span>
+<span class="font-bold">Clientes</span>
+</a>
+<!-- Contactos (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">contact_phone</span>
+<span>Contactos</span>
+</a>
+<!-- Configuración (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all flex items-center gap-md py-sm px-lg transition-all duration-200 rounded-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuración</span>
+</a>
+</div>
+</nav>
+<!-- Main Content (Simulated Background) -->
+<main class="flex-1 p-lg bg-surface relative">
+<div class="flex justify-between items-center mb-lg">
+<h1 class="font-h1 text-h1 text-primary">Directorio de Clientes</h1>
+<button class="bg-primary-container text-on-primary font-button text-button py-sm px-md rounded flex items-center gap-sm hover:bg-primary transition-colors" id="openDrawerBtn">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Nuevo Cliente
+                </button>
+</div>
+<!-- Simulated Table Content -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm">
+<div class="animate-pulse space-y-4">
+<div class="h-10 bg-surface-container-high rounded w-full"></div>
+<div class="h-10 bg-surface-container-low rounded w-full"></div>
+<div class="h-10 bg-surface-container-low rounded w-full"></div>
+<div class="h-10 bg-surface-container-low rounded w-full"></div>
+<div class="h-10 bg-surface-container-low rounded w-full"></div>
+</div>
+</div>
+</main>
+</div>
+<!-- Drawer Overlay -->
+<div class="fixed inset-0 bg-on-surface/40 z-50 overlay-open flex justify-end" id="drawerOverlay">
+<!-- Drawer Panel -->
+<div class="w-full max-w-md bg-surface-container-lowest h-full shadow-2xl flex flex-col drawer-open border-l border-outline-variant" id="drawerPanel">
+<!-- Drawer Header -->
+<div class="flex justify-between items-center p-lg border-b border-outline-variant bg-surface-container-low">
+<h2 class="font-h2 text-h2 text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">business_center</span>
+                    Nuevo Cliente
+                </h2>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded transition-colors cursor-pointer" id="closeDrawerBtn">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Drawer Body (Form) -->
+<div class="flex-1 overflow-y-auto p-lg">
+<form class="space-y-lg" id="clientForm">
+<!-- Empresa -->
+<div class="space-y-xs">
+<label class="block font-label-sm text-on-surface-variant" for="empresa">Empresa <span class="text-error">*</span></label>
+<input class="w-full h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface font-body-md focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none transition-colors" id="empresa" name="empresa" placeholder="Nombre de la empresa" required="" type="text">
+</div>
+<!-- Región: Departamento & Municipio -->
+<div class="space-y-md">
+<h3 class="font-h3 text-[16px] text-primary border-b border-surface-container-high pb-xs">Ubicación</h3>
+<div class="space-y-xs">
+<label class="block font-label-sm text-on-surface-variant" for="departamento">Departamento <span class="text-error">*</span></label>
+<div class="relative">
+<select class="w-full h-10 pl-md pr-xl py-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface font-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none cursor-pointer" id="departamento" name="departamento" required="">
+<option disabled="" selected="" value="">Seleccione departamento...</option>
+<option value="bogota">Bogotá D.C.</option>
+<option value="antioquia">Antioquia</option>
+<option value="valle">Valle del Cauca</option>
+<option value="atlantico">Atlántico</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<div class="space-y-xs">
+<label class="block font-label-sm text-on-surface-variant" for="municipio">Municipio <span class="text-error">*</span></label>
+<div class="relative">
+<select class="w-full h-10 pl-md pr-xl py-sm bg-surface-container-low border border-outline-variant rounded text-on-surface-variant font-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none cursor-not-allowed transition-colors" disabled="" id="municipio" name="municipio" required="">
+<option disabled="" selected="" value="">Seleccione departamento primero...</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<!-- Segmento Corporativo -->
+<div class="space-y-md pt-xs">
+<h3 class="font-h3 text-[16px] text-primary border-b border-surface-container-high pb-xs">Clasificación</h3>
+<div class="space-y-xs">
+<label class="block font-label-sm text-on-surface-variant" for="segmento">Segmento <span class="text-error">*</span></label>
+<div class="relative">
+<select class="w-full h-10 pl-md pr-xl py-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface font-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none cursor-pointer" id="segmento" name="segmento" required="">
+<option disabled="" selected="" value="">Seleccione segmento...</option>
+<option value="tecnologia">Tecnología y Software</option>
+<option value="finanzas">Banca y Finanzas</option>
+<option value="salud">Salud y Farmacéutica</option>
+<option value="manufactura">Manufactura Industrial</option>
+<option value="retail">Retail y Comercio</option>
+<option value="logistica">Logística y Transporte</option>
+<option value="energia">Energía e Hidrocarburos</option>
+<option value="telecomunicaciones">Telecomunicaciones</option>
+<option value="agroindustria">Agroindustria</option>
+<option value="construccion">Construcción e Inmobiliaria</option>
+<option value="servicios_profesionales">Servicios Profesionales</option>
+<option value="otro">Otro</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Campo Otro (Hidden by default) -->
+<div class="space-y-xs hidden" id="otroSegmentoContainer">
+<label class="block font-label-sm text-on-surface-variant" for="otro_segmento">Especifique el segmento <span class="text-error">*</span></label>
+<input class="w-full h-10 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded text-on-surface font-body-md focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none transition-colors" id="otro_segmento" name="otro_segmento" placeholder="Ingrese el segmento específico" type="text">
+</div>
+</div>
+</form>
+</div>
+<!-- Drawer Footer -->
+<div class="p-lg border-t border-outline-variant bg-surface-container-low flex justify-end gap-md">
+<button class="px-lg py-sm font-button text-button text-primary-container bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container-high transition-colors" id="cancelBtn" type="button">
+                    Cancelar
+                </button>
+<button class="px-lg py-sm font-button text-button text-on-primary bg-primary-container rounded hover:bg-primary transition-colors flex items-center gap-xs" form="clientForm" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                    Guardar
+                </button>
+</div>
+</div>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('drawerOverlay');
+            const panel = document.getElementById('drawerPanel');
+            const openBtn = document.getElementById('openDrawerBtn');
+            const closeBtn = document.getElementById('closeDrawerBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const segmentoSelect = document.getElementById('segmento');
+            const otroContainer = document.getElementById('otroSegmentoContainer');
+            const otroInput = document.getElementById('otro_segmento');
+            
+            // Drawer logic
+            function closeDrawer() {
+                panel.classList.remove('drawer-open');
+                panel.classList.add('drawer-close');
+                overlay.classList.remove('overlay-open');
+                overlay.classList.add('overlay-close');
+                
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300); // match animation duration
+            }
+            
+            function openDrawer() {
+                overlay.classList.remove('hidden', 'overlay-close');
+                panel.classList.remove('drawer-close');
+                overlay.classList.add('overlay-open');
+                panel.classList.add('drawer-open');
+            }
+
+            // Bind events for drawer (disabled openBtn binding for this demo as drawer starts open based on prompt requirement, but left logic for completeness)
+            closeBtn.addEventListener('click', closeDrawer);
+            cancelBtn.addEventListener('click', closeDrawer);
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeDrawer();
+                }
+            });
+
+            // Segment dropdown logic
+            segmentoSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'otro') {
+                    otroContainer.classList.remove('hidden');
+                    otroInput.setAttribute('required', 'true');
+                    otroInput.focus();
+                } else {
+                    otroContainer.classList.add('hidden');
+                    otroInput.removeAttribute('required');
+                    otroInput.value = ''; // clear value
+                }
+            });
+
+            // Simulated dependent dropdown logic
+            const deptoSelect = document.getElementById('departamento');
+            const muniSelect = document.getElementById('municipio');
+            
+            const municipiosMock = {
+                'bogota': ['Bogotá D.C.'],
+                'antioquia': ['Medellín', 'Bello', 'Itagüí', 'Envigado'],
+                'valle': ['Cali', 'Buenaventura', 'Palmira', 'Tuluá'],
+                'atlantico': ['Barranquilla', 'Soledad', 'Malambo']
+            };
+
+            deptoSelect.addEventListener('change', (e) => {
+                const depto = e.target.value;
+                muniSelect.innerHTML = '<option value="" disabled selected>Seleccione municipio...</option>';
+                
+                if (depto && municipiosMock[depto]) {
+                    muniSelect.disabled = false;
+                    muniSelect.classList.remove('bg-surface-container-low', 'text-on-surface-variant', 'cursor-not-allowed');
+                    muniSelect.classList.add('bg-surface-container-lowest', 'text-on-surface', 'cursor-pointer');
+                    
+                    municipiosMock[depto].forEach(muni => {
+                        const option = document.createElement('option');
+                        option.value = muni.toLowerCase().replace(/\s+/g, '_');
+                        option.textContent = muni;
+                        muniSelect.appendChild(option);
+                    });
+                } else {
+                    muniSelect.disabled = true;
+                    muniSelect.classList.add('bg-surface-container-low', 'text-on-surface-variant', 'cursor-not-allowed');
+                    muniSelect.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'cursor-pointer');
+                }
+            });
+        });
+    </script>
+</body></html>

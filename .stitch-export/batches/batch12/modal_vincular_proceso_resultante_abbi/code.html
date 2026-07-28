@@ -1,0 +1,175 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Vincular Proceso Resultante - Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface h-screen w-full relative overflow-hidden flex items-center justify-center">
+<!-- Mock Background App Content -->
+<div class="absolute inset-0 z-0 p-margin-desktop opacity-30 flex flex-col gap-lg pointer-events-none">
+<div class="h-16 bg-surface-container-low rounded-lg w-full border border-outline-variant"></div>
+<div class="flex gap-lg h-full">
+<div class="w-[260px] bg-surface-container-low rounded-lg h-full border border-outline-variant"></div>
+<div class="flex-1 bg-surface-container-lowest rounded-lg h-full border border-outline-variant shadow-sm p-lg">
+<div class="h-8 w-64 bg-surface-variant rounded mb-lg"></div>
+<div class="w-full h-[400px] bg-surface-variant rounded"></div>
+</div>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 bg-on-surface/40 backdrop-blur-sm flex items-center justify-center z-50 p-margin-mobile md:p-margin-desktop">
+<!-- Modal Container -->
+<div aria-labelledby="modal-title" aria-modal="true" class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.08)] w-full max-w-[520px] flex flex-col border border-outline-variant overflow-hidden" role="dialog">
+<!-- Header -->
+<div class="px-lg py-md border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<h2 class="font-h3 text-h3 text-primary" id="modal-title">Vincular Proceso Resultante</h2>
+<button aria-label="Cerrar modal" class="text-on-surface-variant hover:bg-surface-container hover:text-primary rounded-full p-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container">
+<span class="material-symbols-outlined block text-[20px]">close</span>
+</button>
+</div>
+<!-- Body -->
+<div class="p-lg flex flex-col gap-lg bg-surface-container-lowest">
+<!-- Summary Box -->
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-md flex flex-col gap-sm">
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Resumen de Proyección</h3>
+<div class="flex justify-between items-center py-xs border-b border-outline-variant/50">
+<span class="font-body-md text-body-md text-on-surface-variant">Empresa Adjudicada:</span>
+<span class="font-body-md text-body-md text-primary font-semibold">TechSolutions S.A.</span>
+</div>
+<div class="flex justify-between items-center py-xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Valor Estimado:</span>
+<span class="font-body-md text-body-md text-primary font-semibold">$ 2,450,000.00 USD</span>
+</div>
+</div>
+<!-- Dropdown Form Group -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="proceso-select">Seleccionar Proceso Resultante <span class="text-error">*</span></label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none transition-colors group-focus-within:text-primary-container">search</span>
+<input class="w-full h-[40px] pl-[36px] pr-8 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-primary-container placeholder:text-outline transition-all" id="proceso-select" placeholder="Buscar por código (Ej: PR-2023-001) o descripción..." type="text">
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline mt-1">Escriba para filtrar los procesos disponibles.</span>
+</div>
+<!-- Info Message Box -->
+<div class="bg-secondary-fixed/50 border border-secondary-fixed-dim rounded-lg p-md flex gap-md items-start">
+<span class="material-symbols-outlined text-primary-container shrink-0 mt-0.5">info</span>
+<p class="font-body-md text-body-md text-on-surface">
+                        Al vincular un proceso, el estado de la proyección actual cambiará automáticamente a <strong class="font-semibold text-primary">"Publicado"</strong> y se generará un registro de trazabilidad.
+                    </p>
+</div>
+</div>
+<!-- Footer -->
+<div class="px-lg py-md border-t border-outline-variant flex justify-end gap-md bg-surface-container-low/50">
+<button class="h-[40px] px-lg bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button rounded-lg hover:bg-surface-container hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-1" type="button">
+                    Cancelar
+                </button>
+<button class="h-[40px] px-lg bg-primary-container text-on-primary font-button text-button rounded-lg hover:bg-primary transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+                    Confirmar vinculación
+                </button>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#0e3b65",
+                        "outline-variant": "#c3c6d0",
+                        "surface-container-highest": "#e2e2e6",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "on-surface-variant": "#43474f",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeedf1",
+                        "tertiary-container": "#6f1c01",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-tertiary-container": "#f9825e",
+                        "background": "#f9f9fd",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "on-error": "#ffffff",
+                        "surface": "#f9f9fd",
+                        "on-primary-container": "#81a6d6",
+                        "on-secondary-container": "#435d7f",
+                        "surface-container-high": "#e8e8ec",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "secondary": "#466082",
+                        "surface-variant": "#e2e2e6",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-surface": "#2f3034",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadade",
+                        "on-surface": "#1a1c1f",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-container-low": "#f4f3f7",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-fixed": "#001c37",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "inverse-on-surface": "#f1f0f4",
+                        "surface-bright": "#f9f9fd",
+                        "on-primary-fixed-variant": "#204873",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "error-container": "#ffdad6",
+                        "outline": "#73777f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem",
+                        "login": "6px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "10": "40px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "button": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="h-full bg-surface font-body-md text-on-surface antialiased flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+<!-- Logo -->
+<div class="flex justify-center">
+<img alt="ABBI Logo" class="h-16 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX_CZArZqa9qvS5_P9k4uu62lrZqdNz1vIb80RW84L5gmjEKzsf1f-9xA67sQSPQC_Xr7KSfAYro0-CdRA46atpmpQ3G9ddNwpWsVQeymyfBr3XwzDlf2u5gg4oasrBarT7MExBoA2LVoP14KLa6xYSebbegc6csqFpwpKzGluhDYRL2Cz9ZrvLps2qwrm9hAynj3yep11xK67MChESfN3d-SCTDsMGsW0xQmLR2Lw_dFXp8AqNpgPd2V0BkDDVXhO8g"/>
+</div>
+<h2 class="mt-6 text-center text-h2 font-h2 text-on-surface tracking-tight">
+            Iniciar sesión
+        </h2>
+<p class="mt-2 text-center text-body-md font-body-md text-on-surface-variant">
+            Accede al panel de control de ABBI
+        </p>
+</div>
+<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+<div class="bg-surface-container-lowest py-lg px-lg shadow-[0px_4px_12px_rgba(0,0,0,0.08)] rounded-login border border-outline-variant sm:px-10 relative overflow-hidden">
+<!-- Subtle top accent line for PrimeNG feel -->
+<div class="absolute top-0 left-0 w-full h-[3px] bg-primary-container"></div>
+<form action="#" class="space-y-6" method="POST">
+<!-- Email Input -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface mb-xs" for="email">
+                        Correo electrónico
+                    </label>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-[20px]">mail</span>
+</div>
+<input autocomplete="email" class="block w-full pl-10 h-10 border-outline-variant rounded-login focus:ring-secondary-container focus:border-secondary-container text-body-md font-body-md placeholder:text-outline-variant text-on-surface bg-surface-container-lowest transition-colors shadow-sm" id="email" name="email" placeholder="usuario@empresa.com" required="" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface mb-xs" for="password">
+                        Contraseña
+                    </label>
+<div class="mt-1 relative rounded-md shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-[20px]">lock</span>
+</div>
+<input autocomplete="current-password" class="block w-full pl-10 pr-10 h-10 border-outline-variant rounded-login focus:ring-secondary-container focus:border-secondary-container text-body-md font-body-md placeholder:text-outline-variant text-on-surface bg-surface-container-lowest transition-colors shadow-sm" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer hover:text-on-surface-variant text-outline-variant transition-colors" onclick="togglePasswordVisibility()">
+<span class="material-symbols-outlined text-[20px]" id="visibility-icon">visibility_off</span>
+</div>
+</div>
+</div>
+<!-- Extras -->
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<input class="h-4 w-4 text-primary-container focus:ring-primary-container border-outline-variant rounded-[4px] cursor-pointer" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block text-label-sm font-label-sm text-on-surface-variant cursor-pointer" for="remember-me">
+                            Recordarme
+                        </label>
+</div>
+<div class="text-label-sm font-label-sm">
+<a class="font-button text-primary hover:text-primary-container transition-colors" href="#">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+</div>
+</div>
+<!-- Submit Button -->
+<div>
+<button class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-login shadow-sm text-button font-button text-on-primary bg-primary-container hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-container h-10 transition-colors" type="submit">
+                        Iniciar sesión
+                        <span class="material-symbols-outlined ml-2 text-[20px]">login</span>
+</button>
+</div>
+</form>
+<div class="mt-6">
+<div class="relative">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-2 bg-surface-container-lowest text-label-sm font-label-sm text-on-surface-variant">
+                            Acceso seguro
+                        </span>
+</div>
+</div>
+</div>
+</div>
+<p class="mt-8 text-center text-label-sm font-label-sm text-outline-variant">
+            © 2024 ABBI Sistemas. Todos los derechos reservados.
+        </p>
+</div>
+<script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const visibilityIcon = document.getElementById('visibility-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                visibilityIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                visibilityIcon.textContent = 'visibility_off';
+            }
+        }
+    </script>
+</body></html>

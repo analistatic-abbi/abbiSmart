@@ -316,7 +316,7 @@ CREATE TABLE procesos (
 DELIMITER $$
 CREATE PROCEDURE sp_generar_codigo_proceso(IN p_proceso_id BIGINT UNSIGNED)
 BEGIN
-    DECLARE v_id_digitado VARCHAR(50);
+    DECLARE v_id_digitado VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     DECLARE v_veces INT;
     SELECT id_digitado INTO v_id_digitado FROM procesos WHERE id = p_proceso_id;
     SELECT COUNT(*) INTO v_veces FROM procesos WHERE id_digitado = v_id_digitado;
@@ -357,13 +357,19 @@ CREATE TABLE proceso_tareas (
                             'Validacion_Area_Tecnica','Envio_Propuesta'
                         ) NOT NULL,
     aplica              BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE para tareas de póliza si el proceso es RFI (SEG-005)
-    evidencia            TEXT NULL,                       -- Obligatoria para poder completar la tarea (SEG-002)
+    evidencia            TEXT NULL,                       -- Evidencia escrita (SEG-002)
+    evidencia_archivo_nombre VARCHAR(255) NULL,          -- Nombre original del archivo adjunto
+    evidencia_archivo_ruta   VARCHAR(500) NULL,          -- Ruta relativa del archivo en storage
     completada            BOOLEAN NOT NULL DEFAULT FALSE,
     fecha_completada       DATETIME NULL,
     usuario_completo_id    BIGINT UNSIGNED NULL,
     CONSTRAINT fk_tarea_proceso FOREIGN KEY (proceso_id) REFERENCES procesos(id),
     CONSTRAINT fk_tarea_usuario FOREIGN KEY (usuario_completo_id) REFERENCES usuarios(id),
-    CONSTRAINT chk_tarea_requiere_evidencia CHECK (completada = FALSE OR evidencia IS NOT NULL),
+    CONSTRAINT chk_tarea_requiere_evidencia CHECK (
+        completada = FALSE
+        OR evidencia IS NOT NULL
+        OR evidencia_archivo_nombre IS NOT NULL
+    ),
     UNIQUE KEY uk_proceso_tarea (proceso_id, tarea_codigo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Estado y evidencia de cada tarea de seguimiento por proceso (SEG-001, SEG-002, SEG-005)';
 
@@ -474,6 +480,17 @@ INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
     ('anio_reporte_vigente', '2026', 'Año calendario usado para calcular Meses de ejecución y Facturación estimada (SGP-005, SGP-006)'),
     ('carga_masiva_habilitada', 'true', 'Activa o desactiva por completo la carga masiva de Proyecciones/Clientes/Contactos (TRX-014)');
 
+-- Administrador inicial (desarrollo): admin@abbi.com / Admin1234
+INSERT IGNORE INTO usuarios (nombre, correo, password_hash, rol, pais_id, estado)
+VALUES (
+    'Administrador ABBI',
+    'admin@abbi.com',
+    '$2b$12$k7Nx3Fn4A6hitC72U4C18eaw9d5UOjl5gdCHTVwT8uukqBFt18u2i',
+    'Administrador',
+    NULL,
+    'Activo'
+);
+
 -- Ubicaciones geográficas (REG-008): cargar con npm run seed:ubicaciones
 -- Archivo: database/seeds/ubicaciones_geograficas.sql (~1123 municipios CO + ~1892 distritos PE)
 
@@ -561,7 +578,7 @@ SELECT
     py.fecha_creacion,
     v.dias_faltantes,
     v.estado_sugerido,
-    COALESCE(po.codigo, pr.codigo) AS proceso_codigo,
+    COALESCE(po.codigo, po.id_digitado, pr.codigo, pr.id_digitado) AS proceso_codigo,
     COALESCE(c_origen.empresa, c_res.empresa, po.empresa_otro, pr.empresa_otro) AS empresa,
     COALESCE(po.segmento, pr.segmento) AS segmento
 FROM proyecciones py

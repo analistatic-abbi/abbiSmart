@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Nueva Proyección Manual - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Hide scrollbar for a cleaner look but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16">
+<div class="flex items-center gap-md">
+<!-- Mobile menu button (visual only for structure) -->
+<button class="md:hidden text-on-surface-variant hover:bg-surface-container-low p-sm rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-h2 text-h2 font-bold text-primary">ABBI</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-low p-sm rounded-full transition-colors cursor-pointer active:opacity-80 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-sm rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">flag</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container-low p-xs rounded transition-colors active:opacity-80">
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full bg-surface-container-high object-cover" data-alt="A small circular avatar placeholder image showing a generic user silhouette in subtle corporate blue tones on a white background, highly minimalist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArvsmKHhFHFGjVFZfayp_1XFEgvuQoqcAyk4D_miKlB3vfEBcVHVs1dtNq4hsAr89ym-bQXrQYoevzIXwjw8YTLderEnR6KQT_n-hj8lIIqmFbQh6SRdYjyI7rbkyq5lC6hgFUhosnx2iM2UeQIbkOSlYy67CGpJdLrlwbMAbrixTflDRERF_Pr7vWjUaX8pQb5eeNoZZKNdEGonF6eIYng_VC5PzSIpafGyLEMtvSiA4fS7EyKEyQ">
+<div class="hidden md:flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Nombre de Usuario</span>
+<span class="text-[10px] leading-tight text-on-surface-variant">Administrador</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+</div>
+</div>
+</nav>
+<div class="flex flex-1 pt-16 w-full h-full">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] hidden md:flex flex-col py-md bg-surface-container-lowest border-r border-outline-variant z-40">
+<!-- Main Navigation -->
+<nav class="flex-1 overflow-y-auto no-scrollbar px-sm flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<!-- Active Item -->
+<a class="flex items-center gap-md px-md py-sm rounded text-primary border-l-[3px] border-primary-container bg-secondary-container font-button cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-button text-button">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+</nav>
+<!-- Footer Utilities -->
+<div class="mt-auto px-sm pt-md border-t border-outline-variant flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Ayuda</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-body-md text-body-md">Soporte</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[260px] overflow-y-auto bg-background p-margin-mobile md:p-margin-desktop">
+<div class="max-w-5xl mx-auto w-full">
+<!-- Breadcrumbs & Header -->
+<div class="mb-lg">
+<div class="flex items-center gap-sm text-on-surface-variant font-label-sm text-label-sm mb-xs">
+<span class="cursor-pointer hover:text-primary">Reportes Operativos</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-on-surface">Nueva Proyección</span>
+</div>
+<h1 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-on-surface">Nueva Proyección Manual</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Complete los datos requeridos para generar una nueva estimación financiera.</p>
+</div>
+<!-- Form Container (PrimeNG structured style) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg md:p-xl shadow-sm">
+<form class="flex flex-col gap-lg">
+<!-- Grid Layout for Fields -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-lg gap-y-md">
+<!-- Proceso Origen (Searchable Dropdown Mockup) -->
+<div class="flex flex-col gap-xs col-span-1 md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold" for="proceso-origen">
+                                    Proceso Origen <span class="font-normal text-outline ml-xs">(Opcional)</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-10 border border-outline-variant rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-shadow" id="proceso-origen" placeholder="Buscar por código o nombre de proceso..." type="text">
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline text-[20px] cursor-pointer hover:text-on-surface">expand_more</span>
+</div>
+</div>
+<!-- Año Proyectado -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold" for="ano-proyectado">
+                                    Año Proyectado <span class="text-error">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-10 px-sm pr-10 border border-outline-variant rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-shadow cursor-pointer" id="ano-proyectado">
+<option disabled="" selected="" value="">Seleccione un año</option>
+<option value="2024">2024</option>
+<option value="2025">2025</option>
+<option value="2026">2026</option>
+<option value="2027">2027</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Fecha Estimada de Publicación -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold" for="fecha-publicacion">
+                                    Fecha Est. Publicación <span class="text-error">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-10 px-sm pr-10 border border-outline-variant rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-shadow" id="fecha-publicacion" placeholder="DD/MM/AAAA" type="text">
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline cursor-pointer text-[20px]">calendar_today</span>
+</div>
+</div>
+<!-- Valor Venta -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold" for="valor-venta">
+                                    Valor Venta <span class="text-error">*</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline text-[20px]">attach_money</span>
+<input class="w-full h-10 pl-10 pr-sm border border-outline-variant rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface text-right focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-shadow" id="valor-venta" placeholder="0.00" type="text">
+</div>
+</div>
+<!-- Valor Facturación -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold" for="valor-facturacion">
+                                    Valor Facturación <span class="text-error">*</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline text-[20px]">attach_money</span>
+<input class="w-full h-10 pl-10 pr-sm border border-outline-variant rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface text-right focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-shadow" id="valor-facturacion" placeholder="0.00" type="text">
+</div>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px w-full bg-outline-variant mt-sm"></div>
+<!-- Footer Actions -->
+<div class="flex justify-end items-center gap-md pt-sm">
+<button class="h-10 px-lg border border-outline-variant rounded bg-surface-container-lowest text-primary-container font-button text-button hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant" type="button">
+                                Cancelar
+                            </button>
+<button class="h-10 px-lg rounded bg-primary-container text-on-primary font-button text-button hover:bg-primary hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2" type="submit">
+                                Guardar
+                            </button>
+</div>
+</form>
+</div>
+</div>
+</main>
+</div>
+</body></html>

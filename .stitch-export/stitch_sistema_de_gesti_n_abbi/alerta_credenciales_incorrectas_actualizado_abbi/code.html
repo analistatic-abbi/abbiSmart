@@ -1,0 +1,266 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ABBI - Iniciar Sesión</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Configuración del Tema -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#741f03",
+                        "surface-container": "#edeeef",
+                        "primary-fixed": "#d2e4ff",
+                        "on-tertiary-container": "#54ace2",
+                        "on-secondary-fixed": "#3a0a00",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#2e3132",
+                        "on-secondary-fixed-variant": "#81290c",
+                        "surface": "#f8f9fa",
+                        "primary": "#002546",
+                        "on-background": "#191c1d",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59f",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-dim": "#d9dadb",
+                        "tertiary": "#00273b",
+                        "surface-tint": "#3b608c",
+                        "on-tertiary-fixed-variant": "#004c6d",
+                        "tertiary-fixed": "#c8e6ff",
+                        "on-primary": "#ffffff",
+                        "secondary": "#a13f21",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#87ceff",
+                        "primary-container": "#0e3b65",
+                        "inverse-primary": "#a4c9fb",
+                        "surface-bright": "#f8f9fa",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#001e2e",
+                        "on-surface-variant": "#43474f",
+                        "on-surface": "#191c1d",
+                        "background": "#f8f9fa",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary-container": "#81a6d6",
+                        "outline": "#73777f",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "tertiary-container": "#003e5a",
+                        "secondary-container": "#ff8762",
+                        "outline-variant": "#c3c6d0",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#ffdbd1",
+                        "surface-container-low": "#f3f4f5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "container-max": "1280px",
+                        "gutter": "16px",
+                        "margin-desktop": "24px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "lg": "24px",
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}]
+                    },
+                    animation: {
+                        'slide-in-right': 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased overflow-hidden">
+<!-- Error Toast Notification -->
+<div class="fixed top-lg right-lg z-50 flex items-start gap-md p-md bg-error-container border-l-4 border-error rounded-lg shadow-lg animate-slide-in-right max-w-sm" id="error-toast">
+<span class="material-symbols-outlined text-error mt-0.5" style="font-variation-settings: 'FILL' 1;">error</span>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-error-container">Error de Autenticación</h4>
+<p class="font-body-md text-body-md text-on-error-container mt-1">Credenciales incorrectas. Por favor, verifique su usuario y contraseña.</p>
+</div>
+<button class="text-on-error-container hover:bg-error/10 p-1 rounded-full transition-colors flex items-center justify-center" onclick="document.getElementById('error-toast').style.display='none'">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Shell Visibility Check: Login screen suppresses BottomNavBar/SideNavBar as per the "Destination" rule. -->
+<div class="relative min-h-screen w-full flex flex-col md:flex-row overflow-hidden">
+<!-- Left Side: Form Section (The Content Canvas) -->
+<main class="w-full md:w-1/2 lg:w-5/12 min-h-screen flex items-center justify-center p-6 md:p-12 z-10 bg-surface">
+<div class="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+<!-- Logo & Branding -->
+<div class="flex flex-col items-start space-y-4">
+<img alt="ABBI Logo" class="h-12 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBb-GFpZr9MDBtEi4oewgS52Ufbe19id3inM1hG9TatxAZ1RyBs-RLto07DDiLzeL3IXXgb6fmV2klKBImgJxCSB4lA0ju_IhlYH5WO8szacpfO5Y75yV-QOLxNRiqxXFiAgdxW-vtOP6chJaFXQjGi-O6MJTbE9lMWJ0KyE-L3vw0elzRrm8q-_F-IEns_W09c9XWMN2QkMrOfcwEv6N3FcooXOif40FeFMxX0BpMAdHVIUnsqQsl1v9QBmoXfvpAXaQ">
+<div class="space-y-1">
+<h1 class="font-headline-xl text-headline-xl text-primary">Gestión ABBI</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Acceso seguro a la plataforma corporativa</p>
+</div>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-8 md:p-10 rounded-xl shadow-sm">
+<form action="#" class="space-y-6" onsubmit="event.preventDefault();">
+<!-- Email Input -->
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-primary" for="email">Correo Electrónico</label>
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-outline group-focus-within:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-[#D1D5DB] rounded-xl font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary-container/20 focus:border-primary-container transition-all" id="email" name="email" placeholder="usuario@empresa.com" required="" type="email" value="admin@empresa.com">
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="block font-label-md text-label-md text-primary" for="password">Contraseña</label>
+<a class="font-label-sm text-label-sm text-[#2E8EC2] hover:underline transition-all" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-outline group-focus-within:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</span>
+<input class="w-full pl-10 pr-12 py-3 bg-white border-2 border-error rounded-xl font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-error focus:border-error transition-all" id="password" name="password" placeholder="Ingresa tu contraseña" required="" type="password" value="••••••••">
+<button class="absolute inset-y-0 right-0 flex items-center pr-3 text-outline hover:text-primary" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+<span class="font-label-sm text-label-sm text-error mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">error</span>
+    Credenciales incorrectas
+</span>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-[#0E3B65] text-white font-label-md text-label-md py-4 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 group" type="submit">
+<span>Iniciar Sesión</span>
+<span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<!-- Footer Options -->
+<div class="mt-8 pt-8 border-t border-outline-variant text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+    Al iniciar sesión, aceptas nuestros <a class="font-label-md text-label-md text-[#2E8EC2] hover:underline ml-1" href="#">Términos de Servicio</a> y <a class="font-label-md text-label-md text-[#2E8EC2] hover:underline ml-1" href="#">Política de Privacidad</a>.
+</p>
+</div>
+</div>
+<!-- Legal/Footer -->
+<div class="flex justify-between items-center text-on-surface-variant font-label-sm text-label-sm px-2">
+<span>© 2024 ABBI Bid Management</span>
+</div>
+</div>
+</main>
+<!-- Right Side: Visual & Context Section (Bento/Atmospheric) -->
+<aside class="hidden md:flex md:w-1/2 lg:w-7/12 bg-primary-container relative items-center justify-center overflow-hidden">
+<!-- Animated Shader Background -->
+<!-- Graphic Element Overlay -->
+<div class="relative z-10 w-full max-w-2xl px-12 space-y-12">
+<!-- Modern Bento Grid Illustration -->
+<div class="grid grid-cols-6 grid-rows-4 gap-4 h-[500px]">
+<div class="col-span-4 row-span-2 rounded-xl overflow-hidden shadow-2xl relative border border-white/10 group">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" data-alt="High-resolution professional photography of a large-scale industrial construction site at dusk. The scene captures heavy machinery, cranes, and structural steel illuminated by golden hour lighting, symbolizing robust growth and infrastructure development. The color palette emphasizes deep navy shadows and warm amber highlights to match the corporate ABBI aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCCJGGLcdbN-CKvAVWC2OW0FxRJPWYLPxFe9_OaqlmWvuCpktmhr4JlUQYEWkqC8dj0UcVb-eI6zeaqoJVtTdZ5emUK4LOgkt96xXwoJaoRZjlK85Cw7fd5X6Lbv_yA66yKyGWvc8che434z-F57MFjfl7ilQfcgp7a0kGlKkvK-CLtPzVCUZlyl41MKchNrvupdo6vG1chWuJpcW148ayVnkTgIlGR1Uz_NI7_m5cuqYx49x7_JVJLNQ')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<p class="font-label-sm text-label-sm uppercase tracking-wider opacity-80">Operaciones Globales</p>
+<h3 class="font-headline-md text-headline-md">Construyendo el Futuro</h3>
+</div>
+</div>
+<div class="col-span-2 row-span-1 rounded-xl bg-[#2E8EC2] flex items-center justify-center p-6 text-white shadow-xl">
+<div class="text-center">
+<span class="font-headline-xl text-headline-xl block">98%</span>
+<span class="font-label-sm text-label-sm opacity-80">Eficiencia en Licitaciones</span>
+</div>
+</div>
+<div class="col-span-2 row-span-1 rounded-xl bg-secondary-container flex items-center justify-center p-6 text-on-secondary-container shadow-xl">
+<span class="material-symbols-outlined text-[48px]">verified_user</span>
+</div>
+<div class="col-span-2 row-span-2 rounded-xl overflow-hidden shadow-2xl relative border border-white/10 group">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700" data-alt="Detailed close-up of a modern corporate boardroom meeting with professionals reviewing digital blueprints and bid documents on a large tablet screen. The atmosphere is focused and collaborative, with high-key corporate lighting creating a clean, professional environment. The image features soft Action Cyan tones to harmonize with the management system interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBRpTGN8DhA4k3thoX_gzTSQzCDG96OuKV6DhMiAZS57HTcY6CbLOULFO6HQ_Ez1vW1TGM99T8Mz07LmSOsSNWyqR5Fr7Iqx_6AMHitq9akYJ63BUy6inGExDZpqm_nMZPwcL0uEXf0lAON8Dy8L_mi2f8fWSyxIcs01GI1IrO5HrGw53Vp1-JGNtjNzxSptoIIqNgrsIxql9FW7l4jffz5OhG0L9l8FlF6Kke0-2CDirv5i_vl6qsxUg')"></div>
+<div class="absolute inset-0 bg-primary/20"></div>
+</div>
+<div class="col-span-4 row-span-2 rounded-xl bg-surface-container-lowest/10 backdrop-blur-md border border-white/20 p-8 flex flex-col justify-center space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-white">Gestión de Talento Humano</h4>
+</div>
+<p class="font-body-md text-body-md text-white/80 leading-relaxed">
+                            Impulsamos el progreso a través de la gestión eficiente de recursos y el liderazgo en proyectos de infraestructura estratégica.
+                        </p>
+</div>
+</div>
+<!-- Footer Text Overlay -->
+<div class="text-center">
+<p class="font-body-lg text-body-lg text-white font-medium italic opacity-90">"Más de 22 años construyendo progreso y transformando realidades."</p>
+</div>
+</div>
+<!-- Decorative floating circle -->
+<div class="absolute -bottom-20 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+<div class="absolute -top-20 -left-20 w-80 h-80 bg-tertiary/20 rounded-full blur-3xl"></div>
+</aside>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Password Visibility Toggle
+            const togglePassword = document.querySelector('button[type="button"]');
+            const passwordInput = document.getElementById('password');
+            const visibilityIcon = togglePassword.querySelector('.material-symbols-outlined');
+
+            togglePassword.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                visibilityIcon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+            });
+        });
+    </script>
+</body></html>

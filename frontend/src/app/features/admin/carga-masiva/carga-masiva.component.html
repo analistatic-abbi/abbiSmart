@@ -1,0 +1,61 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Carga masiva</h1>
+      <p>Importar clientes, contactos o proyecciones desde CSV/Excel.</p>
+    </div>
+  </header>
+
+  <div class="panel form-grid">
+    <label>Entidad
+      <select [ngModel]="entidad()" (ngModelChange)="entidad.set($event)">
+        <option value="clientes">Clientes</option>
+        <option value="contactos">Contactos</option>
+        <option value="proyecciones">Proyecciones</option>
+      </select>
+    </label>
+    <label class="full">Archivo <input type="file" accept=".csv,.xlsx" (change)="onFileSelected($event)" /></label>
+    <div class="form-actions full">
+      <button type="button" class="btn-primary" [disabled]="loading() || !archivo()" (click)="subir()">
+        {{ loading() ? 'Procesando...' : 'Subir archivo' }}
+      </button>
+    </div>
+  </div>
+
+  @if (resultado()) {
+    <p class="result">{{ resultado() }}</p>
+  }
+
+  @if (erroresDetalle().length) {
+    <div class="panel errores-panel">
+      <h2>Filas rechazadas</h2>
+      <ul>
+        @for (e of erroresDetalle(); track e.fila) {
+          <li><strong>Fila {{ e.fila }}:</strong> {{ e.error }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <h2>Historial de cargas</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Entidad</th><th>Archivo</th><th>Exitosas</th><th>Rechazadas</th><th>Fecha</th></tr>
+      </thead>
+      <tbody>
+        @for (log of logs(); track log.id) {
+          <tr>
+            <td>{{ log.entidad }}</td>
+            <td>{{ log.nombreArchivo }}</td>
+            <td>{{ log.filasExitosas }}</td>
+            <td>{{ log.filasRechazadas }}</td>
+            <td>{{ log.fechaCarga }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">Sin registros de carga.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

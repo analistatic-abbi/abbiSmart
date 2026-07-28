@@ -44,6 +44,11 @@ export interface SelectCountryResult {
   session: SessionCreated;
 }
 
+export interface PrepareCountryChangeResult {
+  preAuthToken: string;
+  paises: Pick<Pais, 'id' | 'nombre'>[];
+}
+
 @Injectable()
 export class LoginService {
   constructor(
@@ -224,6 +229,52 @@ export class LoginService {
     return {
       usuario: this.toLoginUsuarioInfo(usuario),
       session,
+    };
+  }
+
+  async prepareCountryChange(
+    usuarioId: number,
+    sessionId: number,
+  ): Promise<PrepareCountryChangeResult> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id: usuarioId, eliminado: false },
+    });
+
+    if (!usuario || usuario.estado !== EstadoUsuario.ACTIVO) {
+      throw new BusinessException(
+        ErrorCode.AUTH_SESION_INVALIDA,
+        'La sesión no es válida',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (usuario.rol === Rol.OPERADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Los operadores no pueden cambiar el país de sesión',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    await this.sesionService.invalidateSession(sessionId);
+
+    const paises = await this.paisRepository.find({
+      where: { activo: true },
+      order: { nombre: 'ASC' },
+    });
+    const preAuthToken = this.preAuthService.createToken(usuarioId);
+
+    await this.auditService.log({
+      usuarioId,
+      accion: AuditAccion.LOGOUT,
+      entidadTipo: AuditEntidadTipo.AUTH,
+      entidadId: usuarioId,
+      campo: 'cambio_pais_sesion',
+    });
+
+    return {
+      preAuthToken,
+      paises: paises.map((p) => ({ id: p.id, nombre: p.nombre })),
     };
   }
 

@@ -1,0 +1,5 @@
+@use '../../shared/admin-page';
+
+.actions { display: flex; gap: 8px; }
+.link { border: none; background: none; color: var(--color-primary); cursor: pointer; font-weight: 600; }
+.link.danger { color: #b3261e; }

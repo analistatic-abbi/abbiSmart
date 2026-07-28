@@ -1,0 +1,81 @@
+@if (isOpen()) {
+  <div class="support-backdrop" (click)="close()" role="presentation"></div>
+  <div
+    class="support-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="support-modal-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="support-modal__header">
+      <div>
+        <h2 id="support-modal-title">Centro de soporte</h2>
+        @if (usuarioNombre()) {
+          <p>Hola, {{ usuarioNombre() }}. ¿En qué podemos ayudarle?</p>
+        }
+      </div>
+      <button type="button" class="support-modal__close" (click)="close()" aria-label="Cerrar">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="support-modal__body">
+      <section class="support-faq" aria-label="Preguntas frecuentes">
+        <h3>Preguntas frecuentes</h3>
+        @for (item of faqItems; track item.id) {
+          <div class="support-faq__item" [class.support-faq__item--open]="expandedFaq() === item.id">
+            <button type="button" class="support-faq__question" (click)="toggleFaq(item.id)">
+              <span>{{ item.question }}</span>
+              <span class="material-symbols-outlined">
+                {{ expandedFaq() === item.id ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+            @if (expandedFaq() === item.id) {
+              <p class="support-faq__answer">{{ item.answer }}</p>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="support-form" aria-label="Formulario de soporte">
+        <h3>Enviar solicitud</h3>
+
+        @if (successMessage()) {
+          <p class="support-form__success">{{ successMessage() }}</p>
+        }
+        @if (errorMessage()) {
+          <p class="support-form__error">{{ errorMessage() }}</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Categoría
+            <select formControlName="categoria">
+              @for (cat of categorias; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Asunto (opcional)
+            <input type="text" formControlName="asunto" maxlength="200" placeholder="Resumen breve" />
+          </label>
+
+          <label>
+            Mensaje
+            <textarea
+              formControlName="mensaje"
+              rows="6"
+              placeholder="Describa su consulta o problema con el mayor detalle posible"
+            ></textarea>
+          </label>
+
+          <button type="submit" class="support-form__submit" [disabled]="loading()">
+            {{ loading() ? 'Enviando...' : 'Enviar solicitud' }}
+          </button>
+        </form>
+      </section>
+    </div>
+  </div>
+}

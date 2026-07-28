@@ -1,6 +1,8 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import {
   TAREAS_SEGUIMIENTO_ORDEN,
   tareaAplicaParaProceso,
@@ -32,6 +34,7 @@ import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { ParametrosService } from '../parametros/parametros.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
+import { ProyeccionResponseDto } from '../proyecciones/dto/proyeccion.dto';
 import {
   CambiarEstadoProcesoDto,
   CompletarTareaDto,
@@ -50,6 +53,11 @@ export interface ProcesosPage {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface CambiarEstadoProcesoResult {
+  proceso: ProcesoResponseDto;
+  proyeccionGenerada: ProyeccionResponseDto | null;
 }
 
 const TRANSICIONES_ESTADO: Record<EstadoProceso, EstadoProceso[]> = {
@@ -271,7 +279,11 @@ export class ProcesosService {
 
       const procesoGuardado = await manager.save(proceso);
 
-      await manager.query('CALL sp_generar_codigo_proceso(?)', [procesoGuardado.id]);
+      await this.asignarCodigoProceso(
+        manager,
+        procesoGuardado.id,
+        procesoGuardado.idDigitado,
+      );
 
       for (const indicador of indicadoresProcesados) {
         await manager.save(
@@ -521,7 +533,7 @@ export class ProcesosService {
     actorId: number,
     paisSesionId: number,
     rol: Rol,
-  ): Promise<ProcesoResponseDto> {
+  ): Promise<CambiarEstadoProcesoResult> {
     this.assertPuedeGestionar(rol);
     const proceso = await this.getProcesoActivoOrFail(id, paisSesionId, {
       indicadores: true,
@@ -572,6 +584,7 @@ export class ProcesosService {
       );
     }
 
+    const estadoPrevio = proceso.estado;
     proceso.estado = dto.estado;
     const saved = await this.procesoRepository.save(proceso);
 
@@ -584,14 +597,26 @@ export class ProcesosService {
       valorNuevo: JSON.stringify(this.toResponse(saved)),
     });
 
+    let proyeccionGenerada: ProyeccionResponseDto | null = null;
+
     if (dto.estado === EstadoProceso.ADJUDICADO) {
-      await this.proyeccionesService.generarDesdeProcesoAdjudicado(
-        saved.id,
-        actorId,
-      );
+      try {
+        proyeccionGenerada =
+          await this.proyeccionesService.generarDesdeProcesoAdjudicado(
+            saved.id,
+            actorId,
+          );
+      } catch (error) {
+        proceso.estado = estadoPrevio;
+        await this.procesoRepository.save(proceso);
+        throw error;
+      }
     }
 
-    return this.toResponse(saved);
+    return {
+      proceso: await this.findById(saved.id, paisSesionId),
+      proyeccionGenerada,
+    };
   }
 
   async softDelete(
@@ -658,6 +683,7 @@ export class ProcesosService {
     actorId: number,
     paisSesionId: number,
     rol: Rol,
+    archivo?: Express.Multer.File,
   ): Promise<TareaResponseDto> {
     this.assertPuedeGestionar(rol);
     await this.getProcesoActivoOrFail(procesoId, paisSesionId);
@@ -682,10 +708,13 @@ export class ProcesosService {
       );
     }
 
-    if (!dto.evidencia?.trim()) {
+    const nota = dto.evidencia?.trim() || null;
+    const tieneArchivo = Boolean(archivo?.buffer?.length);
+
+    if (!nota && !tieneArchivo) {
       throw new BusinessException(
         ErrorCode.TAREA_EVIDENCIA_REQUERIDA,
-        'La evidencia es obligatoria para completar la tarea',
+        'Debe adjuntar un archivo o escribir una evidencia para completar la tarea',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -698,7 +727,17 @@ export class ProcesosService {
       );
     }
 
-    tarea.evidencia = dto.evidencia.trim();
+    if (tieneArchivo && archivo) {
+      const savedFile = await this.guardarArchivoEvidencia(
+        procesoId,
+        tareaId,
+        archivo,
+      );
+      tarea.evidenciaArchivoNombre = savedFile.nombre;
+      tarea.evidenciaArchivoRuta = savedFile.rutaRelativa;
+    }
+
+    tarea.evidencia = nota;
     tarea.completada = true;
     tarea.fechaCompletada = new Date();
     tarea.usuarioCompletoId = actorId;
@@ -713,7 +752,69 @@ export class ProcesosService {
       valorNuevo: JSON.stringify(this.toTareaResponse(saved)),
     });
 
-    return this.toTareaResponse(saved);
+    return {
+      ...this.toTareaResponse(saved),
+      avancePorcentaje: await this.getAvancePorcentaje(procesoId),
+    };
+  }
+
+  async getArchivoEvidencia(
+    procesoId: number,
+    tareaId: number,
+    paisSesionId: number,
+  ): Promise<{ absolutePath: string; nombre: string }> {
+    await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+
+    const tarea = await this.tareaRepository.findOne({
+      where: { id: tareaId, procesoId },
+    });
+
+    if (!tarea?.evidenciaArchivoRuta || !tarea.evidenciaArchivoNombre) {
+      throw new BusinessException(
+        ErrorCode.TAREA_NO_ENCONTRADA,
+        'Esta tarea no tiene archivo de evidencia adjunto',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const absolutePath = path.join(process.cwd(), tarea.evidenciaArchivoRuta);
+    if (!fs.existsSync(absolutePath)) {
+      throw new BusinessException(
+        ErrorCode.TAREA_NO_ENCONTRADA,
+        'El archivo de evidencia no está disponible',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return {
+      absolutePath,
+      nombre: tarea.evidenciaArchivoNombre,
+    };
+  }
+
+  private async guardarArchivoEvidencia(
+    procesoId: number,
+    tareaId: number,
+    archivo: Express.Multer.File,
+  ): Promise<{ nombre: string; rutaRelativa: string }> {
+    const safeName = archivo.originalname.replace(/[^\w.\-()\sÀ-ÿ]/g, '_');
+    const dirRelativo = path.join(
+      'uploads',
+      'evidencias',
+      String(procesoId),
+      String(tareaId),
+    );
+    const dirAbsoluto = path.join(process.cwd(), dirRelativo);
+    await fs.promises.mkdir(dirAbsoluto, { recursive: true });
+
+    const nombreArchivo = `${Date.now()}-${safeName}`;
+    const rutaAbsoluta = path.join(dirAbsoluto, nombreArchivo);
+    await fs.promises.writeFile(rutaAbsoluta, archivo.buffer);
+
+    return {
+      nombre: archivo.originalname,
+      rutaRelativa: path.join(dirRelativo, nombreArchivo).replace(/\\/g, '/'),
+    };
   }
 
   async getAvancePorcentaje(procesoId: number): Promise<number> {
@@ -724,7 +825,7 @@ export class ProcesosService {
       [procesoId],
     );
 
-    return Number(rows[0]?.avance ?? 0);
+    return Number(rows[0]?.avance ?? rows[0]?.avance_porcentaje ?? 0);
   }
 
   async getProcesoActivoOrFail(
@@ -861,7 +962,37 @@ export class ProcesosService {
     );
 
     return new Map(
-      rows.map((row: Record<string, unknown>) => [Number(row.id), row]),
+      rows.map((row: Record<string, unknown>) => {
+        const id = Number(row.id);
+        return [
+          id,
+          {
+            ...row,
+            avancePorcentaje: Number(
+              row.avancePorcentaje ?? row.avance_porcentaje ?? 0,
+            ),
+            diasRestantesCierre: Number(
+              row.diasRestantesCierre ?? row.dias_restantes_cierre ?? 0,
+            ),
+            diasEspera:
+              row.diasEspera !== undefined && row.diasEspera !== null
+                ? Number(row.diasEspera)
+                : row.dias_espera !== undefined && row.dias_espera !== null
+                  ? Number(row.dias_espera)
+                  : null,
+            empresaMostrar: row.empresaMostrar ?? row.empresa_mostrar ?? null,
+            fechaEsperada: row.fechaEsperada ?? row.fecha_esperada ?? null,
+            mesesEjecucionAnioReporte:
+              row.mesesEjecucionAnioReporte ??
+              row.meses_ejecucion_anio_reporte ??
+              null,
+            facturacionEstimadaAnioReporte:
+              row.facturacionEstimadaAnioReporte ??
+              row.facturacion_estimada_anio_reporte ??
+              null,
+          },
+        ];
+      }),
     );
   }
 
@@ -1032,9 +1163,32 @@ export class ProcesosService {
       tareaCodigo: tarea.tareaCodigo,
       aplica: tarea.aplica,
       evidencia: tarea.evidencia,
+      evidenciaArchivoNombre: tarea.evidenciaArchivoNombre,
+      evidenciaUrl: tarea.evidenciaArchivoRuta
+        ? `/api/v1/procesos/${tarea.procesoId}/tareas/${tarea.id}/evidencia`
+        : null,
       completada: tarea.completada,
       fechaCompletada: tarea.fechaCompletada,
       usuarioCompletoId: tarea.usuarioCompletoId,
     };
+  }
+
+  private async asignarCodigoProceso(
+    manager: EntityManager,
+    procesoId: number,
+    idDigitado: string,
+  ): Promise<void> {
+    const row = await manager
+      .createQueryBuilder(Proceso, 'p')
+      .select('COUNT(*)', 'veces')
+      .where('p.idDigitado = :idDigitado COLLATE utf8mb4_unicode_ci', {
+        idDigitado,
+      })
+      .getRawOne<{ veces: string }>();
+
+    const total = Number(row?.veces ?? 0);
+    const codigo =
+      total > 1 ? `${idDigitado}-d-${procesoId}` : `${idDigitado}-${procesoId}`;
+    await manager.update(Proceso, { id: procesoId }, { codigo });
   }
 }

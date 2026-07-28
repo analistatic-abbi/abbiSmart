@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ABBI - Inicio de Sesión</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9fd",
+                        "surface-dim": "#dadade",
+                        "surface-container-low": "#f4f3f7",
+                        "on-tertiary-container": "#f9825e",
+                        "tertiary": "#4a0f00",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "surface-tint": "#3b608c",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "surface-variant": "#e2e2e6",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "outline": "#73777f",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "surface": "#f9f9fd",
+                        "surface-bright": "#f9f9fd",
+                        "surface-container-high": "#e8e8ec",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#466082",
+                        "primary": "#002546",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#6f1c01",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-highest": "#e2e2e6",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-fixed-variant": "#204873",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-secondary-container": "#435d7f",
+                        "on-surface": "#1a1c1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "button": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "h1": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F9FA;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 antialiased">
+<!-- Main Container -->
+<main class="w-full max-w-[1000px] bg-surface-container-lowest rounded-xl flex overflow-hidden border border-outline-variant" style="box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.04);">
+<!-- Left Side: Login Form -->
+<div class="w-full md:w-1/2 p-lg lg:p-xl flex flex-col justify-center bg-surface-container-lowest relative">
+<!-- Alert Banner (Persistent Toast Positioned Absolute at top) -->
+<div class="absolute top-0 left-0 w-full p-4">
+<div class="bg-error-container border border-error rounded-lg p-3 flex items-start gap-3">
+<span class="material-symbols-outlined text-error mt-0.5" style="font-variation-settings: 'FILL' 1;">error</span>
+<div>
+<h4 class="font-button text-button text-on-error-container">Acceso Denegado</h4>
+<p class="font-body-md text-body-md text-on-error-container mt-1">Cuenta bloqueada, contacta al administrador.</p>
+</div>
+</div>
+</div>
+<!-- Logo Area -->
+<div class="mb-xl mt-12">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-lg" style="font-variation-settings: 'FILL' 1;">gavel</span>
+</div>
+<span class="font-h3 text-h3 text-primary">Gestión ABBI</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Bid Management System</p>
+</div>
+<div class="mb-lg">
+<h1 class="font-h2 text-h2 text-on-surface">Iniciar Sesión</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Ingresa tus credenciales corporativas para continuar.</p>
+</div>
+<form class="space-y-md">
+<!-- Username Input -->
+<div class="space-y-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant block" for="email">Correo Electrónico Corporativo</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">person</span>
+</div>
+<input class="w-full h-10 pl-10 pr-3 bg-surface-container-lowest border border-outline-variant rounded-DEFAULT focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent font-body-md text-body-md text-on-surface transition-shadow" id="email" placeholder="usuario@abbi.com" type="email" value="operador.bloqueado@abbi.com"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface-variant block" for="password">Contraseña</label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input class="w-full h-10 pl-10 pr-10 bg-surface-container-lowest border border-outline-variant rounded-DEFAULT focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent font-body-md text-body-md text-on-surface transition-shadow" id="password" placeholder="••••••••" type="password" value="password123"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer">
+<span class="material-symbols-outlined text-outline hover:text-on-surface-variant transition-colors">visibility_off</span>
+</div>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-10 bg-[#0E3B65] text-white rounded-[6px] font-button text-button hover:bg-primary transition-colors flex items-center justify-center gap-2 mt-lg opacity-80 cursor-not-allowed" type="button">
+<span>Ingresar al Sistema</span>
+<span class="material-symbols-outlined text-sm">login</span>
+</button>
+</form>
+<div class="mt-xl text-center">
+<p class="font-label-sm text-label-sm text-outline">© 2024 ABBI Management. Acceso restringido a personal autorizado.</p>
+</div>
+</div>
+<!-- Right Side: Decorative/Brand Area -->
+<div class="hidden md:block md:w-1/2 bg-primary relative overflow-hidden">
+<!-- Background Image -->
+<div class="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-overlay" data-alt="A highly detailed professional modern corporate office environment shown in the background of a glass window, deep blues and steel tones, conveying trust, efficiency, and scale in a corporate setting. The mood is focused and structured." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB90bHouNf9KVs_sNKC1vKv47MV_e7ATWyZKiDf1OVpaLFRAHa-PJ5ClnsOm2s-NQ8bo5ysOJBV2G0J7nuA5i1O9pGGvseGIfQvJJOl_spPFRCyHQ_k8xf7zs4ITzDx2-A_L1SdKxTUmrbqigXPKlH1McW6v0hJWwWYTRLExG0_b_FXbkK1enOnAaUYP940yh60J_ypHH2KpWs9KzPzBW7r1uetH1IRZkF0ZVCFLLwtPp-DMOqnM12Z')"></div>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-[#0E3B65] to-secondary opacity-90"></div>
+<!-- Content -->
+<div class="relative h-full p-xl flex flex-col justify-between">
+<div class="flex justify-end">
+<span class="px-3 py-1 bg-surface-container-lowest/20 backdrop-blur-sm border border-surface-container-lowest/30 rounded-full font-label-sm text-label-sm text-on-primary">Sistema Interno</span>
+</div>
+<div class="space-y-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-lowest/10 backdrop-blur-sm border border-surface-container-lowest/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-2xl" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<h2 class="font-h1 text-h1 text-on-primary">Portal Operativo Seguro</h2>
+<p class="font-body-lg text-body-lg text-on-primary/80 max-w-md">
+                        Plataforma centralizada para la gestión, validación y seguimiento de procesos administrativos y licitaciones.
+                    </p>
+</div>
+<div class="flex items-center gap-4 border-t border-surface-container-lowest/20 pt-6">
+<div class="flex -space-x-3">
+<img class="w-10 h-10 rounded-full border-2 border-primary object-cover" data-alt="A professional headshot of a corporate administrative user in modern business attire, neutral lighting, confident expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4scLYs-HrXriVXGYoFe-qhPLiprihV5oOFXPBk1vi4n7I1PSeB9JOUSgTzRbEWL1ITzbtEiP7bWVlO4RtM-a65J5DWW4t-XjuNkO_EKCy3gaO88X8C-dYSLgsNRmu1_fWumrpm9ZWuUQ82naTqzNPeaUigcH9L290L01rEZcydLL36l5KztpvCjR31UF3wJMNewrtDZF3BlQU_28pACwdoxcZrEFnCTlnTOXvB6eUgF7egYqY7g02"/>
+<img class="w-10 h-10 rounded-full border-2 border-primary object-cover" data-alt="A professional headshot of an executive supervisor in modern business attire, looking efficient and serious, studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBPq8tU1yoFFjJQ978GS0jE2p6aSXkSqtqZPoN3lqXkJht25kTVX6qHUiJy_GpUS9PUwudMxZXnqzIePNwJdG3PyBrpdUejk7W64XV9bzy3Ll9BdsGznJI0v3sQsaIAvSKVqeDBSlrWYOndP0iTV5jNtxoJDdV6GY5kS8awVP26oex7v5HowP2XBCKe_9gJ1OtgzbV_PAZxutmkAzog96OjI7afCTHZj9q93FZpDp9DR8Km56htu6p"/>
+<div class="w-10 h-10 rounded-full border-2 border-primary bg-surface-container-lowest/20 backdrop-blur-sm flex items-center justify-center text-on-primary font-label-sm text-label-sm">
+                            +42
+                        </div>
+</div>
+<span class="font-label-sm text-label-sm text-on-primary/80">Usuarios activos hoy</span>
+</div>
+</div>
+<!-- Decorative Elements -->
+<div class="absolute top-1/4 right-0 transform translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-surface-container-lowest/10 rounded-full opacity-50"></div>
+<div class="absolute bottom-0 left-1/4 transform -translate-x-1/2 translate-y-1/2 w-96 h-96 border border-surface-container-lowest/10 rounded-full opacity-30"></div>
+</div>
+</main>
+</body></html>

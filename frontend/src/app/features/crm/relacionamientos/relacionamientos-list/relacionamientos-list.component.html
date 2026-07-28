@@ -1,0 +1,93 @@
+<section class="page">
+  <app-crm-tabs active="relacionamientos" />
+
+  <header class="page__header">
+    <div>
+      <h1>Relacionamientos</h1>
+      <p>Seguimiento de interacciones con contactos.</p>
+    </div>
+    @if (puedeEscribir()) {
+      <a class="btn-primary" routerLink="/crm/relacionamientos/nuevo">Nuevo relacionamiento</a>
+    }
+  </header>
+
+  <div class="filters">
+    <button type="button" class="btn-secondary" [class.active]="vista() === 'todos'" (click)="setVista('todos')">Todos</button>
+    <button type="button" class="btn-secondary" [class.active]="vista() === 'vencidos'" (click)="setVista('vencidos')">Vencidos</button>
+  </div>
+
+  @if (vista() === 'todos') {
+    <div class="filters">
+      <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+      <select [ngModel]="canal()" (ngModelChange)="canal.set($event); onFilter()">
+        <option value="">Todos los canales</option>
+        @for (c of canales; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+      <select [ngModel]="resultado()" (ngModelChange)="resultado.set($event); onFilter()">
+        <option value="">Todos los resultados</option>
+        @for (r of resultados; track r) { <option [value]="r">{{ r }}</option> }
+      </select>
+      <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else if (vista() === 'vencidos') {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contacto</th>
+            <th>Canal</th>
+            <th>Mensaje</th>
+            <th>Fecha límite</th>
+            <th>Días espera</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of vencidos(); track item.id) {
+            <tr>
+              <td>{{ contactoLabel(item.contactoId) }}</td>
+              <td>{{ item.canal }}</td>
+              <td>{{ item.mensaje }}</td>
+              <td>{{ item.fechaLimiteRespuesta }}</td>
+              <td>{{ item.diasEsperaConfigurado }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5">No hay relacionamientos vencidos.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contacto</th>
+            <th>Canal</th>
+            <th>Mensaje</th>
+            <th>Fecha mensaje</th>
+            <th>Resultado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>{{ contactoLabel(item.contactoId) }}</td>
+              <td>{{ item.canal }}</td>
+              <td>{{ item.mensaje }}</td>
+              <td>{{ item.fechaMensaje }}</td>
+              <td>{{ item.resultado }}</td>
+              <td><a [routerLink]="['/crm/relacionamientos', item.id]">Ver / responder</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No hay relacionamientos registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

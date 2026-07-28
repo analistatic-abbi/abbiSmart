@@ -1,0 +1,53 @@
+<section class="page">
+  <app-crm-tabs active="clientes" />
+
+  <header class="page__header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Gestión de empresas cliente.</p>
+    </div>
+    @if (puedeEscribir()) {
+      <a class="btn-primary" routerLink="/crm/clientes/nuevo">Nuevo cliente</a>
+    }
+  </header>
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar empresa..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event); onFilter()">
+      <option value="">Todos los segmentos</option>
+      @for (s of segmentos; track s) {
+        <option [value]="s">{{ s }}</option>
+      }
+    </select>
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando clientes...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Segmento</th>
+            <th>Fecha creación</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cliente of items(); track cliente.id) {
+            <tr>
+              <td>{{ cliente.empresa }}</td>
+              <td>{{ cliente.segmentoOtro ?? cliente.segmento }}</td>
+              <td>{{ cliente.fechaCreacion | date: 'shortDate' }}</td>
+              <td><a [routerLink]="['/crm/clientes', cliente.id]">Ver detalle</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4">No hay clientes registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

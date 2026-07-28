@@ -54,6 +54,7 @@ export class UsersService {
 
     const qb = this.usuarioRepository
       .createQueryBuilder('u')
+      .leftJoinAndSelect('u.pais', 'pais')
       .where('u.eliminado = false');
 
     if (query.search) {
@@ -143,6 +144,10 @@ export class UsersService {
     });
 
     const saved = await this.usuarioRepository.save(usuario);
+    const savedWithPais = await this.usuarioRepository.findOne({
+      where: { id: saved.id },
+      relations: { pais: true },
+    });
     const rawToken = await this.activationService.createActivationToken(
       saved.id,
     );
@@ -166,7 +171,7 @@ export class UsersService {
     });
 
     return {
-      usuario: UserResponseDto.fromEntity(saved),
+      usuario: UserResponseDto.fromEntity(savedWithPais ?? saved),
       ...(this.mailService.shouldExposeDevTokens()
         ? { devActivationToken: rawToken }
         : {}),
@@ -204,6 +209,10 @@ export class UsersService {
     usuario.paisId = nextPaisId;
 
     const saved = await this.usuarioRepository.save(usuario);
+    const savedWithPais = await this.usuarioRepository.findOne({
+      where: { id: saved.id },
+      relations: { pais: true },
+    });
 
     if (dto.rol !== undefined && dto.rol !== previousRol) {
       await this.auditService.log({
@@ -244,7 +253,7 @@ export class UsersService {
       });
     }
 
-    return UserResponseDto.fromEntity(saved);
+    return UserResponseDto.fromEntity(savedWithPais ?? saved);
   }
 
   async requestPasswordReset(

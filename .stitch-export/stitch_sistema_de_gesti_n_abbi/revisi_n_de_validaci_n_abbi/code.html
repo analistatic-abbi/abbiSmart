@@ -1,0 +1,391 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Revisión de Validación - ABBI</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#aec8ef",
+                      "outline-variant": "#c3c6d0",
+                      "error": "#ba1a1a",
+                      "secondary-fixed": "#d3e4ff",
+                      "inverse-primary": "#a4c9fb",
+                      "on-secondary-fixed": "#001c38",
+                      "surface-variant": "#e2e2e6",
+                      "surface-container-highest": "#e2e2e6",
+                      "outline": "#73777f",
+                      "background": "#f9f9fd",
+                      "primary": "#002546",
+                      "on-primary": "#ffffff",
+                      "surface-container-high": "#e8e8ec",
+                      "primary-fixed": "#d2e4ff",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#2f3034",
+                      "surface-container": "#eeedf1",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "on-secondary-container": "#435d7f",
+                      "on-primary-fixed": "#001c37",
+                      "secondary": "#466082",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "on-tertiary-container": "#f9825e",
+                      "on-error-container": "#93000a",
+                      "surface-bright": "#f9f9fd",
+                      "secondary-container": "#bcd6fe",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "on-background": "#1a1c1f",
+                      "on-primary-fixed-variant": "#204873",
+                      "surface-dim": "#dadade",
+                      "inverse-on-surface": "#f1f0f4",
+                      "primary-container": "#0e3b65",
+                      "on-surface": "#1a1c1f",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#3b608c",
+                      "on-error": "#ffffff",
+                      "tertiary": "#4a0f00",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "tertiary-fixed": "#ffdbd1",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#6f1c01",
+                      "on-primary-container": "#81a6d6",
+                      "surface-container-low": "#f4f3f7",
+                      "surface": "#f9f9fd",
+                      "on-surface-variant": "#43474f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "base": "4px",
+                      "margin-desktop": "32px",
+                      "gutter": "16px",
+                      "md": "16px",
+                      "margin-mobile": "16px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "xl": "32px"
+              },
+              "fontFamily": {
+                      "button": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "h2": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h3": ["Inter"],
+                      "h1": ["Inter"],
+                      "body-md": ["Inter"],
+                      "h1-mobile": ["Inter"]
+              },
+              "fontSize": {
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex flex-col py-md bg-surface-container-lowest dark:bg-surface-container-lowest border-r border-outline-variant z-40 hidden md:flex">
+<nav class="flex-1 overflow-y-auto w-full px-md space-y-sm">
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Panel de Control
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">group</span>
+                Gestión de Usuarios
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Reportes Operativos
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Configuración
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                Inventario
+            </a>
+<!-- Active Tab -->
+<a class="flex items-center gap-md px-md py-sm text-primary border-l-[3px] border-primary-container bg-secondary-container dark:bg-primary-container font-button cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+                Validaciones
+            </a>
+</nav>
+<div class="mt-auto pt-md border-t border-outline-variant px-md space-y-sm w-full">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">help</span>
+                Ayuda
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+                Soporte
+            </a>
+<div class="flex items-center gap-md mt-md p-sm bg-surface-container rounded-lg">
+<img alt="Usuario Logueado" class="w-8 h-8 rounded-full object-cover" data-alt="A professional corporate headshot of a mature individual in a modern office setting. The lighting is bright and even, highlighting a trustworthy expression. The background features subtle office elements like glass partitions or plants, slightly blurred. The image conveys reliability and administrative authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0eKjcXFdlXcHKXCEh309yapAb2XpwZYow-hDZOA1dlrZfg9sXyscue6EoLSnBIG7gN9ahiTLAv2-RLLG3diz2wtV3nMHy1nHNVilnMyMSymMlkwZlN0-LJexKdowyD79ZqIHq2tMfy3KOO_0J1aGIO2hiL0LagyTgVhYm6lsecD6W96P45XV4motSH1RaPz37U1xiJyAVI5_TbRs-bKxUGkwt7yUTwnCECM7GSXI9vXJBGgL5CD-b">
+<div class="flex-1 overflow-hidden">
+<p class="font-button text-button text-on-surface truncate">Nombre de Usuario</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">Administrador</p>
+</div>
+</div>
+<button class="w-full mt-sm text-error font-button text-button text-left px-md py-sm hover:bg-error-container rounded-lg transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined">logout</span>
+                Cerrar Sesión
+            </button>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<div class="flex-1 flex flex-col md:ml-[260px] min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest dark:bg-surface-container-lowest h-16 border-b border-outline-variant">
+<div class="flex items-center gap-md md:pl-[260px] pl-0">
+<span class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed">ABBI</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 p-sm rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 p-sm rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">flag</span>
+</button>
+<div class="w-px h-8 bg-outline-variant mx-sm"></div>
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant cursor-pointer" data-alt="A professional corporate headshot of a mature individual in a modern office setting. The lighting is bright and even, highlighting a trustworthy expression. The background features subtle office elements like glass partitions or plants, slightly blurred. The image conveys reliability and administrative authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlc-4TUwc_ZDFbZI5nl-oFJoBSgKQgjuy45-0_rms1Iwg4kEAAr66ieqN1P0vfF6TK8JoBp1jaO_kw5Jek1YqihRwuorraVNoYeDvKLyXvSDQ-k3rGCe7Ac-Zf5Ghsow40YQ3FMDTsSaz4whSgp5FlcxC7UHjrNDs1D-yjuo9nx2k3Ot_meMG6h8NALqCeMsb3nHOWq-zjIHiO9iQUaCw8UyZg6aSGTCpKAnKQ5d2ye7FVof2cco5M">
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 p-margin-mobile md:p-margin-desktop w-full max-w-7xl mx-auto">
+<!-- Breadcrumb & Header -->
+<div class="mb-lg">
+<nav aria-label="Breadcrumb" class="flex text-on-surface-variant font-label-sm text-label-sm mb-sm">
+<ol class="inline-flex items-center space-x-1 md:space-x-3">
+<li class="inline-flex items-center">
+<a class="hover:text-primary transition-colors" href="#">Bandeja</a>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
+<span class="text-primary font-medium">Revisión</span>
+</div>
+</li>
+</ol>
+</nav>
+<h1 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-on-surface">Revisión de Validación - PRC-2023-0891</h1>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+<!-- Left Column: Context & Evidence (Spans 8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-lg">
+<!-- Section 1: Resumen -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary">info</span>
+<h2 class="font-h3 text-h3 text-on-surface">Resumen de Proceso</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-y-md gap-x-lg">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Solicitante</p>
+<p class="font-body-md text-body-md text-on-surface font-medium">Empresa Logística Global S.A.</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Tipo de Solicitud</p>
+<p class="font-body-md text-body-md text-on-surface font-medium">Ampliación de Inventario Nivel 3</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Fecha de Inicio</p>
+<p class="font-body-md text-body-md text-on-surface">12 Oct 2023, 08:45 AM</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Prioridad Operativa</p>
+<span class="inline-flex items-center px-2 py-1 rounded bg-secondary-container text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">Alta</span>
+</div>
+</div>
+</section>
+<!-- Section 2: Lista de Tareas -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary">checklist</span>
+<h2 class="font-h3 text-h3 text-on-surface">Lista de Tareas Completadas</h2>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Task Item -->
+<div class="flex items-start md:items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors gap-md flex-col md:flex-row border border-transparent hover:border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Validación de Documentos Legales</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Revisado por Sistema Automático</p>
+</div>
+</div>
+<a class="flex items-center gap-xs text-primary-container hover:text-primary font-button text-button ml-8 md:ml-0 hover:underline" href="#">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                    Ver evidencia
+                                </a>
+</div>
+<!-- Task Item -->
+<div class="flex items-start md:items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors gap-md flex-col md:flex-row border border-transparent hover:border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Confirmación de Stock Físico</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Reporte adjunto de bodega central</p>
+</div>
+</div>
+<a class="flex items-center gap-xs text-primary-container hover:text-primary font-button text-button ml-8 md:ml-0 hover:underline" href="#">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                    Ver evidencia
+                                </a>
+</div>
+<!-- Task Item -->
+<div class="flex items-start md:items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors gap-md flex-col md:flex-row border border-transparent hover:border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Aprobación Presupuestaria</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Firma digital registrada</p>
+</div>
+</div>
+<a class="flex items-center gap-xs text-primary-container hover:text-primary font-button text-button ml-8 md:ml-0 hover:underline" href="#">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                    Ver evidencia
+                                </a>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Verdicts & Action (Spans 4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-lg">
+<!-- Section 3: Veredicto de Otros -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary">groups</span>
+<h2 class="font-h3 text-h3 text-on-surface">Comité de Validación</h2>
+</div>
+<div class="flex flex-col gap-md">
+<!-- Validator -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="Avatar Validador" class="w-8 h-8 rounded-full object-cover" data-alt="Corporate portrait of a young professional woman in a bright office environment, smiling subtly. She is wearing a modern dark blue blazer. The image has a clean, professional aesthetic suitable for a business dashboard avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa5hZZDMtFFdZh8x1y00Vu-Tuz64Avn4xLiUrrzFk4H8cqW9CTUax5Bnuz2HYLfs_jFnsU1MuOxw-2Q3HszYLuEzMcl-UiXyCu5ACtv_xH-1xCgHWHg2vXce0zA1CAkg0DsEK4ZD0OaFPczCSXFLwuLgtj3KV3VvDSggxj_zB5wp8dbf-1KrddcUg_2PEQbdlak7FdV_pvgllr6_cyiez18pkpXC8mPoCw-w-LavtJ9NkBgzytQLsf">
+<span class="font-body-md text-body-md text-on-surface">Ana García</span>
+</div>
+<span class="px-2 py-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">check</span> Aprobado
+                                </span>
+</div>
+<!-- Validator -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-button text-button">
+                                        CM
+                                    </div>
+<span class="font-body-md text-body-md text-on-surface">Carlos Mendoza</span>
+</div>
+<span class="px-2 py-1 rounded bg-surface-variant text-on-surface-variant font-label-sm text-label-sm font-semibold flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span> Pendiente
+                                </span>
+</div>
+<!-- Validator -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="Avatar Validador" class="w-8 h-8 rounded-full object-cover" data-alt="Corporate headshot of a middle-aged man with glasses, looking serious but approachable. The background is a plain light grey wall to emphasize professionalism. Lighting is standard studio style. Used for a corporate application user profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBHRZv7pp36oIr4dsT-9QspBY-EK-MuO_SSHdmwEDAw-T7UtVTwO3qj1vjwOw8AGbE1CyhTD_fahiOB2uEf33KRMpWc_C-CEEfyud5M_a1T6IvSLkI-B2ILc214S0ZF1O7hUutwGzf07ELEJjzds6KuY40LEwEm2eJDJPE6tzXYL2GN7QGXio5C4pW2g6vjHzgOwBhQy-IwSmmCCkG2vNxYq6nvXlfD10hUPZPrJCcPjGOh5gVwBcY">
+<span class="font-body-md text-body-md text-on-surface">Luis Roldán</span>
+</div>
+<span class="px-2 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">error</span> Requiere Corr.
+                                </span>
+</div>
+</div>
+</section>
+<!-- Section 4: Formulario de Veredicto -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-[0_4px_12px_rgba(0,0,0,0.04)] relative overflow-hidden">
+<!-- Decorative top accent -->
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-outline-variant mt-2">
+<span class="material-symbols-outlined text-primary">gavel</span>
+<h2 class="font-h3 text-h3 text-on-surface">Su Veredicto</h2>
+</div>
+<form class="flex flex-col gap-md">
+<div class="flex flex-col gap-sm">
+<label class="flex items-center gap-sm p-sm border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:bg-secondary-fixed has-[:checked]:border-primary-container">
+<input checked="" class="text-primary-container focus:ring-primary-container w-4 h-4 border-outline-variant" name="verdict" type="radio" value="approved">
+<span class="font-body-md text-body-md text-on-surface font-medium flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">thumb_up</span>
+                                        Aprobado
+                                    </span>
+</label>
+<label class="flex items-center gap-sm p-sm border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:bg-error-container has-[:checked]:border-error">
+<input class="text-error focus:ring-error w-4 h-4 border-outline-variant" name="verdict" type="radio" value="correction">
+<span class="font-body-md text-body-md text-on-surface font-medium flex items-center gap-xs">
+<span class="material-symbols-outlined text-error text-[18px]">thumb_down</span>
+                                        Requiere Corrección
+                                    </span>
+</label>
+</div>
+<div class="flex flex-col gap-xs mt-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant flex justify-between" for="comments">
+                                    Comentarios
+                                    <span class="text-error font-medium" id="comment-required-asterisk" style="display: none;">* Obligatorio para correcciones</span>
+</label>
+<textarea class="w-full border-outline-variant rounded-lg p-sm font-body-md text-body-md focus:border-primary-container focus:ring focus:ring-primary-container/20 placeholder-on-surface-variant/50" id="comments" placeholder="Añada observaciones sobre su decisión..." rows="4"></textarea>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant">
+<button class="w-full bg-primary-container text-on-primary font-button text-button px-lg py-3 rounded-lg hover:bg-primary transition-colors flex justify-center items-center gap-sm shadow-sm" type="button">
+<span class="material-symbols-outlined">send</span>
+                                    Enviar veredicto
+                                </button>
+</div>
+</form>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Simple visual logic to indicate required textarea if 'Requiere Corrección' is selected
+        const radios = document.querySelectorAll('input[name="verdict"]');
+        const asterisk = document.getElementById('comment-required-asterisk');
+        const textarea = document.getElementById('comments');
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if(e.target.value === 'correction') {
+                    asterisk.style.display = 'inline';
+                    textarea.setAttribute('required', 'true');
+                } else {
+                    asterisk.style.display = 'none';
+                    textarea.removeAttribute('required');
+                }
+            });
+        });
+    </script>
+</body></html>

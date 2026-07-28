@@ -9,16 +9,18 @@ export class UserResponseDto {
   rol: Rol;
   estado: EstadoUsuario;
   paisId: number | null;
+  paisNombre: string | null;
   fechaCreacion: Date;
 
   static fromEntity(usuario: Usuario): UserResponseDto {
     return {
-      id: usuario.id,
+      id: Number(usuario.id),
       nombre: usuario.nombre,
       correo: usuario.correo,
       rol: usuario.rol,
       estado: usuario.estado,
-      paisId: usuario.paisId,
+      paisId: usuario.paisId != null ? Number(usuario.paisId) : null,
+      paisNombre: usuario.pais?.nombre ?? null,
       fechaCreacion: usuario.fechaCreacion,
     };
   }

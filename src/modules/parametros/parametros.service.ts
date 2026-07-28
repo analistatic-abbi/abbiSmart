@@ -167,6 +167,21 @@ export class ParametrosService {
     return this.toResponse(saved);
   }
 
+  async remove(id: number, actorId: number, paisSesionId: number): Promise<void> {
+    const parametro = await this.getParametroOrFail(id, paisSesionId);
+    const valorAnterior = JSON.stringify(this.toResponse(parametro));
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.PARAMETRO_ELIMINAR,
+      entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
+      entidadId: parametro.id,
+      valorAnterior,
+    });
+
+    await this.parametroRepository.remove(parametro);
+  }
+
   async getHistorial(id: number, paisSesionId: number) {
     await this.getParametroOrFail(id, paisSesionId);
 

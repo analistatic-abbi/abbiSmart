@@ -1,0 +1,316 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Historial de Cambios de Parámetros - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-primary-fixed": "#001c37",
+                        "surface-container-highest": "#e2e2e6",
+                        "inverse-on-surface": "#f1f0f4",
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "surface-tint": "#3b608c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "surface": "#f9f9fd",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-container": "#435d7f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#4a0f00",
+                        "on-background": "#1a1c1f",
+                        "surface-container-low": "#f4f3f7",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f9f9fd",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary": "#466082",
+                        "surface-dim": "#dadade",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-surface": "#1a1c1f",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "primary-container": "#0e3b65",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "background": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "primary": "#002546",
+                        "inverse-surface": "#2f3034",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "button": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex font-body-md">
+<!-- SideNavBar -->
+<nav class="flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest dark:bg-surface-container-low border-r border-outline-variant hidden md:flex">
+<div class="px-lg mb-xl">
+<h3 class="font-h3 text-h3 text-primary font-bold">ABBI</h3>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Gestión Corporativa</span>
+</div>
+<ul class="flex flex-col flex-grow">
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> <span class="font-body-md text-body-md">Panel de Control</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="group">group</span> <span class="font-body-md text-body-md">Gestión de Usuarios</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="analytics">analytics</span> <span class="font-body-md text-body-md">Reportes Operativos</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span> <span class="font-body-md text-body-md">Inventario</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="fact_check">fact_check</span> <span class="font-body-md text-body-md">Validaciones</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="business">business</span> <span class="font-body-md text-body-md">Clientes</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#"><span class="material-symbols-outlined" data-icon="contact_phone">contact_phone</span> <span class="font-body-md text-body-md">Contactos</span></a></li>
+<li><a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high" href="#"><span class="material-symbols-outlined" data-icon="settings">settings</span> <span class="font-body-md text-body-md">Configuración</span></a></li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-grow flex flex-col">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-40 bg-surface-container-lowest dark:bg-surface-container-low border-b border-outline-variant h-16">
+<div class="flex items-center">
+<span class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim md:hidden mr-md">ABBI</span>
+<!-- Breadcrumbs/Context -->
+<nav aria-label="Breadcrumb" class="hidden md:flex text-body-md font-body-md text-on-surface-variant">
+<ol class="inline-flex items-center space-x-1 md:space-x-3">
+<li class="inline-flex items-center">
+<a class="inline-flex items-center text-on-surface-variant hover:text-primary" href="#">Configuración</a>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined mx-1" data-icon="chevron_right" style="font-size: 16px;">chevron_right</span>
+<span aria-current="page" class="text-on-surface">Auditoría</span>
+</div>
+</li>
+</ol>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search Bar Placeholder for TopNavBar -->
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search" style="font-size: 20px;">search</span>
+<input class="pl-[32px] pr-sm py-1 border border-outline-variant rounded bg-surface text-body-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent w-64 h-10" placeholder="Buscar..." type="text">
+</div>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+<div class="flex flex-col items-end hidden sm:flex">
+<span class="font-label-sm text-label-sm text-on-surface">Admin. Principal</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 rounded">Administrador</span>
+</div>
+<img alt="Avatar de usuario administrador" class="w-10 h-10 rounded-full border border-outline-variant object-cover" data-alt="A small circular avatar placeholder image showing a generic user silhouette in dark blue against a light gray background, clean and professional corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsAqS-QZOlZQ6MLE29MUZQ7r-4qylWUbYJxiSrgIRqhdUjRQqgbFiM3aL8y2cy17BRqePh-gTgBso4kxoMHDMhTfxmsiNyBGUiuRbXad5a5E3LXzZ2YqBFIrXRpiAdhzf1sFIq7-L5RRliltCKpAYCzUWwCRNPKh2zMf7XoJ7nb2MXPrLVmv0InsbaVyqwDEadrMJPfRWIeIp7qzzUQdBMhPsc0oUV6cxoLowrgrzmeUK_-WqB3ujY">
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-grow p-lg md:p-margin-desktop bg-background">
+<div class="mb-lg flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h1 class="font-h1 text-h1 text-primary">Historial de Cambios de Parámetros</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-sm">Registro de auditoría de modificaciones en la configuración del sistema.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm bg-surface-container-lowest border border-outline-variant text-primary-container rounded font-button text-button hover:bg-surface-container-low transition-colors h-10">
+<span class="material-symbols-outlined" data-icon="download" style="font-size: 18px;">download</span>
+                        Exportar CSV
+                    </button>
+</div>
+</div>
+<!-- Filters Area -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-lg mb-lg">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Rango de Fechas</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="calendar_month" style="font-size: 18px;">calendar_month</span>
+<input class="w-full pl-[32px] pr-sm py-sm border border-outline-variant rounded bg-surface text-body-md focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent h-10" placeholder="Últimos 7 días" type="text">
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Módulo</label>
+<select class="w-full px-sm py-sm border border-outline-variant rounded bg-surface text-body-md focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent h-10">
+<option>Todos los módulos</option>
+<option>Inventario</option>
+<option>Finanzas</option>
+<option>Seguridad</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Usuario</label>
+<select class="w-full px-sm py-sm border border-outline-variant rounded bg-surface text-body-md focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent h-10">
+<option>Todos los usuarios</option>
+<option>j.perez@empresa.com</option>
+<option>m.gomez@empresa.com</option>
+<option>Sistema</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs justify-end">
+<button class="w-full px-md py-sm bg-primary border border-transparent text-on-primary rounded font-button text-button hover:bg-on-primary-fixed-variant transition-colors h-10">
+                            Aplicar Filtros
+                        </button>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden">
+<!-- Table Header/Search -->
+<div class="p-md border-b border-outline-variant bg-surface flex justify-between items-center">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search" style="font-size: 20px;">search</span>
+<input class="w-full pl-[32px] pr-sm py-1 border border-outline-variant rounded bg-surface-container-lowest text-body-md focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent h-10" placeholder="Buscar por campo o valor..." type="text">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant ml-md">Mostrando 5 de 1,245 registros</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-sm font-label-sm text-label-sm text-on-surface font-semibold pl-lg">Fecha y Hora</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface font-semibold">Usuario</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface font-semibold">Módulo/Campo</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface font-semibold">Valor Anterior</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface font-semibold pr-lg">Valor Nuevo</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface transition-colors">
+<td class="p-sm pl-lg text-on-surface-variant whitespace-nowrap">24/10/2023 14:32:05</td>
+<td class="p-sm">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-bold">JP</div>
+<span>j.perez</span>
+</div>
+</td>
+<td class="p-sm font-medium">Finanzas &gt; Límite_Crédito_Global</td>
+<td class="p-sm"><span class="bg-surface-container-high px-2 py-1 rounded line-through text-on-surface-variant">500,000.00</span></td>
+<td class="p-sm pr-lg"><span class="bg-[#dcfce7] text-[#166534] px-2 py-1 rounded font-medium">750,000.00</span></td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface transition-colors">
+<td class="p-sm pl-lg text-on-surface-variant whitespace-nowrap">24/10/2023 11:15:22</td>
+<td class="p-sm">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-xs font-bold">MG</div>
+<span>m.gomez</span>
+</div>
+</td>
+<td class="p-sm font-medium">Inventario &gt; Alerta_Stock_Mínimo</td>
+<td class="p-sm"><span class="bg-surface-container-high px-2 py-1 rounded line-through text-on-surface-variant">15</span></td>
+<td class="p-sm pr-lg"><span class="bg-[#dcfce7] text-[#166534] px-2 py-1 rounded font-medium">25</span></td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface transition-colors">
+<td class="p-sm pl-lg text-on-surface-variant whitespace-nowrap">23/10/2023 09:45:10</td>
+<td class="p-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="smart_toy" style="font-size: 18px;">smart_toy</span>
+<span>Sistema_Auto</span>
+</div>
+</td>
+<td class="p-sm font-medium">Seguridad &gt; Timeout_Sesión_Minutos</td>
+<td class="p-sm"><span class="bg-surface-container-high px-2 py-1 rounded line-through text-on-surface-variant">60</span></td>
+<td class="p-sm pr-lg"><span class="bg-[#dcfce7] text-[#166534] px-2 py-1 rounded font-medium">30</span></td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface transition-colors">
+<td class="p-sm pl-lg text-on-surface-variant whitespace-nowrap">22/10/2023 16:20:00</td>
+<td class="p-sm">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-bold">JP</div>
+<span>j.perez</span>
+</div>
+</td>
+<td class="p-sm font-medium">General &gt; Mantenimiento_Modo</td>
+<td class="p-sm"><span class="bg-surface-container-high px-2 py-1 rounded line-through text-on-surface-variant">Falso</span></td>
+<td class="p-sm pr-lg"><span class="bg-[#fee2e2] text-[#991b1b] px-2 py-1 rounded font-medium">Verdadero</span></td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="p-sm pl-lg text-on-surface-variant whitespace-nowrap">22/10/2023 16:15:33</td>
+<td class="p-sm">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-bold">JP</div>
+<span>j.perez</span>
+</div>
+</td>
+<td class="p-sm font-medium">General &gt; Mantenimiento_Modo</td>
+<td class="p-sm"><span class="bg-surface-container-high px-2 py-1 rounded line-through text-on-surface-variant">Verdadero</span></td>
+<td class="p-sm pr-lg"><span class="bg-[#dcfce7] text-[#166534] px-2 py-1 rounded font-medium">Falso</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-md border-t border-outline-variant bg-surface flex justify-end items-center gap-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant mr-md">Filas por página: 5</span>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<span class="font-body-md text-body-md text-on-surface">1 - 5 de 1,245</span>
+<button class="p-xs text-on-surface hover:bg-surface-container-high rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

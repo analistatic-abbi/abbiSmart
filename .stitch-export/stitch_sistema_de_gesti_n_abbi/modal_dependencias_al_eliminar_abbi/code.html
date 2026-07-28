@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Gestión ABBI - Confirmación de Eliminación</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "background": "#f9f9fd",
+                      "surface-dim": "#dadade",
+                      "surface-container-low": "#f4f3f7",
+                      "on-tertiary-container": "#f9825e",
+                      "tertiary": "#4a0f00",
+                      "secondary-fixed-dim": "#aec8ef",
+                      "surface-tint": "#3b608c",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#bcd6fe",
+                      "on-background": "#1a1c1f",
+                      "on-error": "#ffffff",
+                      "primary-container": "#0e3b65",
+                      "surface-variant": "#e2e2e6",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "inverse-on-surface": "#f1f0f4",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "outline": "#73777f",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "surface": "#f9f9fd",
+                      "surface-bright": "#f9f9fd",
+                      "surface-container-high": "#e8e8ec",
+                      "on-primary-fixed": "#001c37",
+                      "secondary-fixed": "#d3e4ff",
+                      "on-secondary-fixed": "#001c38",
+                      "on-surface-variant": "#43474f",
+                      "outline-variant": "#c3c6d0",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#466082",
+                      "primary": "#002546",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed": "#ffdbd1",
+                      "tertiary-container": "#6f1c01",
+                      "primary-fixed": "#d2e4ff",
+                      "surface-container-highest": "#e2e2e6",
+                      "error": "#ba1a1a",
+                      "inverse-primary": "#a4c9fb",
+                      "on-primary-fixed-variant": "#204873",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "on-primary-container": "#81a6d6",
+                      "inverse-surface": "#2f3034",
+                      "surface-container": "#eeedf1",
+                      "on-secondary-container": "#435d7f",
+                      "on-surface": "#1a1c1f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-desktop": "32px",
+                      "base": "4px",
+                      "margin-mobile": "16px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "sm": "8px"
+              },
+              "fontFamily": {
+                      "h3": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "h1-mobile": ["Inter"],
+                      "button": ["Inter"],
+                      "h2": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h1": ["Inter"]
+              },
+              "fontSize": {
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom subtle shadow for modals as per style guide */
+        .shadow-modal {
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        /* Custom scrollbar for dependencies list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #c3c6d0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md h-screen w-screen overflow-hidden flex">
+<!-- App Shell Backdrop / Blurred Context -->
+<div class="flex w-full h-full filter blur-[2px] opacity-60 pointer-events-none select-none absolute inset-0 z-0">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 border-r border-outline-variant dark:border-outline bg-surface-container-low dark:bg-surface-container-lowest shadow-sm dark:shadow-none docked left-0 h-screen w-64 z-10">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary font-bold text-lg">A</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed">Gestión ABBI</h1>
+<p class="text-xs text-on-surface-variant">Bid Management System</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full h-10 bg-primary-container text-on-primary rounded-lg font-button flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+                    New Bid Request
+                </button>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+                    Home
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+                    Opportunities
+                </a>
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-xl px-4 py-3 scale-95 duration-150 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="description">description</span>
+                    Active Bids
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+                    Contract Awards
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+                    Reports
+                </a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                    Sign Out
+                </a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="ml-64 flex-1 flex flex-col">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 bg-surface dark:bg-surface-container border-b border-outline-variant dark:border-outline flat no shadows docked full-width top-0 z-10">
+<div class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">
+                    ABBI Bid Management
+                </div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 opacity-80 transition-all duration-200 font-label-md text-label-md" href="#">Bids</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Analytics</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-label-md text-label-md" href="#">Help</a>
+</nav>
+<div class="flex items-center gap-4 border-l border-outline-variant pl-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate user, neutral lighting, minimalist background, suitable for a business application profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWyPd8fi6TY5Ic6OIbWVdFFva7i9-uBY9dfKyRAApENFcOJx_4BR2z3j4F6m-XGaagD7WhCQZLQx5KrysbMbrjtokvCsHuR40wdn6s3ycGciMjeuQqJmrtCBI4Q2eVj3inVxOKZPKn7us2mzgwRpaV44BWHoaUhdr4wgKdY4WEFUhyNYuUtey39jzK1Qcai7wDFK9D39LfaVCr58TDzLt_X1_fLrp5XGbzQyI-us1FUMpEvI7km40W">
+</div>
+</div>
+</div>
+</header>
+<!-- Dummy Canvas Content -->
+<main class="flex-1 p-lg flex flex-col gap-lg bg-background">
+<div class="flex justify-between items-center">
+<h2 class="font-h2 text-h2 text-primary-container">Active Bids Registry</h2>
+</div>
+<!-- Fake Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex-1">
+<div class="h-12 border-b border-outline-variant bg-surface-container-low flex items-center px-4">
+<div class="w-1/4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Bid ID</div>
+<div class="w-1/4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Client</div>
+<div class="w-1/4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</div>
+<div class="w-1/4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Actions</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1c1f]/40 backdrop-blur-sm p-4">
+<!-- Dependency Warning Modal -->
+<div aria-labelledby="modal-title" aria-modal="true" class="bg-surface-container-lowest rounded-lg shadow-modal w-full max-w-lg border border-outline-variant overflow-hidden flex flex-col" role="dialog">
+<!-- Modal Header -->
+<div class="p-lg pb-4 flex items-start gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined icon-fill">warning</span>
+</div>
+<div class="pt-1">
+<h3 class="font-h3 text-h3 text-on-surface m-0" id="modal-title">Dependencias Encontradas</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">
+                        Se han detectado registros dependientes asociados a esta entidad. Se recomienda encarecidamente la reasignación antes de proceder con la eliminación.
+                    </p>
+</div>
+</div>
+<!-- Modal Body (Dependencies List & Checkbox) -->
+<div class="px-lg pb-lg">
+<!-- Dependencies List -->
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-md mb-6 max-h-48 overflow-y-auto custom-scrollbar">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Registros Afectados (3)</p>
+<ul class="space-y-2">
+<li class="flex items-center gap-3 font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-outline text-[20px]">assignment</span>
+<span>Oferta Licitación #BID-2023-089</span>
+</li>
+<li class="flex items-center gap-3 font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-outline text-[20px]">folder_open</span>
+<span>Carpeta Técnica de Proyecto Alpha</span>
+</li>
+<li class="flex items-center gap-3 font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-outline text-[20px]">group</span>
+<span>Equipo de Evaluación (2 miembros)</span>
+</li>
+</ul>
+</div>
+<!-- Confirmation Checkbox -->
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input class="peer appearance-none w-5 h-5 border-2 border-outline rounded-sm bg-surface-container-lowest checked:bg-error checked:border-error focus:ring-2 focus:ring-error/20 focus:outline-none transition-colors" id="confirm-delete" type="checkbox">
+<span class="material-symbols-outlined text-on-error text-[16px] absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100 pointer-events-none icon-fill">check</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface select-none group-hover:text-primary transition-colors">
+                        Entiendo las consecuencias de eliminar estos registros y los datos asociados se perderán permanentemente.
+                    </span>
+</label>
+</div>
+<!-- Modal Footer -->
+<div class="px-lg py-md bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
+<button class="h-10 px-6 bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button rounded-lg hover:bg-surface-variant transition-colors focus:ring-2 focus:ring-primary/20 focus:outline-none" type="button">
+                    Cancelar
+                </button>
+<button class="h-10 px-6 bg-error text-on-error font-button text-button rounded-lg hover:bg-error/90 transition-colors focus:ring-2 focus:ring-error/20 focus:outline-none shadow-sm flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                    Continuar
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Simple script to toggle button state based on checkbox
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkbox = document.getElementById('confirm-delete');
+            const continueBtn = document.querySelector('button.bg-error');
+            
+            // Initial state
+            continueBtn.style.opacity = '0.5';
+            continueBtn.style.cursor = 'not-allowed';
+            continueBtn.disabled = true;
+
+            checkbox.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    continueBtn.style.opacity = '1';
+                    continueBtn.style.cursor = 'pointer';
+                    continueBtn.disabled = false;
+                } else {
+                    continueBtn.style.opacity = '0.5';
+                    continueBtn.style.cursor = 'not-allowed';
+                    continueBtn.disabled = true;
+                }
+            });
+        });
+    </script>
+</body></html>

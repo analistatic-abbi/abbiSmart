@@ -1,6 +1,6 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
@@ -15,6 +15,7 @@ import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
 import { AlertasControlService } from '../../common/services/alertas-control.service';
 import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { PermisosService } from '../../common/services/permisos.service';
+import { normalizarFechaDesdeBd } from '../../common/utils/proceso-fechas.util';
 import { calcularEstadoSugerido } from '../../common/utils/proyeccion-calculos.util';
 import { detectarUmbralesTransicion } from '../../common/utils/proyeccion-transicion.util';
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -98,6 +99,11 @@ export class ProyeccionesService {
       params.push(term, term);
     }
 
+    if (query.procesoOrigenId) {
+      conditions.push('py.proceso_origen_id = ?');
+      params.push(query.procesoOrigenId);
+    }
+
     const whereClause = conditions.join(' AND ');
 
     const countRows = await this.proyeccionRepository.query(
@@ -176,7 +182,22 @@ export class ProyeccionesService {
       eliminado: false,
     });
 
-    const saved = await this.proyeccionRepository.save(proyeccion);
+    let saved: Proyeccion;
+    try {
+      saved = await this.proyeccionRepository.save(proyeccion);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        this.isDuplicateProcesoOrigenError(error)
+      ) {
+        throw new BusinessException(
+          ErrorCode.PROYECCION_ORIGEN_DUPLICADA,
+          'El proceso origen ya tiene una proyección asociada',
+          HttpStatus.CONFLICT,
+        );
+      }
+      throw error;
+    }
 
     await this.auditService.log({
       usuarioId: actorId,
@@ -221,9 +242,7 @@ export class ProyeccionesService {
       proyeccion.valorFacturacion = dto.valorFacturacion.toString();
     }
 
-    if (dto.estado !== undefined) {
-      proyeccion.estado = dto.estado;
-    } else if (dto.fechaEstimadaPublicacion !== undefined) {
+    if (dto.fechaEstimadaPublicacion !== undefined) {
       proyeccion.estado = calcularEstadoSugerido(
         proyeccion.fechaEstimadaPublicacion,
         proyeccion.estado,
@@ -490,7 +509,10 @@ export class ProyeccionesService {
       [procesoId],
     );
 
-    const fechaFinalizacion = calcRows[0]?.fechaFinalizacion as string | undefined;
+    const fechaFinalizacion = calcRows[0]?.fechaFinalizacion as
+      | string
+      | Date
+      | undefined;
 
     if (!fechaFinalizacion) {
       throw new BusinessException(
@@ -500,8 +522,19 @@ export class ProyeccionesService {
       );
     }
 
-    const fechaEstimada = fechaFinalizacion;
-    const anioProyectado = new Date(`${fechaFinalizacion}T00:00:00`).getFullYear();
+    let fechaEstimada: string;
+    let anioProyectado: number;
+
+    try {
+      ({ fecha: fechaEstimada, anio: anioProyectado } =
+        normalizarFechaDesdeBd(fechaFinalizacion));
+    } catch {
+      throw new BusinessException(
+        ErrorCode.PROYECCION_FECHA_BASE_INVALIDA,
+        'La fecha de finalización del proceso no es válida para generar la proyección',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const proyeccion = this.proyeccionRepository.create({
       procesoOrigenId: proceso.id,
@@ -524,6 +557,14 @@ export class ProyeccionesService {
       entidadId: saved.id,
       valorNuevo: JSON.stringify({ procesoOrigenId: proceso.id }),
     });
+
+    const procesoLabel = proceso.codigo ?? `#${proceso.id}`;
+    await this.notificarDestinatariosProyeccion(
+      proceso.paisId,
+      'proyeccion_creada_auto',
+      `Se generó la proyección #${saved.id} a partir del proceso ${procesoLabel}`,
+      saved.id,
+    );
 
     return this.toResponseWithVista(saved.id);
   }
@@ -567,9 +608,13 @@ export class ProyeccionesService {
         );
 
         for (const usuarioId of destinatarios) {
+          const tipo =
+            umbral === 'SaleEsteMes'
+              ? 'proyeccion_sale_este_mes'
+              : 'proyeccion_proxima';
           await this.notificacionesService.crear({
             usuarioId,
-            tipo: 'proyeccion_proxima',
+            tipo,
             mensaje: `La proyección #${row.id} cambió a estado "${row.estadoSugerido}"`,
             entidadTipo: 'proyeccion',
             entidadId: row.id,
@@ -619,6 +664,68 @@ export class ProyeccionesService {
     return rows.map((row: { id: number }) => Number(row.id));
   }
 
+  async repararProyeccionesHuerfanas(actorId: number): Promise<{
+    reparadas: number;
+    omitidas: number;
+  }> {
+    const procesos = await this.procesoRepository.query(
+      `SELECT p.id
+       FROM procesos p
+       LEFT JOIN proyecciones py
+         ON py.proceso_origen_id = p.id AND py.eliminado = FALSE
+       WHERE p.eliminado = FALSE
+         AND p.estado = ?
+         AND p.tipo_proceso = ?
+         AND p.tipo_instrumento <> ?
+         AND py.id IS NULL`,
+      [EstadoProceso.ADJUDICADO, TipoProceso.PERIODICO, TipoInstrumento.RFI],
+    );
+
+    let reparadas = 0;
+    let omitidas = 0;
+
+    for (const row of procesos as Array<{ id: number }>) {
+      const result = await this.generarDesdeProcesoAdjudicado(
+        Number(row.id),
+        actorId,
+      );
+      if (result) {
+        reparadas += 1;
+      } else {
+        omitidas += 1;
+      }
+    }
+
+    return { reparadas, omitidas };
+  }
+
+  private async notificarDestinatariosProyeccion(
+    paisId: number,
+    tipo: string,
+    mensaje: string,
+    proyeccionId: number,
+  ): Promise<void> {
+    const destinatarios = await this.resolverDestinatariosProyeccion(paisId);
+
+    for (const usuarioId of destinatarios) {
+      await this.notificacionesService.crear({
+        usuarioId,
+        tipo,
+        mensaje,
+        entidadTipo: 'proyeccion',
+        entidadId: proyeccionId,
+      });
+    }
+  }
+
+  private isDuplicateProcesoOrigenError(error: QueryFailedError): boolean {
+    const driverError = error.driverError as { code?: string; message?: string };
+    return (
+      driverError?.code === 'ER_DUP_ENTRY' &&
+      (driverError.message?.includes('uk_proyeccion_origen') ?? false)
+    );
+  }
+
   async getProyeccionActivaOrFail(
     id: number,
     paisSesionId: number,
@@ -654,6 +761,15 @@ export class ProyeccionesService {
          v.proceso_origen_id AS procesoOrigenId,
          v.proceso_resultante_id AS procesoResultanteId,
          v.proceso_codigo AS procesoCodigo,
+         COALESCE(po.codigo, po.id_digitado) AS procesoOrigenCodigo,
+         COALESCE(pr.codigo, pr.id_digitado) AS procesoResultanteCodigo,
+         (
+           SELECT py2.id
+           FROM proyecciones py2
+           WHERE py2.proceso_origen_id = v.proceso_resultante_id
+             AND py2.eliminado = FALSE
+           LIMIT 1
+         ) AS proyeccionSiguienteId,
          v.empresa,
          v.segmento,
          v.anio_proyectado AS anioProyectado,
@@ -666,6 +782,8 @@ export class ProyeccionesService {
          v.dias_faltantes AS diasFaltantes,
          v.estado_sugerido AS estadoSugerido
        FROM vista_proyecciones_listado v
+       LEFT JOIN procesos po ON po.id = v.proceso_origen_id
+       LEFT JOIN procesos pr ON pr.id = v.proceso_resultante_id
        WHERE v.id = ?`,
       [id],
     );
@@ -681,29 +799,63 @@ export class ProyeccionesService {
     return this.mapListadoRow(rows[0]);
   }
 
+  private formatFechaListado(row: Record<string, unknown>): string {
+    const raw = row.fechaEstimadaPublicacion ?? row.fecha_estimada_publicacion;
+    if (raw === undefined || raw === null) {
+      return '';
+    }
+
+    if (typeof raw === 'string') {
+      return raw.slice(0, 10);
+    }
+
+    try {
+      return normalizarFechaDesdeBd(raw as Date).fecha;
+    } catch {
+      return String(raw);
+    }
+  }
+
   private mapListadoRow(row: Record<string, unknown>): ProyeccionResponseDto {
+    const num = (camel: string, snake: string): number | null => {
+      const raw = row[camel] ?? row[snake];
+      return raw !== undefined && raw !== null ? Number(raw) : null;
+    };
+    const str = (camel: string, snake: string): string | null => {
+      const raw = row[camel] ?? row[snake];
+      return raw !== undefined && raw !== null ? String(raw) : null;
+    };
+
     return {
       id: Number(row.id),
-      paisId: Number(row.paisId),
-      procesoOrigenId: row.procesoOrigenId ? Number(row.procesoOrigenId) : null,
-      procesoResultanteId: row.procesoResultanteId
-        ? Number(row.procesoResultanteId)
-        : null,
-      procesoCodigo: (row.procesoCodigo as string) ?? null,
-      empresa: (row.empresa as string) ?? null,
-      segmento: (row.segmento as string) ?? null,
-      anioProyectado: Number(row.anioProyectado),
-      fechaEstimadaPublicacion: String(row.fechaEstimadaPublicacion),
-      valorVenta: String(row.valorVenta),
-      valorFacturacion: String(row.valorFacturacion),
-      estado: row.estado as EstadoProyeccion,
-      mercado: (row.mercado as ProyeccionResponseDto['mercado']) ?? null,
-      fechaCreacion: row.fechaCreacion as Date,
+      paisId: Number(row.paisId ?? row.pais_id),
+      procesoOrigenId: num('procesoOrigenId', 'proceso_origen_id'),
+      procesoResultanteId: num('procesoResultanteId', 'proceso_resultante_id'),
+      procesoCodigo: str('procesoCodigo', 'proceso_codigo'),
+      procesoOrigenCodigo: str('procesoOrigenCodigo', 'proceso_origen_codigo'),
+      procesoResultanteCodigo: str(
+        'procesoResultanteCodigo',
+        'proceso_resultante_codigo',
+      ),
+      proyeccionSiguienteId: num('proyeccionSiguienteId', 'proyeccion_siguiente_id'),
+      empresa: str('empresa', 'empresa'),
+      segmento: str('segmento', 'segmento'),
+      anioProyectado: Number(row.anioProyectado ?? row.anio_proyectado),
+      fechaEstimadaPublicacion: this.formatFechaListado(row),
+      valorVenta: String(row.valorVenta ?? row.valor_venta),
+      valorFacturacion: String(row.valorFacturacion ?? row.valor_facturacion),
+      estado: (row.estado as EstadoProyeccion) ?? EstadoProyeccion.LEJANO,
+      mercado: ((row.mercado as ProyeccionResponseDto['mercado']) ?? null) as ProyeccionResponseDto['mercado'],
+      fechaCreacion: (row.fechaCreacion ?? row.fecha_creacion) as Date,
       diasFaltantes:
         row.diasFaltantes !== undefined && row.diasFaltantes !== null
           ? Number(row.diasFaltantes)
-          : undefined,
-      estadoSugerido: row.estadoSugerido as EstadoProyeccion | undefined,
+          : row.dias_faltantes !== undefined && row.dias_faltantes !== null
+            ? Number(row.dias_faltantes)
+            : undefined,
+      estadoSugerido: (row.estadoSugerido ?? row.estado_sugerido) as
+        | EstadoProyeccion
+        | undefined,
     };
   }
 }

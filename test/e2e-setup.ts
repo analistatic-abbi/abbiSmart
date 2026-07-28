@@ -7,6 +7,8 @@ import { HttpExceptionFilter } from '../src/common/exceptions/http-exception.fil
 export interface E2eMailMockHandlers {
   onActivationToken?: (token: string) => void;
   onResetToken?: (token: string) => void;
+  onSupportRequest?: (payload: Record<string, unknown>) => void;
+  onSupportAck?: (to: string) => void;
 }
 
 export function createE2eMailServiceMock(
@@ -24,6 +26,13 @@ export function createE2eMailServiceMock(
         handlers.onResetToken?.(token);
       },
     ),
+    sendSupportRequestEmail: jest.fn(async (input: Record<string, unknown>) => {
+      handlers.onSupportRequest?.(input);
+    }),
+    sendSupportAckEmail: jest.fn(async (to: string) => {
+      handlers.onSupportAck?.(to);
+    }),
+    sendValidacionAsignadaEmail: jest.fn(async () => undefined),
   };
 }
 

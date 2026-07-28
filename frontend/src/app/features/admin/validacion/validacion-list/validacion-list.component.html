@@ -1,0 +1,48 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Bandeja de validación</h1>
+      <p>Procesos pendientes por validar.</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID validación</th>
+            <th>Código</th>
+            <th>Empresa</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.validacionId) {
+            <tr>
+              <td>{{ item.validacionId }}</td>
+              <td>{{ item.codigo ?? '—' }}</td>
+              <td>{{ item.empresaMostrar }}</td>
+              <td><span class="badge">{{ item.estado }}</span></td>
+              <td>
+                <a [routerLink]="['/validacion/procesos', item.procesoId]" [queryParams]="{ validacionId: item.validacionId }">
+                  Revisar
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5">No hay procesos pendientes de validación.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

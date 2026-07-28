@@ -1,0 +1,122 @@
+@if (loading()) {
+  <p>Cargando cliente...</p>
+} @else if (error() && !cliente()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  @if (cliente(); as c) {
+  <section class="page">
+    <a class="back" routerLink="/crm/clientes">← Volver a clientes</a>
+
+    <header class="page__header">
+      <div>
+        <h1>{{ c.empresa }}</h1>
+        <p>{{ c.segmentoOtro ?? c.segmento }}</p>
+      </div>
+      <div class="actions">
+        @if (puedeEscribir()) {
+          <a class="btn-secondary" [routerLink]="['/crm/clientes', c.id, 'editar']">Editar</a>
+          <a class="btn-primary" [routerLink]="['/crm/contactos/nuevo']" [queryParams]="{ clienteId: c.id }">Nuevo contacto</a>
+        }
+        @if (puedeReasignar()) {
+          <button type="button" class="btn-secondary" (click)="abrirReasignar()">Reasignar procesos</button>
+        }
+        @if (puedeEliminarDirecto() || puedeSolicitarEliminacion()) {
+          <button type="button" class="btn-danger" (click)="abrirEliminar()">
+            {{ puedeEliminarDirecto() ? 'Eliminar' : 'Solicitar eliminación' }}
+          </button>
+        }
+      </div>
+    </header>
+
+    <div class="panel grid">
+      <div><span>Segmento</span><strong>{{ c.segmentoOtro ?? c.segmento }}</strong></div>
+      <div><span>Ubicación ID</span><strong>{{ c.ubicacionId }}</strong></div>
+      <div><span>Fecha creación</span><strong>{{ c.fechaCreacion }}</strong></div>
+    </div>
+
+    <h2>Contactos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Teléfono</th>
+            <th>Correo</th>
+            <th>Genérico</th>
+            @if (puedeEscribir()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (contacto of contactosList(); track contacto.id) {
+            <tr>
+              <td>{{ contacto.nombre }}</td>
+              <td>{{ contacto.cargo ?? '—' }}</td>
+              <td>{{ contacto.telefono ?? '—' }}</td>
+              <td>{{ contacto.correo ?? '—' }}</td>
+              <td>{{ contacto.esGenerico ? 'Sí' : 'No' }}</td>
+              @if (puedeEscribir()) {
+                <td><a [routerLink]="['/crm/contactos', contacto.id, 'editar']">Editar</a></td>
+              }
+            </tr>
+          } @empty {
+            <tr><td colspan="6">Sin contactos registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (showEliminarModal()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        @if (puedeEliminarDirecto()) {
+          <h3>Eliminar cliente</h3>
+          @if (dependencias().length > 0) {
+            <ul>
+              @for (dep of dependencias(); track dep.descripcion) {
+                <li>{{ dep.descripcion }}</li>
+              }
+            </ul>
+            <label><input type="checkbox" [ngModel]="confirmarDependientes()" (ngModelChange)="confirmarDependientes.set($event)" /> Confirmo eliminar con dependencias</label>
+          } @else {
+            <p>¿Confirma que desea eliminar este cliente?</p>
+          }
+        } @else {
+          <h3>Solicitar eliminación</h3>
+          <label>Motivo <textarea [ngModel]="motivoEliminacion()" (ngModelChange)="motivoEliminacion.set($event)"></textarea></label>
+        }
+        <div class="modal__actions">
+          <button type="button" class="btn-secondary" (click)="showEliminarModal.set(false)">Cancelar</button>
+          <button type="button" class="btn-danger" (click)="confirmarEliminacion()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showReasignarModal()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Reasignar procesos</h3>
+        <p>Seleccione el cliente destino para los procesos asociados.</p>
+        <label>
+          Cliente destino
+          <app-searchable-select
+            [options]="clientesDestinoOptions()"
+            [ngModel]="nuevoClienteId()"
+            (ngModelChange)="nuevoClienteId.set($event)"
+            placeholder="Seleccione..."
+            searchPlaceholder="Buscar cliente..."
+          />
+        </label>
+        <div class="modal__actions">
+          <button type="button" class="btn-secondary" (click)="showReasignarModal.set(false)">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="confirmarReasignacion()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  }
+  }
+}

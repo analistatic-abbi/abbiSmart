@@ -1,0 +1,30 @@
+@use '../../shared/crm-page';
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    span {
+      font-size: 12px;
+      color: var(--color-on-surface-variant);
+    }
+  }
+}
+
+h2 {
+  margin: 0 0 12px;
+  color: var(--color-primary);
+}

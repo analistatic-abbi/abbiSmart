@@ -1,0 +1,7 @@
+.app-layout__content {
+  margin-top: var(--header-height);
+  margin-left: var(--sidebar-width);
+  min-height: calc(100vh - var(--header-height));
+  padding: 24px 32px;
+  background: var(--color-background);
+}

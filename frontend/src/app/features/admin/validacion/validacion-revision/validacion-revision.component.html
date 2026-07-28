@@ -1,0 +1,120 @@
+@if (loading()) {
+  <p>Cargando revisión...</p>
+} @else {
+  @if (proceso(); as p) {
+  <section class="page">
+    <a class="back" routerLink="/validacion">← Volver a bandeja</a>
+
+    <header class="page__header">
+      <div>
+        <h1>Revisión: {{ p.codigo ?? p.idDigitado }}</h1>
+        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · {{ p.estado }}</p>
+      </div>
+    </header>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <div class="panel grid">
+      <div><span>Segmento</span><strong>{{ p.segmento }}</strong></div>
+      <div><span>Cuantía</span><strong>{{ p.cuantia }} {{ p.moneda }}</strong></div>
+      <div><span>Avance</span><strong>{{ p.avancePorcentaje ?? 0 }}%</strong></div>
+    </div>
+
+    <h2>Evidencias adjuntas ({{ tareasConEvidencia().length }})</h2>
+
+    @if (tareasConEvidencia().length === 0) {
+      <div class="panel empty-evidencias">
+        <p>No hay evidencias adjuntas en las tareas de este proceso.</p>
+      </div>
+    } @else {
+      <div class="evidencias">
+        @for (t of tareasConEvidencia(); track t.id) {
+          <article class="evidencia-card">
+            <header class="evidencia-card__head">
+              <div>
+                <h3>{{ labelTarea(t.tareaCodigo) }}</h3>
+                <span class="badge badge--ok">Completada</span>
+              </div>
+              @if (t.evidenciaArchivoNombre) {
+                <button type="button" class="btn-evidencia" (click)="verEvidencia(t)">
+                  <span class="material-symbols-outlined">visibility</span>
+                  Ver evidencia
+                </button>
+              }
+            </header>
+
+            @if (t.evidenciaArchivoNombre) {
+              <p class="evidencia-card__label">Archivo adjunto</p>
+              <p class="evidencia-card__file">{{ t.evidenciaArchivoNombre }}</p>
+            }
+
+            @if (t.evidencia?.trim()) {
+              <p class="evidencia-card__label">Nota</p>
+              <div class="evidencia-card__body">{{ t.evidencia }}</div>
+            }
+          </article>
+        }
+      </div>
+    }
+
+    <h2>Detalle de todas las tareas</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tarea</th>
+            <th>Estado</th>
+            <th>Evidencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tareas(); track t.id) {
+            <tr [class.row-na]="!t.aplica">
+              <td>{{ labelTarea(t.tareaCodigo) }}</td>
+              <td>{{ estadoTarea(t) }}</td>
+              <td class="evidencia-cell">
+                @if (t.evidenciaArchivoNombre) {
+                  <button type="button" class="link" (click)="verEvidencia(t)">
+                    Ver evidencia ({{ t.evidenciaArchivoNombre }})
+                  </button>
+                } @else if (t.evidencia?.trim()) {
+                  <span class="evidencia-text">{{ t.evidencia }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="3">No hay tareas asociadas al proceso.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (tareasPendientes().length > 0) {
+      <p class="warn">Hay {{ tareasPendientes().length }} tarea(s) aplicables pendientes de completar.</p>
+    }
+
+    <h2>Veredicto</h2>
+    <div class="panel form-grid">
+      <label>Veredicto
+        <select [ngModel]="veredicto()" (ngModelChange)="veredicto.set($event)">
+          <option value="Aprobado">Aprobado</option>
+          <option value="Requiere Corrección">Requiere Corrección</option>
+        </select>
+      </label>
+      <label class="full">Comentario
+        <textarea [ngModel]="comentario()" (ngModelChange)="comentario.set($event)"></textarea>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-primary" [disabled]="saving()" (click)="enviarVeredicto()">
+        {{ saving() ? 'Enviando...' : 'Registrar veredicto' }}
+      </button>
+    </div>
+  </section>
+  }
+}

@@ -106,6 +106,15 @@ describe('Dashboard (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect((res) => {
+        expect(res.body.data).toEqual([]);
+      });
+
+    await request(app.getHttpServer())
+      .get('/api/v1/dashboard/procesos')
+      .query({ search: 'DEMO' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect((res) => {
         if (res.body.data.length > 0) {
           const item = res.body.data[0];
           expect(item).toHaveProperty('diasEspera');

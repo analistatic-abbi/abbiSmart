@@ -1,0 +1,372 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Gestión de Clientes - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#73777f",
+                      "tertiary-container": "#6f1c01",
+                      "tertiary-fixed": "#ffdbd1",
+                      "on-secondary-fixed": "#001c38",
+                      "on-secondary-fixed-variant": "#2e4869",
+                      "secondary-fixed-dim": "#aec8ef",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#d2e4ff",
+                      "inverse-surface": "#2f3034",
+                      "background": "#f9f9fd",
+                      "on-error-container": "#93000a",
+                      "surface": "#f9f9fd",
+                      "on-primary-container": "#81a6d6",
+                      "surface-bright": "#f9f9fd",
+                      "surface-variant": "#e2e2e6",
+                      "tertiary-fixed-dim": "#ffb59f",
+                      "primary-fixed-dim": "#a4c9fb",
+                      "primary": "#002546",
+                      "inverse-primary": "#a4c9fb",
+                      "on-secondary": "#ffffff",
+                      "primary-container": "#0e3b65",
+                      "on-surface-variant": "#43474f",
+                      "on-tertiary-fixed": "#3a0a00",
+                      "on-surface": "#1a1c1f",
+                      "on-primary": "#ffffff",
+                      "secondary": "#466082",
+                      "surface-container": "#eeedf1",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f4f3f7",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-high": "#e8e8ec",
+                      "on-tertiary-fixed-variant": "#81290c",
+                      "on-secondary-container": "#435d7f",
+                      "surface-tint": "#3b608c",
+                      "outline-variant": "#c3c6d0",
+                      "secondary-fixed": "#d3e4ff",
+                      "tertiary": "#4a0f00",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#204873",
+                      "on-error": "#ffffff",
+                      "on-background": "#1a1c1f",
+                      "on-tertiary-container": "#f9825e",
+                      "secondary-container": "#bcd6fe",
+                      "surface-container-highest": "#e2e2e6",
+                      "surface-dim": "#dadade",
+                      "on-primary-fixed": "#001c37",
+                      "inverse-on-surface": "#f1f0f4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "margin-desktop": "32px",
+                      "lg": "24px",
+                      "md": "16px",
+                      "base": "4px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "button": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "h1-mobile": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "h2": ["Inter"],
+                      "h1": ["Inter"],
+                      "h3": ["Inter"]
+              },
+              "fontSize": {
+                      "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-low font-body-md text-body-md docked left-0 w-[260px] h-screen border-r border-outline-variant flat no shadows flex flex-col sticky left-0 top-0 pt-lg hidden md:flex shrink-0">
+<div class="px-lg pb-md mb-md border-b border-outline-variant flex items-center gap-md">
+<img class="w-8 h-8 object-contain rounded-DEFAULT" data-alt="A clean, modern corporate logo icon in deep blue and white, suitable for a professional data management application named ABBI. The design is simple, geometric, and conveys trust and efficiency. Crisp, high-resolution vector style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtB-zrs-j2MSGWvZ_52NvFmBzbEFQtWAzGhWz_JBLanlCXfuauFA-Rgwz8lMo_qqQKVJ5fpdDFZ2Re4XBdvlrkxVYW3hTR6EtiSsYGfPOMhmNP-eNobQXl-5XPArrStF1Ss0iErS9KPAy3N72i7m4axjV-e3SHhZcTbg5kRQPduSlWR40-4v0fiPp2WF01QCu8Wd8PlKeuhnTAtiehB1WHGv6bP9Zuvye622gi6raE41Ly7w5xN5ja">
+<div>
+<h2 class="font-h3 text-h3 text-primary font-bold">ABBI</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Corporativa</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto flex flex-col gap-xs px-sm py-sm">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span>Panel de Control</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+<span>Gestión de Usuarios</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<span>Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span>Inventario</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">fact_check</span>
+<span>Validaciones</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high rounded-r-DEFAULT font-bold" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">business</span>
+<span>Clientes</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">contact_phone</span>
+<span>Contactos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 hover:bg-surface-container-high hover:text-primary rounded-DEFAULT text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span>Configuración</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low font-body-md text-body-md docked full-width top-0 h-[64px] border-b border-outline-variant flat no shadows flex justify-between items-center px-lg w-full sticky top-0 z-40 shrink-0">
+<!-- Mobile Menu & Logo (Visible only on mobile) -->
+<div class="flex items-center gap-md md:hidden">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim">ABBI</span>
+</div>
+<!-- Empty spacer for desktop since Search is mostly in the content area for this layout -->
+<div class="hidden md:block"></div>
+<!-- Right Utilities -->
+<div class="flex items-center gap-md">
+<!-- Role Badge -->
+<div class="hidden sm:flex bg-surface-container text-primary font-label-sm text-label-sm px-sm py-[2px] rounded-DEFAULT border border-outline-variant items-center">
+                    Administrador
+                </div>
+<!-- Actions -->
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer active:opacity-80 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-xs hidden sm:block"></div>
+<!-- User Profile -->
+<button class="flex items-center gap-sm cursor-pointer active:opacity-80 hover:bg-surface-container-high p-xs rounded-DEFAULT transition-colors">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a corporate administrator, female, mid-30s, wearing a dark blue blazer. Clean white background, modern bright lighting, high quality portrait suitable for a business application avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiwGyrMyYCy2Lrs4uVxG8O0ZTe1wRecnKbhbS-IkciB2i-C_HptuLC5FkOe8u4JJVegGW_TJbAbjC_6iM_3yUOjrBSbuJOndAv2-FcgUDo5kUbC1NK_jJmdTiESbPKSbMveh7dSTKZbOysfU77Eeaon8ysPTRG-yOUhL7HqmO37njj40x_juB0kzyrcdZ_HbZxPzAYCO9pnnhT-4-82vjcrZx9KLyIq4U-mWr3RVPKVCWBlaAHzAKz">
+<div class="hidden sm:flex flex-col items-start">
+<span class="font-button text-button text-on-surface">Ana García</span>
+<span class="font-label-sm text-label-sm text-primary cursor-pointer hover:underline">Cerrar Sesión</span>
+</div>
+</button>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 overflow-y-auto p-margin-mobile md:p-margin-desktop flex flex-col gap-lg">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
+<div>
+<h1 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-on-surface">Gestión de Clientes</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Administre la cartera de clientes corporativos y segmentos operativos.</p>
+</div>
+<button class="bg-primary-container text-on-primary font-button text-button h-[40px] px-lg rounded-DEFAULT flex items-center gap-xs hover:bg-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Crear Cliente</span>
+</button>
+</div>
+<!-- Data Table Card (PrimeNG Style) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden">
+<!-- Table Toolbar / Filters -->
+<div class="p-lg border-b border-outline-variant bg-surface-container-lowest flex flex-col sm:flex-row gap-md justify-between items-center">
+<!-- Search -->
+<div class="relative w-full sm:w-[320px]">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-[40px] pl-xl pr-sm bg-surface border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent transition-shadow" placeholder="Buscar por empresa, país..." type="text">
+</div>
+<!-- Additional Filters -->
+<div class="flex items-center gap-sm w-full sm:w-auto">
+<div class="relative w-full sm:w-[200px]">
+<select class="w-full h-[40px] pl-sm pr-xl bg-surface border border-outline-variant rounded-DEFAULT font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-[#2E8EC2] focus:border-transparent appearance-none cursor-pointer">
+<option value="">Todos los Segmentos</option>
+<option value="enterprise">Enterprise</option>
+<option value="midmarket">Mid-Market</option>
+<option value="smb">SMB</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+<button class="h-[40px] w-[40px] flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-container-high rounded-DEFAULT text-on-surface-variant transition-colors" title="Filtros Avanzados">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant font-button text-button text-on-surface">
+<tr>
+<th class="p-md whitespace-nowrap">Empresa</th>
+<th class="p-md whitespace-nowrap">País</th>
+<th class="p-md whitespace-nowrap">Región</th>
+<th class="p-md whitespace-nowrap">Segmento</th>
+<th class="p-md whitespace-nowrap">Fecha de Creación</th>
+<th class="p-md whitespace-nowrap w-[80px]"></th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-DEFAULT bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-sm">GA</div>
+<span class="font-semibold text-primary">Grupo Alfa Corp</span>
+</div>
+</td>
+<td class="p-md">
+<div class="flex items-center gap-xs">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="A tiny, crisp flat icon illustration of the Mexican flag, circular shape, highly recognizable colors green white and red, perfect for a UI country indicator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtKT7A7qYRKyx6sZb2NeLbwUPI2uiEgoIBfMG1nfpbTumdzcWGjU9GlomTZza99Ring2jEzig0DzifoonC9mDBhcOFNx3m28CLVz0wgapRVt-ZoaFF3LP_u6RBtHunFS9_h6LqgCFwV8oUhw9ngCg44bLpsE2P1ofuFr_-dAha-b6MmCjsBfX0AqlM85v7CKy5uxHDfxUOrlOv2uAbt-UxkDHIJJ8VZ7erckk4-Cd5aVSdewAslV9C">
+<span>México</span>
+</div>
+</td>
+<td class="p-md text-on-surface-variant">LATAM Norte</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm border border-secondary-fixed-dim">
+                                        Enterprise
+                                    </span>
+</td>
+<td class="p-md text-on-surface-variant">12 Oct 2023</td>
+<td class="p-md text-right">
+<button class="text-outline hover:text-primary p-xs rounded-full hover:bg-surface transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-DEFAULT bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-bold text-sm">TI</div>
+<span class="font-semibold text-primary">Tech Innovators LLC</span>
+</div>
+</td>
+<td class="p-md">
+<div class="flex items-center gap-xs">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="A tiny, crisp flat icon illustration of the USA flag, circular shape, highly recognizable colors red white and blue stars and stripes, perfect for a UI country indicator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt6T5_lQfT2AWs31UC9mpTW6mxJb8MG34GsV7y5VCQQKqXhnWfsdqFLsFujDyo5vCYgwHnT1aHrU8mbgO6tR-oKVlM1WHGbcdSyh2D8XdftkUOiRkiib-DBa534ivr2GkV98tzfP1vqyzYQKKHpRPN1beU9Z65SZFYvIScoMPMi0vNFqkBkaz-YM2AoKYfYp1GRIZ_4p2wxw9Ca2sO0G03BsJNwFqTy65Y9LJRt9mqXbWmHbAzz_Sf">
+<span>Estados Unidos</span>
+</div>
+</td>
+<td class="p-md text-on-surface-variant">Norteamérica</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-surface-variant text-on-surface font-label-sm text-label-sm border border-outline-variant">
+                                        Mid-Market
+                                    </span>
+</td>
+<td class="p-md text-on-surface-variant">28 Sep 2023</td>
+<td class="p-md text-right">
+<button class="text-outline hover:text-primary p-xs rounded-full hover:bg-surface transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-DEFAULT bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-sm">IS</div>
+<span class="font-semibold text-primary">Iberia Sistemas S.A.</span>
+</div>
+</td>
+<td class="p-md">
+<div class="flex items-center gap-xs">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="A tiny, crisp flat icon illustration of the Spanish flag, circular shape, highly recognizable colors red and yellow, perfect for a UI country indicator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbn71Kop1IDTfACOC6eFIgN1sG1uv0S02-jOMwLfcbS_F0aWRdcSNnocYj7Yv0i1RNCdjZdsHSTWcIOSAFm16-QaFzl_EToZQXGUT3I6xOw9Xayus7jKCQwFCDX2fe7mH3oclTNXSwZpi3tH9NwiP3Iv1_x_wyP9vmNgd_FSKXZhbn9ZXv9kIQymxXMazC5no19bNWqtYMxU7n28SuYPVHW9zn9O9G7E8zn5b9o2P-I5wG9E8qPrFi">
+<span>España</span>
+</div>
+</td>
+<td class="p-md text-on-surface-variant">Europa Sur</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm border border-secondary-fixed-dim">
+                                        Enterprise
+                                    </span>
+</td>
+<td class="p-md text-on-surface-variant">05 Nov 2023</td>
+<td class="p-md text-right">
+<button class="text-outline hover:text-primary p-xs rounded-full hover:bg-surface transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-DEFAULT bg-surface-variant flex items-center justify-center text-on-surface font-bold text-sm">LM</div>
+<span class="font-semibold text-primary">Logística Meridional</span>
+</div>
+</td>
+<td class="p-md">
+<div class="flex items-center gap-xs">
+<img class="w-5 h-5 rounded-full object-cover" data-alt="A tiny, crisp flat icon illustration of the Argentine flag, circular shape, highly recognizable colors light blue and white with sun, perfect for a UI country indicator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBq_znlnac1UdnINwro6kcu6WZbr4zGdgKk2kTbP4zkYyU8VHVL8FsEwgonXf3QMxVHyNosdskJT2ttGinMeDdcuy96cKW0vCc7vOb4J9zpJTgEOfjHpZb-IxLuQFnAR4Fezai6VZNLXgCWnPkQofp86vdNIVrbHHXffb-e4GkavvDokmpCT3ymDBwBNCpjVtf4sHpGpgpdOKuAyLHLIIGqoZVPQwUStiM2sg8lHi55LJNVXZRX_cG">
+<span>Argentina</span>
+</div>
+</td>
+<td class="p-md text-on-surface-variant">LATAM Sur</td>
+<td class="p-md">
+<span class="inline-flex items-center px-sm py-[2px] rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm border border-outline-variant">
+                                        SMB
+                                    </span>
+</td>
+<td class="p-md text-on-surface-variant">14 Dic 2023</td>
+<td class="p-md text-right">
+<button class="text-outline hover:text-primary p-xs rounded-full hover:bg-surface transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-sm md:p-md border-t border-outline-variant bg-surface flex flex-col sm:flex-row justify-between items-center gap-md font-body-md text-body-md text-on-surface-variant">
+<div>
+                        Mostrando 1 a 4 de 24 registros
+                    </div>
+<div class="flex items-center gap-xs">
+<button class="p-xs border border-outline-variant rounded-DEFAULT bg-surface-container-lowest text-outline hover:bg-surface-container-low disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT bg-primary text-on-primary font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface">3</button>
+<span class="px-xs">...</span>
+<button class="p-xs border border-outline-variant rounded-DEFAULT bg-surface-container-lowest text-on-surface hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Lista de Proyecciones</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#aec8ef",
+                        "outline-variant": "#c3c6d0",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d3e4ff",
+                        "inverse-primary": "#a4c9fb",
+                        "on-secondary-fixed": "#001c38",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e6",
+                        "outline": "#73777f",
+                        "background": "#f9f9fd",
+                        "primary": "#002546",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ec",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "on-secondary-container": "#435d7f",
+                        "on-primary-fixed": "#001c37",
+                        "secondary": "#466082",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-tertiary-container": "#f9825e",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fd",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "on-background": "#1a1c1f",
+                        "on-primary-fixed-variant": "#204873",
+                        "surface-dim": "#dadade",
+                        "inverse-on-surface": "#f1f0f4",
+                        "primary-container": "#0e3b65",
+                        "on-surface": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3b608c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#4a0f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#6f1c01",
+                        "on-primary-container": "#81a6d6",
+                        "surface-container-low": "#f4f3f7",
+                        "surface": "#f9f9fd",
+                        "on-surface-variant": "#43474f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "button": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "h2": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "h3": ["Inter", "sans-serif"],
+                        "h1": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "h1-mobile": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg bg-surface-container-lowest border-b border-outline-variant h-16 shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed tracking-tight">ABBI</span>
+</div>
+<div class="flex items-center gap-lg">
+<div class="relative hidden md:flex items-center">
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant">search</span>
+<input class="h-10 pl-10 pr-sm py-sm border border-outline-variant rounded-md bg-surface-container-lowest text-body-md font-body-md focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent w-64" placeholder="Buscar..." type="text">
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<button class="p-sm hover:bg-surface-container-low transition-colors rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-sm hover:bg-surface-container-low transition-colors rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">flag</span>
+</button>
+</div>
+<div class="flex items-center gap-sm pl-sm border-l border-outline-variant cursor-pointer hover:bg-surface-container-low transition-colors p-sm rounded-md">
+<img alt="Avatar de usuario" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small, professional circular avatar portrait of a corporate user on a clean light background, suitable for a web application header." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMWQ7KK-K19XX1Ih7Q0CzaDGNzpHOsQRYPcI66oxadMpOzU73GI3fCFA5gomIpfwr5LBhjGRPy4df4xXm7FBcf_qjejeknicTS93vRjAIQL_ba6-KNaGLN2Sc184p0ayJcKc6mk06e3NNEt-H-96zx6IwfsLpiBugncZSe3aDLtoWu3F-sT_PCoFnuYDG0xf9fR2UQGeJ59MihSmIczvOud3KA_1i2xtJMnfKFEwau2wYgzduz1lqn">
+<div class="hidden md:flex flex-col">
+<span class="font-button text-button text-on-surface text-xs leading-tight">Admin User</span>
+<span class="font-label-sm text-label-sm text-primary-container bg-surface-container-low px-xs rounded text-[10px] uppercase tracking-wider mt-[2px] w-fit">Administrador</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[260px] flex flex-col py-md bg-surface-container-lowest border-r border-outline-variant hidden md:flex z-40 overflow-y-auto">
+<!-- User Context Header (Sidebar) -->
+<div class="px-md mb-lg pb-md border-b border-outline-variant flex items-center gap-sm">
+<img alt="Usuario Logueado" class="w-10 h-10 rounded-full object-cover" data-alt="A small, professional circular avatar portrait of a corporate user on a clean light background, suitable for a web application header." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArz17YCfC37dQVb3_UjDqZYh6xjEeP3rhQt9v8ncBeDlRgioyFV-Y3RSkfpsvst1GbhN7maRk7KXwTPEOJ3yLENKafH5mYg7tXJdaGbrQtr7oD17AjngpRxZw7I_XNYv1MkoqSu1dIoImQx_hwoEl61P0dxyoAr-T1phNKFJjLkcrgj-1ndHhcSIaTrLcbEH6IThEsI_D1Z12sem2-Y3nBPUCWkMA9dKzP8oFyCWD3WpFQKQbMnwRb">
+<div class="flex flex-col">
+<span class="font-button text-button text-on-surface">Nombre de Usuario</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Administrador</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs px-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Gestión de Usuarios</span>
+</a>
+<!-- Active Tab: Mapping 'Lista de Proyecciones' to 'Reportes Operativos' as semantic intent -->
+<a class="flex items-center gap-md px-md py-sm text-primary border-l-[3px] border-primary-container bg-secondary-container dark:bg-primary-container font-button cursor-pointer select-none rounded-r-md rounded-l-none" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-button text-button">Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Configuración</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventario</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md">Validaciones</span>
+</a>
+</nav>
+<div class="mt-auto px-sm flex flex-col gap-xs border-t border-outline-variant pt-md">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Ayuda</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer select-none" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-body-md text-body-md">Soporte</span>
+</a>
+<button class="flex items-center gap-md px-md py-sm mt-sm rounded-md text-primary font-button hover:bg-surface-container transition-all cursor-pointer select-none text-left">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-button text-button">Cerrar Sesión</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-[260px] pt-16 min-h-screen flex flex-col">
+<div class="p-lg flex-1 flex flex-col gap-lg max-w-screen-2xl mx-auto w-full">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<h1 class="font-h1 text-h1 text-on-surface tracking-tight">Lista de Proyecciones</h1>
+<div class="flex flex-col sm:flex-row items-center gap-sm">
+<button class="w-full sm:w-auto h-[40px] px-md bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button rounded-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-xs shadow-sm">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+                        Cargar proyecciones masivo
+                    </button>
+<button class="w-full sm:w-auto h-[40px] px-md bg-primary-container text-on-primary font-button text-button rounded-md hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Crear proyección manual
+                    </button>
+</div>
+</div>
+<!-- Action Bar / Filters -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-md shadow-sm flex flex-col lg:flex-row gap-md items-end lg:items-center justify-between">
+<div class="flex flex-col sm:flex-row gap-md w-full lg:w-auto">
+<div class="flex flex-col gap-xs w-full sm:w-64">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Búsqueda rápida</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-[40px] pl-10 pr-sm rounded-md border border-outline-variant bg-surface-container-lowest font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent" placeholder="Buscar por origen, empresa..." type="text">
+</div>
+</div>
+<div class="flex flex-col gap-xs w-full sm:w-40">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Año Proyectado</label>
+<select class="w-full h-[40px] px-sm rounded-md border border-outline-variant bg-surface-container-lowest font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent appearance-none cursor-pointer">
+<option value="">Todos los años</option>
+<option value="2023">2023</option>
+<option selected="" value="2024">2024</option>
+<option value="2025">2025</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs w-full sm:w-48">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Estado</label>
+<select class="w-full h-[40px] px-sm rounded-md border border-outline-variant bg-surface-container-lowest font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent appearance-none cursor-pointer">
+<option value="">Todos los estados</option>
+<option value="lejano">Lejano</option>
+<option value="proximo">Próximo</option>
+<option value="este_mes">Sale este mes</option>
+<option value="publicado">Publicado</option>
+<option value="cerrado">Cerrado</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="h-[40px] px-md text-primary-container font-button text-button hover:bg-surface-container-low rounded-md transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Más filtros
+                    </button>
+<button class="w-[40px] h-[40px] border border-outline-variant rounded-md flex items-center justify-center hover:bg-surface-container-low transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant shadow-sm overflow-hidden flex-1 flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[1000px]">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Proceso Origen</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Empresa</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Año Proy.</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Fecha Est. Pub.</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface text-right whitespace-nowrap">Valor Venta ($)</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface text-right whitespace-nowrap">Valor Facturación ($)</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface text-center whitespace-nowrap">Días Faltantes</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Estado</th>
+<th class="py-sm px-sm font-label-sm text-label-sm font-bold text-on-surface whitespace-nowrap">Mercado</th>
+<th class="py-sm px-sm w-[48px]"></th> <!-- Acciones -->
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-sm px-sm font-button text-primary-container cursor-pointer hover:underline">PRC-2024-001</td>
+<td class="py-sm px-sm">TechCorp Solutions</td>
+<td class="py-sm px-sm text-on-surface-variant">2024</td>
+<td class="py-sm px-sm text-on-surface-variant">15/04/2024</td>
+<td class="py-sm px-sm text-right font-medium">250,000.00</td>
+<td class="py-sm px-sm text-right font-medium">245,500.00</td>
+<td class="py-sm px-sm text-center">45</td>
+<td class="py-sm px-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant text-[11px] font-bold uppercase tracking-wider">Próximo</span>
+</td>
+<td class="py-sm px-sm">Norteamérica</td>
+<td class="py-sm px-sm text-right">
+<button class="text-outline hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-sm px-sm font-button text-primary-container cursor-pointer hover:underline">PRC-2024-089</td>
+<td class="py-sm px-sm">Global Industries SA</td>
+<td class="py-sm px-sm text-on-surface-variant">2024</td>
+<td class="py-sm px-sm text-on-surface-variant">28/02/2024</td>
+<td class="py-sm px-sm text-right font-medium">1,200,000.00</td>
+<td class="py-sm px-sm text-right font-medium">1,150,000.00</td>
+<td class="py-sm px-sm text-center font-bold text-error">5</td>
+<td class="py-sm px-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant text-[11px] font-bold uppercase tracking-wider">Sale este mes</span>
+</td>
+<td class="py-sm px-sm">Latam</td>
+<td class="py-sm px-sm text-right">
+<button class="text-outline hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-sm px-sm font-button text-primary-container cursor-pointer hover:underline">PRC-2024-102</td>
+<td class="py-sm px-sm">Innovatech SRL</td>
+<td class="py-sm px-sm text-on-surface-variant">2024</td>
+<td class="py-sm px-sm text-on-surface-variant">10/11/2024</td>
+<td class="py-sm px-sm text-right font-medium">85,000.00</td>
+<td class="py-sm px-sm text-right font-medium">85,000.00</td>
+<td class="py-sm px-sm text-center text-on-surface-variant">256</td>
+<td class="py-sm px-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-[11px] font-bold uppercase tracking-wider">Lejano</span>
+</td>
+<td class="py-sm px-sm">Europa</td>
+<td class="py-sm px-sm text-right">
+<button class="text-outline hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="border-b border-outline-variant bg-surface-container-low/30 hover:bg-surface-container-low transition-colors">
+<td class="py-sm px-sm font-button text-primary-container cursor-pointer hover:underline">PRC-2023-991</td>
+<td class="py-sm px-sm">MegaRetailers Group</td>
+<td class="py-sm px-sm text-on-surface-variant">2023</td>
+<td class="py-sm px-sm text-on-surface-variant">15/12/2023</td>
+<td class="py-sm px-sm text-right font-medium">540,000.00</td>
+<td class="py-sm px-sm text-right font-medium">540,000.00</td>
+<td class="py-sm px-sm text-center text-outline-variant">-</td>
+<td class="py-sm px-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-primary-fixed-dim text-on-primary-fixed-variant text-[11px] font-bold uppercase tracking-wider">Publicado</span>
+</td>
+<td class="py-sm px-sm">Norteamérica</td>
+<td class="py-sm px-sm text-right">
+<button class="text-outline hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="border-b border-outline-variant bg-surface-container-low/30 hover:bg-surface-container-low transition-colors opacity-75">
+<td class="py-sm px-sm font-button text-on-surface-variant">PRC-2023-442</td>
+<td class="py-sm px-sm">AgroExport SA</td>
+<td class="py-sm px-sm text-on-surface-variant">2023</td>
+<td class="py-sm px-sm text-on-surface-variant">05/08/2023</td>
+<td class="py-sm px-sm text-right font-medium">310,000.00</td>
+<td class="py-sm px-sm text-right font-medium">300,000.00</td>
+<td class="py-sm px-sm text-center text-outline-variant">-</td>
+<td class="py-sm px-sm">
+<span class="inline-flex items-center px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[11px] font-bold uppercase tracking-wider">Cerrado</span>
+</td>
+<td class="py-sm px-sm">Latam</td>
+<td class="py-sm px-sm text-right">
+<button class="text-outline hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-sm border-t border-outline-variant bg-surface-container-lowest flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface-variant ml-sm">Mostrando 1 a 5 de 142 registros</span>
+<div class="flex items-center gap-xs">
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface-variant disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded bg-primary-container text-on-primary font-button text-button">1</button>
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-button">2</button>
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-button">3</button>
+<span class="px-xs text-on-surface-variant">...</span>
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface font-button text-button">29</button>
+<button class="w-[32px] h-[32px] flex items-center justify-center rounded hover:bg-surface-container-low text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

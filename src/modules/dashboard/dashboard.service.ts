@@ -89,7 +89,16 @@ export class DashboardService {
     };
   }
 
-  async getProcesos(paisSesionId: number): Promise<DashboardProcesoDto[]> {
+  async getProcesos(
+    paisSesionId: number,
+    search?: string,
+  ): Promise<DashboardProcesoDto[]> {
+    const term = search?.trim();
+    if (!term) {
+      return [];
+    }
+
+    const pattern = `%${term}%`;
     const rows = await this.procesoRepository.query(
       `SELECT
          vc.id,
@@ -109,10 +118,17 @@ export class DashboardService {
        FROM vista_procesos_calculado vc
        INNER JOIN procesos p ON p.id = vc.id
        LEFT JOIN vista_procesos_avance va ON va.proceso_id = vc.id
-       WHERE p.pais_id = ? AND ${RFI_FILTER}
+       WHERE p.pais_id = ?
+         AND p.eliminado = FALSE
+         AND ${RFI_FILTER}
          AND p.estado NOT IN ('Cerrado', 'Descartado')
+         AND (
+           vc.codigo LIKE ?
+           OR vc.empresa_mostrar LIKE ?
+           OR p.id_digitado LIKE ?
+         )
        ORDER BY vc.dias_restantes_cierre ASC`,
-      [paisSesionId],
+      [paisSesionId, pattern, pattern, pattern],
     );
 
     return rows as DashboardProcesoDto[];

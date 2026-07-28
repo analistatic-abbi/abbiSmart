@@ -1,0 +1,289 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Crear/Editar Usuario - ABBI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-primary-fixed": "#001c37",
+                        "surface-container-highest": "#e2e2e6",
+                        "inverse-on-surface": "#f1f0f4",
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "surface-tint": "#3b608c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "surface": "#f9f9fd",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-container": "#435d7f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#4a0f00",
+                        "on-background": "#1a1c1f",
+                        "surface-container-low": "#f4f3f7",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f9f9fd",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary": "#466082",
+                        "surface-dim": "#dadade",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-surface": "#1a1c1f",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "primary-container": "#0e3b65",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "background": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "primary": "#002546",
+                        "inverse-surface": "#2f3034",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "base": "4px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "button": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-surface-container flex h-screen w-full overflow-hidden text-on-surface font-body-md text-body-md">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest border-r border-outline-variant z-50">
+<div class="px-lg pb-xl flex flex-col gap-sm">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold">
+                    A
+                </div>
+<div class="flex flex-col">
+<span class="font-h3 text-h3 text-primary font-bold">ABBI</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Gestión Corporativa</span>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-1 overflow-y-auto w-full">
+<!-- Inactive Tab -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Panel de Control</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-bold">Gestión de Usuarios</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reportes Operativos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Inventario</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span>Validaciones</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">business</span>
+<span>Clientes</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">contact_phone</span>
+<span>Contactos</span>
+</a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuración</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-40 bg-surface-container-lowest border-b border-outline-variant h-16 shrink-0">
+<!-- Mobile Menu & Brand -->
+<div class="flex items-center gap-md md:hidden">
+<button class="text-on-surface-variant hover:bg-surface-container-high p-xs rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-h2 text-h2 text-primary">ABBI</span>
+</div>
+<!-- Spacer for Desktop to push utilities right -->
+<div class="hidden md:block flex-1"></div>
+<!-- Utilities -->
+<div class="flex items-center gap-md">
+<!-- Role Badge -->
+<div class="hidden lg:flex items-center bg-[#f1f0f4] px-sm py-[2px] rounded-full border border-outline-variant">
+<span class="font-label-sm text-label-sm text-[#233E5E] font-medium">Administrador</span>
+</div>
+<!-- Notifications -->
+<button class="relative text-on-surface-variant hover:bg-surface-container-high p-xs rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<!-- Profile -->
+<button class="flex items-center gap-sm cursor-pointer active:opacity-80 hover:bg-surface-container-high p-xs rounded-lg transition-colors">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small, professional circular avatar portrait of an administrative user in a corporate setting. High quality, well-lit, neutral background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAE75OUO3WbL0_hN93wtpsLchn3GE3q_t47HnJwgKsylZDlJJUpWEBZ0rpPR7f1QmiYiG8o4yGsJv91G44hZrHrNgT4oUfxI57FaniSGJQxXeUPUQX-NaqBExT8Ds7scz0BoJDMyQmGdfDygjPvBp4Ub1pxnzq9wLy5BCGjTomYa1-Vss-yLzyXPi9lzGj5Mfxf41ys_KUd15aeRWCBp7DkKOZcZDopHxLJ8K3ZIsHUTSzF_4FBlmli">
+<span class="hidden sm:block font-body-md text-body-md text-on-surface font-medium">A. García</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">expand_more</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto p-margin-mobile md:p-margin-desktop">
+<!-- Page Header -->
+<div class="mb-lg flex flex-col gap-xs">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<a class="font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Gestión de Usuarios</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="font-label-sm text-label-sm text-primary">Nuevo Usuario</span>
+</div>
+<h1 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-primary">Crear Nuevo Usuario</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+                    Ingrese los datos del nuevo integrante. Asegúrese de asignar el rol y la región correcta para garantizar los permisos operativos adecuados en el sistema ABBI.
+                </p>
+</div>
+<!-- Form Container (Bento Style Card) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg max-w-4xl">
+<form action="#" class="flex flex-col gap-xl" method="POST">
+<!-- Section: Información Personal -->
+<div class="flex flex-col gap-md border-b border-outline-variant pb-lg">
+<h3 class="font-h3 text-h3 text-primary">Información Personal</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Nombre Completo -->
+<div class="flex flex-col gap-xs md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="fullName">Nombre Completo <span class="text-error">*</span></label>
+<input class="h-[40px] px-sm py-xs bg-surface-container-lowest border border-outline-variant rounded-[6px] font-body-md text-body-md text-on-surface focus:outline-none focus:border-[#2E8EC2] focus:ring-1 focus:ring-[#2E8EC2] transition-shadow placeholder:text-outline" id="fullName" name="fullName" placeholder="Ej. Juan Carlos Pérez" required="" type="text">
+</div>
+<!-- Correo Electrónico -->
+<div class="flex flex-col gap-xs md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="email">Correo Electrónico Corporativo <span class="text-error">*</span></label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline text-[20px]">mail</span>
+</div>
+<input class="h-[40px] pl-[36px] pr-sm py-xs w-full bg-surface-container-lowest border border-outline-variant rounded-[6px] font-body-md text-body-md text-on-surface focus:outline-none focus:border-[#2E8EC2] focus:ring-1 focus:ring-[#2E8EC2] transition-shadow placeholder:text-outline" id="email" name="email" placeholder="juan.perez@empresa.com" required="" type="email">
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Permisos y Región -->
+<div class="flex flex-col gap-md">
+<h3 class="font-h3 text-h3 text-primary">Permisos y Región</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Rol -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="role">Rol Asignado <span class="text-error">*</span></label>
+<div class="relative">
+<select class="appearance-none h-[40px] w-full px-sm py-xs pr-[32px] bg-surface-container-lowest border border-outline-variant rounded-[6px] font-body-md text-body-md text-on-surface focus:outline-none focus:border-[#2E8EC2] focus:ring-1 focus:ring-[#2E8EC2] transition-shadow cursor-pointer" id="role" name="role" required="">
+<option disabled="" selected="" value="">Seleccione un rol...</option>
+<option value="admin">Administrador del Sistema</option>
+<option value="supervisor">Supervisor Regional</option>
+<option value="operator">Operador de Datos</option>
+<option value="validator">Validador de Procesos</option>
+<option value="viewer">Visitante / Solo Lectura</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-sm pointer-events-none">
+<span class="material-symbols-outlined text-outline text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- País -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="country">País de Operación <span class="text-error">*</span></label>
+<div class="relative">
+<select class="appearance-none h-[40px] w-full px-sm py-xs pr-[32px] bg-surface-container-lowest border border-outline-variant rounded-[6px] font-body-md text-body-md text-on-surface focus:outline-none focus:border-[#2E8EC2] focus:ring-1 focus:ring-[#2E8EC2] transition-shadow cursor-pointer" id="country" name="country" required="">
+<option disabled="" selected="" value="">Seleccione un país...</option>
+<option value="co">Colombia</option>
+<option value="pe">Perú</option>
+<option value="mx">México</option>
+<option value="es">España</option>
+<option value="ar">Argentina</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-sm pointer-events-none">
+<span class="material-symbols-outlined text-outline text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="mt-sm flex items-center justify-end gap-sm pt-md border-t border-outline-variant">
+<button class="h-[40px] px-lg bg-surface-container-lowest border border-outline-variant text-primary-container font-button text-button rounded-[6px] hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant focus:ring-offset-2" type="button">
+                            Cancelar
+                        </button>
+<button class="h-[40px] px-lg bg-primary-container text-on-primary font-button text-button rounded-[6px] hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2 shadow-sm" type="submit">
+                            Guardar Usuario
+                        </button>
+</div>
+</form>
+</div>
+</main>
+</div>
+</body></html>

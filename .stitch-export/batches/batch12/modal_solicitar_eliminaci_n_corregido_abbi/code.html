@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solicitar Eliminación</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                primary: '#0E3B65',
+                accent: '#BE5535',
+                surface: '#FFFFFF',
+                background: '#F8F9FA',
+                text: {
+                  main: '#333333',
+                  muted: '#666666'
+                },
+                border: '#E0E0E0'
+              },
+              borderRadius: {
+                'prime': '6px'
+              },
+              boxShadow: {
+                'prime': '0 2px 4px rgba(0,0,0,0.1)'
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center p-4">
+<!-- Modal Overlay -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"></div>
+<!-- Modal Container -->
+<div aria-labelledby="modal-title" aria-modal="true" class="relative bg-surface rounded-prime shadow-prime w-full max-w-md mx-auto z-50 flex flex-col" role="dialog">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-border">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-accent" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h2 class="text-xl font-semibold text-text-main" id="modal-title">Solicitar eliminación</h2>
+</div>
+<button class="text-text-muted hover:text-text-main transition-colors p-1 rounded hover:bg-gray-100">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Body -->
+<div class="p-6">
+<p class="text-sm text-text-muted mb-6 leading-relaxed">
+                Por favor, indícanos el motivo por el cual deseas solicitar la eliminación de este registro. Esta acción será revisada por un administrador.
+            </p>
+<form class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-text-main mb-2" for="motivo">Motivo de la solicitud <span class="text-accent">*</span></label>
+<textarea class="w-full px-3 py-2 bg-surface border border-border rounded-prime text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-shadow resize-none" id="motivo" name="motivo" placeholder="Describe detalladamente el motivo..." required="" rows="4"></textarea>
+</div>
+</form>
+</div>
+<!-- Footer -->
+<div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-gray-50/50 rounded-b-prime">
+<button class="px-4 py-2 h-9 text-sm font-medium text-primary bg-surface border border-primary rounded-prime hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1" type="button">
+                Cancelar
+            </button>
+<button class="px-4 py-2 h-9 text-sm font-medium text-white bg-primary rounded-prime hover:bg-primary/90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-sm flex items-center gap-2" type="submit">
+<span>Enviar solicitud</span>
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+</body></html>

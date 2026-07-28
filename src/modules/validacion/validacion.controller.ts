@@ -23,6 +23,17 @@ import { ValidacionService } from './validacion.service';
 export class ValidacionController {
   constructor(private readonly validacionService: ValidacionService) {}
 
+  @Get('validacion/validadores')
+  @ApiOperation({ summary: 'Listar validadores activos para asignación (VAL-001)' })
+  async findValidadores() {
+    const data = await this.validacionService.findValidadoresDisponibles();
+
+    return {
+      message: 'Validadores obtenidos correctamente',
+      data,
+    };
+  }
+
   @Get('validacion/pendientes')
   @ApiOperation({ summary: 'Bandeja de procesos pendientes por validar (VAL-005)' })
   @ApiQuery({ name: 'search', required: false })

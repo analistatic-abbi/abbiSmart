@@ -1,0 +1,358 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Error de Permisos - Gestión ABBI</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Style adjustments for filling icons */
+        .material-symbols-outlined.filled {
+          font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9fd",
+                        "surface-dim": "#dadade",
+                        "surface-container-low": "#f4f3f7",
+                        "on-tertiary-container": "#f9825e",
+                        "tertiary": "#4a0f00",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "surface-tint": "#3b608c",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#bcd6fe",
+                        "on-background": "#1a1c1f",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0e3b65",
+                        "surface-variant": "#e2e2e6",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "outline": "#73777f",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "surface": "#f9f9fd",
+                        "surface-bright": "#f9f9fd",
+                        "surface-container-high": "#e8e8ec",
+                        "on-primary-fixed": "#001c37",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#466082",
+                        "primary": "#002546",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary-container": "#6f1c01",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-container-highest": "#e2e2e6",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-fixed-variant": "#204873",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "inverse-surface": "#2f3034",
+                        "surface-container": "#eeedf1",
+                        "on-secondary-container": "#435d7f",
+                        "on-surface": "#1a1c1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "h1-mobile": ["Inter", "sans-serif"],
+                        "button": ["Inter", "sans-serif"],
+                        "h2": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "h1": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md overflow-hidden flex">
+<!-- SideNavBar Component -->
+<nav class="hidden md:flex flex-col py-6 border-r border-outline-variant bg-surface-container-low shadow-sm docked left-0 h-screen w-64 fixed z-10 transition-all duration-300">
+<!-- Header -->
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-lg">view_cozy</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary">Gestión ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bid Management System</p>
+</div>
+</div>
+<button class="mt-6 w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 px-4 rounded-xl font-button text-button hover:bg-primary-fixed-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Bid Request
+            </button>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 px-4 space-y-1 overflow-y-auto">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-label-sm text-label-sm">Opportunities</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-sm text-label-sm">Active Bids</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">verified</span>
+<span class="font-label-sm text-label-sm">Contract Awards</span>
+</a>
+<!-- Active State using Intent Fallback (Processes -> Reports/General View) -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 scale-95 duration-150 shadow-sm" href="#">
+<span class="material-symbols-outlined filled">assessment</span>
+<span class="font-label-sm text-label-sm font-semibold">Reports</span>
+</a>
+</div>
+<!-- Footer Links -->
+<div class="px-4 mt-auto space-y-1">
+<div class="h-px bg-outline-variant my-4 mx-2"></div>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 rounded-xl hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-sm text-label-sm">Sign Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area Wrapper -->
+<div class="flex-1 flex flex-col md:ml-64 w-full min-h-screen">
+<!-- TopNavBar Component -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 bg-surface border-b border-outline-variant flat no shadows docked full-width top-0 z-20">
+<!-- Mobile Brand/Menu -->
+<div class="flex items-center gap-4 md:hidden">
+<button class="text-on-surface-variant p-2 -ml-2 rounded-lg hover:bg-surface-container-high">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-headline-lg text-headline-lg-mobile font-bold text-primary">ABBI</span>
+</div>
+<!-- Desktop Search (Centered) -->
+<div class="hidden md:flex flex-1 max-w-md mx-auto">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md font-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Buscar procesos..." type="text">
+</div>
+</div>
+<!-- Actions Right -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-secondary transition-colors relative p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-tertiary-container rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-secondary transition-colors p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-px bg-outline-variant hidden md:block mx-2"></div>
+<button class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+<img alt="User profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a corporate user, neutral lighting, minimalist background, small circular profile avatar for a web application header, crisp details, corporate modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4Fy7qWpvt1Ft4ER3awgYikerleXfJgKEWOnAjNQF87v6rBEjygB6zhfjMhfHCHE6BSBOrbWIZtOBhZ9_jwUEvnNWMpp9GQUNoBnvkpG-vFc52GuA8Rqq8T9x46x7GdprUtXod0iUjLx5_2CTUVzCzCBsXirhBHp8iJKi1fYcQ1MI8aJDvsTeXzuoP0ggKyssFX9y67Y0YBPsOqZvuLPH6dBvX4yBODapEIvrqskHFHJaxIU6XqMp3">
+<div class="hidden md:flex flex-col items-start">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">Admin User</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant leading-tight">Super Admin</span>
+</div>
+</button>
+</div>
+</header>
+<!-- Page Content: Process List (Background Activity) -->
+<main class="flex-1 p-margin-mobile md:p-margin-desktop overflow-y-auto bg-background relative">
+<div class="max-w-6xl mx-auto opacity-50 pointer-events-none transition-opacity duration-300" id="main-content">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-h2 text-h2 text-on-surface mb-1">Listado de Procesos</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Gestión y seguimiento de solicitudes de cotización.</p>
+</div>
+</div>
+<!-- Bento Grid Layout for Data -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex items-center justify-between shadow-sm">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Procesos Activos</p>
+<p class="font-h1 text-h1 text-primary">24</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary-fixed-variant">
+<span class="material-symbols-outlined">autorenew</span>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex items-center justify-between shadow-sm">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Pendientes Aprobación</p>
+<p class="font-h1 text-h1 text-primary">7</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary-fixed-variant">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex items-center justify-between shadow-sm">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Cerrados este mes</p>
+<p class="font-h1 text-h1 text-primary">12</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">task_alt</span>
+</div>
+</div>
+</div>
+<!-- Mock Table View -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+<div class="px-lg py-4 border-b border-outline-variant flex justify-between items-center bg-surface">
+<h3 class="font-h3 text-h3 text-on-surface">Procesos Recientes</h3>
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant border border-outline-variant rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-sm">filter_list</span></button>
+<button class="p-2 text-on-surface-variant border border-outline-variant rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-sm">download</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-lowest font-label-sm text-label-sm text-on-surface-variant">
+<th class="py-3 px-lg font-semibold">ID Proceso</th>
+<th class="py-3 px-lg font-semibold">Título</th>
+<th class="py-3 px-lg font-semibold">Estado</th>
+<th class="py-3 px-lg font-semibold">Fecha Límite</th>
+<th class="py-3 px-lg font-semibold text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-lg text-primary font-semibold">PRC-2023-089</td>
+<td class="py-4 px-lg">Adquisición Servidores Cloud</td>
+<td class="py-4 px-lg">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-primary-fixed text-on-primary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                            En Evaluación
+                                        </span>
+</td>
+<td class="py-4 px-lg text-on-surface-variant">24 Oct 2023</td>
+<td class="py-4 px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-sm">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1 ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-lg text-primary font-semibold">PRC-2023-090</td>
+<td class="py-4 px-lg">Renovación Licencias Office</td>
+<td class="py-4 px-lg">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-secondary-fixed text-on-secondary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Publicado
+                                        </span>
+</td>
+<td class="py-4 px-lg text-on-surface-variant">30 Oct 2023</td>
+<td class="py-4 px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-sm">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1 ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-lg text-primary font-semibold">PRC-2023-091</td>
+<td class="py-4 px-lg">Mantenimiento Flota Vehicular</td>
+<td class="py-4 px-lg">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium bg-surface-container-high text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                            Borrador
+                                        </span>
+</td>
+<td class="py-4 px-lg text-on-surface-variant">--</td>
+<td class="py-4 px-lg text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-sm">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1 ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- ERROR TOAST NOTIFICATION (Fixed Bottom Right, PrimeNG Style) -->
+<div class="fixed bottom-6 right-6 md:right-8 w-full max-w-md z-50 transform translate-y-0 opacity-100 transition-all duration-300 ease-out flex items-start p-4 bg-surface-container-lowest border-l-4 border-error rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)]" id="error-toast">
+<!-- Icon -->
+<div class="flex-shrink-0 text-error mr-3">
+<span class="material-symbols-outlined text-[24px]">error</span>
+</div>
+<!-- Content -->
+<div class="flex-1 pt-0.5">
+<h4 class="font-button text-button text-on-surface mb-1">Error de Autorización</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">No tienes permiso para realizar esta acción.</p>
+</div>
+<!-- Close Button -->
+<button class="flex-shrink-0 ml-4 text-outline hover:text-on-surface-variant transition-colors rounded p-1 hover:bg-surface-container-low focus:outline-none focus:ring-2 focus:ring-outline-variant" onclick="dismissToast()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<script>
+        // Simple animation script to demonstrate the toast entrance/exit if needed, 
+        // though it loads in the visible state for the prompt requirement.
+        function dismissToast() {
+            const toast = document.getElementById('error-toast');
+            const mainContent = document.getElementById('main-content');
+            
+            toast.style.transform = 'translateY(20px)';
+            toast.style.opacity = '0';
+            
+            // Restore main content opacity once error is dismissed
+            mainContent.style.opacity = '1';
+            mainContent.style.pointerEvents = 'auto';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 300);
+        }
+    </script>
+</body></html>

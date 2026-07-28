@@ -1,0 +1,169 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Parámetros financieros</h1>
+      <p>Indicadores por año para el país de sesión. KTNO y PN en millones (M); ROE, ROA, MDN y E en %; IL y RCI como ratio.</p>
+    </div>
+    @if (puedeEditar()) {
+      <button type="button" class="btn-primary" (click)="abrirCrear()">Nuevo parámetro</button>
+    }
+  </header>
+
+  @if (error() && !showEliminar()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <select [ngModel]="filtroIndicador()" (ngModelChange)="filtroIndicador.set($event); onFilter()">
+      <option value="">Todos los indicadores</option>
+      @for (i of indicadores; track i) { <option [value]="i">{{ i }}</option> }
+    </select>
+    <input type="number" placeholder="Año" [ngModel]="filtroAnio()" (ngModelChange)="filtroAnio.set($event ? +$event : '')" (keyup.enter)="onFilter()" />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="parametros-table">
+        <thead>
+          <tr>
+            <th class="col-indicador">Indicador</th>
+            <th class="col-anio">Año</th>
+            <th class="col-valor">Valor</th>
+            <th class="col-regla">Regla</th>
+            <th class="col-fecha">Modificado</th>
+            <th class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of items(); track p.id) {
+            <tr>
+              <td class="col-indicador">{{ p.indicadorCodigo }}</td>
+              <td class="col-anio">{{ p.anio }}</td>
+              <td class="col-valor">{{ formatValor(p.indicadorCodigo, p.valor) }}</td>
+              <td class="col-regla">
+                <span class="regla-badge" [class.regla-badge--menor]="esReglaMenor(p.reglaCumplimiento)">
+                  {{ p.reglaCumplimiento }}
+                </span>
+              </td>
+              <td class="col-fecha">{{ formatFecha(p.fechaModificacion) }}</td>
+              <td class="col-actions">
+                <div class="row-actions">
+                  <button type="button" class="link" (click)="abrirHistorial(p)">Historial</button>
+                  @if (puedeEditar()) {
+                    <button type="button" class="link" (click)="abrirEditar(p)">Editar</button>
+                    <button type="button" class="link danger" (click)="abrirEliminar(p)">Eliminar</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No hay parámetros registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showForm()) {
+    <div class="modal-backdrop">
+      <div class="modal panel form-grid">
+        <h3>Nuevo parámetro</h3>
+        <label>Indicador
+          <select [ngModel]="indicadorCodigo()" (ngModelChange)="indicadorCodigo.set($event)">
+            @for (i of indicadores; track i) { <option [value]="i">{{ i }}</option> }
+          </select>
+        </label>
+        <label>Año <input type="number" [ngModel]="anio()" (ngModelChange)="anio.set(+$event)" /></label>
+        <label>{{ valorHint(indicadorCodigo()) }}
+          <input type="number" step="0.0001" [ngModel]="valor()" (ngModelChange)="valor.set(+$event)" />
+        </label>
+        <label>Regla
+          <select [ngModel]="reglaCumplimiento()" (ngModelChange)="reglaCumplimiento.set($event)">
+            @for (r of reglas; track r) { <option [value]="r">{{ r }}</option> }
+          </select>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="showForm.set(false)">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="crear()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showEdit()) {
+    <div class="modal-backdrop">
+      <div class="modal panel form-grid">
+        <h3>Editar parámetro</h3>
+        <label>{{ valorHint(editingIndicador() ?? indicadorCodigo()) }}
+          <input type="number" step="0.0001" [ngModel]="valor()" (ngModelChange)="valor.set(+$event)" />
+        </label>
+        <label>Regla
+          <select [ngModel]="reglaCumplimiento()" (ngModelChange)="reglaCumplimiento.set($event)">
+            @for (r of reglas; track r) { <option [value]="r">{{ r }}</option> }
+          </select>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="showEdit.set(false)">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="guardarEdicion()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showHistorial()) {
+    <div class="modal-backdrop">
+      <div class="modal panel">
+        <h3>Historial de cambios</h3>
+        <div class="table-wrap">
+          <table class="historial-table">
+            <thead>
+              <tr><th>Campo</th><th>Valor anterior</th><th>Valor nuevo</th><th>Fecha</th></tr>
+            </thead>
+            <tbody>
+              @for (h of historialItems(); track h.id) {
+                <tr>
+                  <td>{{ h.campo ?? '—' }}</td>
+                  <td>{{ formatHistorialValor(h.campo, h.valorAnterior) }}</td>
+                  <td>{{ formatHistorialValor(h.campo, h.valorNuevo) }}</td>
+                  <td>{{ formatFecha(h.fecha) }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4">Sin historial registrado.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="showHistorial.set(false)">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showEliminar()) {
+    <div class="modal-backdrop">
+      <div class="modal panel">
+        <h3>Eliminar parámetro</h3>
+        @if (eliminarTarget(); as target) {
+          <p>
+            ¿Confirma que desea eliminar el parámetro
+            <strong>{{ target.indicadorCodigo }} — {{ target.anio }}</strong>?
+          </p>
+        }
+        @if (error()) {
+          <p class="error">{{ error() }}</p>
+        }
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" [disabled]="eliminando()" (click)="showEliminar.set(false)">Cancelar</button>
+          <button type="button" class="btn-danger" [disabled]="eliminando()" (click)="confirmarEliminacion()">
+            {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

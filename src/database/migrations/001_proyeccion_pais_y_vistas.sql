@@ -35,7 +35,7 @@ SELECT
     py.fecha_creacion,
     v.dias_faltantes,
     v.estado_sugerido,
-    COALESCE(po.codigo, pr.codigo) AS proceso_codigo,
+    COALESCE(po.codigo, po.id_digitado, pr.codigo, pr.id_digitado) AS proceso_codigo,
     COALESCE(
         c_origen.empresa,
         c_res.empresa,

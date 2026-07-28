@@ -30,3 +30,6 @@ Thumbs.db
 
 # Temp
 *.tsbuildinfo
+
+# Uploads locales (evidencias de tareas)
+uploads/

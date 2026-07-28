@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ABBI - Crear/Editar Parámetro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eeedf1",
+                        "on-tertiary-fixed-variant": "#81290c",
+                        "on-primary-fixed": "#001c37",
+                        "surface-container-highest": "#e2e2e6",
+                        "inverse-on-surface": "#f1f0f4",
+                        "outline": "#73777f",
+                        "tertiary-container": "#6f1c01",
+                        "surface-container-high": "#e8e8ec",
+                        "on-tertiary-container": "#f9825e",
+                        "secondary-fixed": "#d3e4ff",
+                        "on-secondary-fixed": "#001c38",
+                        "on-surface-variant": "#43474f",
+                        "surface-tint": "#3b608c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#2e4869",
+                        "surface": "#f9f9fd",
+                        "outline-variant": "#c3c6d0",
+                        "secondary-container": "#bcd6fe",
+                        "on-secondary-container": "#435d7f",
+                        "primary-fixed-dim": "#a4c9fb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#4a0f00",
+                        "on-background": "#1a1c1f",
+                        "surface-container-low": "#f4f3f7",
+                        "on-primary-fixed-variant": "#204873",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f9f9fd",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary": "#466082",
+                        "surface-dim": "#dadade",
+                        "tertiary-fixed": "#ffdbd1",
+                        "on-surface": "#1a1c1f",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a4c9fb",
+                        "on-primary-container": "#81a6d6",
+                        "tertiary-fixed-dim": "#ffb59f",
+                        "on-tertiary-fixed": "#3a0a00",
+                        "primary-container": "#0e3b65",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#aec8ef",
+                        "background": "#f9f9fd",
+                        "surface-variant": "#e2e2e6",
+                        "primary": "#002546",
+                        "inverse-surface": "#2f3034",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1-mobile": ["Inter"],
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "button": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "h3": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:flex-row">
+<!-- Desktop Side Navigation -->
+<nav class="hidden md:flex flex-col w-[260px] h-screen sticky left-0 top-0 pt-lg bg-surface-container-lowest dark:bg-surface-container-low border-r border-outline-variant">
+<div class="px-lg pb-md">
+<div class="flex items-center gap-sm">
+<img alt="Logo ABBI" class="h-8 w-8 object-contain rounded" data-alt="Logotipo corporativo minimalista de la marca ABBI, diseño geométrico limpio en tonos azules profundos sobre fondo blanco, transmitiendo eficiencia y profesionalismo empresarial. Iluminación neutra de estudio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGazXEjug851BCt9Kq_nAc7991AiZhtkPFUj7kaXqgFRqxxjO9otYfv055DQCDjcsbRlCg3Cp_bHpc9wUevXRvIHjP8KYUcN7hVUv5usPRGLXYyIr4J0wfsSBZEFm41ye2WIxfOrRF5RE5sw1mxusv_1y3qRjuKJ4bfN94vSoVmBTakbkRGaWeeFyOgMnEeXC1SPd_59OaX27d7QO9w7wacmY5tqQnaOdaV3VSKIcXsorIwuuA2X5q">
+<div>
+<h1 class="font-h3 text-h3 text-primary font-bold">ABBI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Corporativa</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col mt-md">
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Panel de Control
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Gestión de Usuarios
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Reportes Operativos
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                Inventario
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+                Validaciones
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="business">business</span>
+                Clientes
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="contact_phone">contact_phone</span>
+                Contactos
+            </a>
+<a class="flex items-center gap-md py-sm px-lg transition-all duration-200 text-primary border-l-[3px] border-secondary bg-surface-container-high font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined fill" data-icon="settings" data-weight="fill">settings</span>
+                Configuración
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-h-screen">
+<!-- Top App Bar (Mobile & Desktop) -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-40 bg-surface-container-lowest dark:bg-surface-container-low border-b border-outline-variant h-16">
+<div class="flex items-center gap-sm">
+<!-- Mobile Menu Button -->
+<button class="md:hidden text-on-surface-variant hover:bg-surface-container-high p-sm rounded-full transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="md:hidden flex items-center gap-sm">
+<span class="font-h2 text-h2 text-primary dark:text-primary-fixed-dim font-bold">ABBI</span>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="hidden md:flex items-center flex-1 max-w-md mx-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-xl pr-sm py-2 bg-surface-container-high border-none rounded focus:ring-2 focus:ring-secondary text-body-md text-on-surface" placeholder="Buscar parámetros..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<!-- Role Badge -->
+<div class="hidden md:flex items-center bg-surface-variant px-sm py-1 rounded text-[#233E5E] font-label-sm text-label-sm">
+                    Administrador
+                </div>
+<!-- Actions -->
+<button class="text-on-surface-variant hover:bg-surface-container-high p-sm rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-[#BE5535] rounded-full"></span>
+</button>
+<!-- Profile -->
+<button class="flex items-center gap-sm hover:opacity-80 transition-opacity">
+<img alt="Avatar de usuario administrador" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="Avatar fotográfico de un usuario administrador corporativo, hombre adulto con traje profesional gris y camisa clara, fondo azul oscuro difuminado, iluminación de estudio suave y confiable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDooMdenhNHp4xKl3cchcqdnva1GCmkCaw2fbVPHl1gfYpfwn3wAoWaJBy2cJqffvO6t2OQoL0nyUWn7kF5pKTLHEtRehEnk5GmYtkdSBNm5veGjaS0bQ4gf-baPY9KJ-sWlDmAREegvWXWpHbU2IR9Ui0q02hIdYyB8OCVYFEJEj6L8VWYqH_KTxb6eaR4tgiD5I-nK4ilxex3N16so2inJm-JRVFtRqUSnmGkuZ5noRK5kqLo_fie">
+</button>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-margin-mobile md:p-margin-desktop">
+<!-- Breadcrumbs & Header -->
+<div class="mb-lg">
+<nav aria-label="Breadcrumb" class="flex text-on-surface-variant font-body-md text-body-md mb-xs">
+<ol class="flex items-center space-x-1">
+<li>
+<a class="hover:text-primary" href="#">Configuración</a>
+</li>
+<li>
+<span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+</li>
+<li>
+<a class="hover:text-primary" href="#">Parámetros Operativos</a>
+</li>
+<li>
+<span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+</li>
+<li aria-current="page" class="text-on-surface font-medium">Crear Parámetro</li>
+</ol>
+</nav>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h2 class="font-h1-mobile md:font-h1 text-h1-mobile md:text-h1 text-primary">Crear Nuevo Parámetro</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Configure un nuevo indicador de cumplimiento para el sistema operativo.</p>
+</div>
+</div>
+</div>
+<!-- Form Container -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg max-w-3xl">
+<form action="#" class="space-y-xl" method="POST">
+<!-- Form Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Indicador -->
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs" for="indicator">Indicador <span class="text-error">*</span></label>
+<div class="relative">
+<select class="block w-full pl-sm pr-xl py-2 bg-surface-container-lowest border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 appearance-none font-body-md text-body-md text-on-surface h-[40px]" id="indicator" name="indicator" required="">
+<option disabled="" selected="" value="">Seleccione un indicador</option>
+<option value="ktno">KTNO (Capital de Trabajo Neto Operativo)</option>
+<option value="pn">PN (Patrimonio Neto)</option>
+<option value="ebitda">EBITDA</option>
+<option value="liquidez">Ratio de Liquidez</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Año -->
+<div class="col-span-1">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs" for="year">Año Operativo <span class="text-error">*</span></label>
+<input class="block w-full px-sm py-2 bg-surface-container-lowest border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface h-[40px]" id="year" max="2100" min="2000" name="year" required="" type="number" value="2024">
+</div>
+<!-- Valor -->
+<div class="col-span-1">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs" for="value">Valor Objetivo <span class="text-error">*</span></label>
+<div class="relative">
+<input class="block w-full pl-sm pr-xl py-2 bg-surface-container-lowest border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface h-[40px]" id="value" name="value" required="" step="0.01" type="number">
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant">percent</span>
+</div>
+</div>
+<!-- Regla de Cumplimiento -->
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs" for="rule">Regla de Cumplimiento <span class="text-error">*</span></label>
+<div class="relative">
+<select class="block w-full pl-sm pr-xl py-2 bg-surface-container-lowest border border-outline-variant rounded focus:border-secondary focus:ring-2 focus:ring-secondary/20 appearance-none font-body-md text-body-md text-on-surface h-[40px]" id="rule" name="rule" required="">
+<option disabled="" selected="" value="">Seleccione la regla de validación</option>
+<option value="mayor_igual">Mayor o igual al requerido (≥)</option>
+<option value="menor_igual">Menor o igual al requerido (≤)</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-outline-variant">
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row justify-end gap-sm">
+<button class="px-md py-2 bg-surface-container-lowest border border-outline-variant text-primary-container rounded font-button text-button hover:bg-surface-container-high transition-colors h-[40px] flex items-center justify-center" type="button">
+                            Cancelar
+                        </button>
+<button class="px-md py-2 bg-primary-container text-on-primary rounded font-button text-button hover:bg-primary transition-colors h-[40px] flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                            Guardar Parámetro
+                        </button>
+</div>
+</form>
+</div>
+</main>
+</div>
+</body></html>

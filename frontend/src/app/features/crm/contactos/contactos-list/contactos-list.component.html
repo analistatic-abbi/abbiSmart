@@ -1,0 +1,55 @@
+<section class="page">
+  <app-crm-tabs active="contactos" />
+
+  <header class="page__header">
+    <div>
+      <h1>Contactos</h1>
+      <p>Personas de contacto en empresas cliente.</p>
+    </div>
+    @if (puedeEscribir()) {
+      <a class="btn-primary" routerLink="/crm/contactos/nuevo">Nuevo contacto</a>
+    }
+  </header>
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando contactos...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Teléfono</th>
+            <th>Correo</th>
+            <th>Genérico</th>
+            @if (puedeEscribir()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (contacto of items(); track contacto.id) {
+            <tr>
+              <td>{{ contacto.nombre }}</td>
+              <td>{{ contacto.cargo ?? '—' }}</td>
+              <td>{{ contacto.telefono ?? '—' }}</td>
+              <td>{{ contacto.correo ?? '—' }}</td>
+              <td>{{ contacto.esGenerico ? 'Sí' : 'No' }}</td>
+              @if (puedeEscribir()) {
+                <td><a [routerLink]="['/crm/contactos', contacto.id, 'editar']">Editar</a></td>
+              }
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No hay contactos registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detalle de Proceso</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e3b65",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-variant": "#204873",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1a1c1f",
+                        "on-surface-variant": "#43474f",
+                        "surface": "#ffffff",
+                        "surface-variant": "#e2e2e6",
+                        "surface-container": "#f8f9fa",
+                        "outline": "#73777f",
+                        "outline-variant": "#c3c6d0",
+                        "progress-blue": "#2E8EC2",
+                        "progress-bg": "#E6F4FB"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "6px",
+                        "lg": "8px",
+                        "xl": "12px",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "xs": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "gutter": "24px"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    boxShadow: {
+                        "card": "0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F8F9FA; }
+        .p-button { border-radius: 6px; }
+        .p-input { border-radius: 6px; }
+        .p-card { border-radius: 6px; }
+    </style>
+</head>
+<body class="text-on-surface font-sans antialiased min-h-screen flex flex-col">
+<!-- Global Header -->
+<header class="bg-surface border-b border-outline-variant h-[64px] flex items-center px-6 justify-between sticky top-0 z-30 shadow-sm">
+<div class="flex items-center gap-4">
+<img alt="ABBI Logo" class="h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdczu-4vJu1zTnpxgT2YHYFtec-h1OPJMyqn5Y2--f-NL4trtIIUznGlpukAAxfpNGGtwGpWQamgoxjr1U3m1DXHMjsYFcoueSwsV1IQY3t5olFAqbn8PmJldmE4VU-LDBK3XpfPX1dRVdDG7eXTvly2poFWn6JqOk0L0J_7fRvXALlMtf8AQQabcKxndy9fwa-GDsn_eak1d8Dv95yqCHD4TBRJugOfaD4rqeF_fGw2SNx7uoDJl-jbY_REjcTEwPPQ"/>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+</header>
+<!-- Contextual Sub-header -->
+<div class="bg-surface border-b border-outline-variant pt-6 px-6 sticky top-[64px] z-20">
+<div class="max-w-[1440px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<!-- Title & Status -->
+<div class="flex items-center gap-4">
+<button aria-label="Volver" class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<div>
+<div class="flex items-center gap-3">
+<h1 class="text-2xl font-bold text-on-surface tracking-tight">PRC-2023-0891</h1>
+<span class="bg-progress-bg text-progress-blue text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 border border-progress-blue/20">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+                                En Progreso
+                            </span>
+</div>
+<p class="text-on-surface-variant mt-1">TechCorp S.A.</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<button class="p-button flex items-center gap-2 px-4 py-2 bg-surface border border-error text-error font-semibold text-sm hover:bg-error-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                        Eliminar
+                    </button>
+<button class="p-button flex items-center gap-2 px-4 py-2 bg-primary text-on-primary font-semibold text-sm hover:bg-primary-fixed-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                        Editar
+                    </button>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex gap-8 border-b border-outline-variant/30">
+<a class="text-primary font-semibold border-b-2 border-primary pb-3" href="#">Información General</a>
+<a class="text-on-surface-variant hover:text-primary font-medium transition-colors pb-3" href="#">Fechas</a>
+<a class="text-on-surface-variant hover:text-primary font-medium transition-colors pb-3" href="#">Tareas de Seguimiento</a>
+</nav>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex-1 max-w-[1440px] w-full mx-auto px-6 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Datos Base (33%) -->
+<aside class="lg:col-span-4 flex flex-col gap-6">
+<div class="p-card bg-surface p-6 shadow-card border border-outline-variant/50">
+<h2 class="text-lg font-semibold text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+<span class="material-symbols-outlined text-primary">info</span>
+                        Datos Base
+                    </h2>
+<dl class="flex flex-col gap-5">
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">País</dt>
+<dd class="text-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-outline">public</span>
+                                España
+                            </dd>
+</div>
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Ubicación</dt>
+<dd class="text-sm text-on-surface flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-[18px] text-outline">location_on</span>
+                                Madrid, Centro de Negocios Norte
+                            </dd>
+<div class="bg-surface-variant rounded-md w-full h-32 border border-outline-variant/50 bg-cover bg-center overflow-hidden" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCnEiiV0gTFNfEZPlMcf4ZzTYZaOacHfYQm7Ig9JDppOzMkvbC2fsbWSCLhqJlJMdZnW5Ixlx9-bFMSTeKJ42jgdwQ07SCDJWZh-KXDc52WMrAE3FT_h3jHIPJ7gd7QzEc_rFt6toI8oVDVJBSwSOKNt63M4arvB7fLyO--4_FUrWqdJsxyBUCUS-_KgvAp4ft1q6g78EmPjZEWUYMtoRehC6mhqt8DorNwQgtVKcRZcAAGZ2xltqF_')">
+</div>
+</div>
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Segmento / Tipos</dt>
+<dd class="text-sm text-on-surface">Tecnología / Hardware, Servicios Cloud</dd>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Plazo</dt>
+<dd class="text-sm text-on-surface">24 Meses</dd>
+</div>
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Fecha Creación</dt>
+<dd class="text-sm text-on-surface">12/10/2023</dd>
+</div>
+</div>
+<div>
+<dt class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Usuario Creador</dt>
+<dd class="text-sm text-on-surface flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                                    AL
+                                </div>
+                                Ana López (Administrador)
+                            </dd>
+</div>
+</dl>
+</div>
+</aside>
+<!-- Right Column: Form Sections (66%) -->
+<div class="lg:col-span-8 flex flex-col gap-8">
+<!-- References -->
+<section class="p-card bg-surface p-6 shadow-card border border-outline-variant/50">
+<h2 class="text-lg font-semibold text-on-surface mb-6 border-b border-outline-variant/30 pb-3">Referencias y Valores</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-on-surface-variant" for="portal">Portal de Origen</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">language</span>
+<input class="p-input w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-[40px]" id="portal" type="text" value="Licitaciones del Estado"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-on-surface-variant" for="link">Link Oficial</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">link</span>
+<input class="p-input w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-[40px]" id="link" type="url" value="https://contrataciondelestado.es/wps/poc?uri=deeplink"/>
+</div>
+</div>
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-sm font-semibold text-on-surface-variant" for="cuantia">Cuantía Estimada (€)</label>
+<div class="relative w-full md:w-1/2">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">euro</span>
+<input class="p-input w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant text-base font-medium text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-[40px]" id="cuantia" type="text" value="1,250,000.00"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Requirements -->
+<section class="p-card bg-surface p-6 shadow-card border border-outline-variant/50 flex flex-col h-full">
+<h2 class="text-lg font-semibold text-on-surface mb-6 border-b border-outline-variant/30 pb-3">Requisitos y Notas</h2>
+<div class="flex flex-col gap-6 flex-1">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-on-surface-variant" for="experiencia">Experiencia Requerida</label>
+<input class="p-input w-full px-3 py-2 bg-surface border border-outline-variant text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-[40px]" id="experiencia" type="text" value="Mínimo 5 años en provisión de infraestructura similar. Certificación ISO 27001 requerida."/>
+</div>
+<div class="flex flex-col gap-2 flex-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="observacion">Observación Interna</label>
+<textarea class="p-input w-full px-3 py-3 bg-surface border border-outline-variant text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none flex-1 min-h-[120px]" id="observacion">Oportunidad estratégica. Validar alianzas con partners locales antes de presentar la oferta técnica. El margen de beneficio estimado es superior al estándar.</textarea>
+</div>
+</div>
+<!-- Form Actions -->
+<div class="mt-8 pt-4 border-t border-outline-variant/30 flex justify-end gap-3">
+<button class="p-button px-5 py-2.5 bg-transparent border border-transparent text-primary font-semibold text-sm hover:bg-surface-variant transition-colors">
+                            Descartar Cambios
+                        </button>
+<button class="p-button px-5 py-2.5 bg-primary text-on-primary font-semibold text-sm hover:bg-primary-fixed-variant transition-colors shadow-sm">
+                            Guardar Cambios
+                        </button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>

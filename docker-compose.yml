@@ -1,0 +1,65 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MARIADB_DATABASE: ${DB_DATABASE:-licitaciones_abbi}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./modelo_bd.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seeds/ubicaciones_geograficas.sql:/docker-entrypoint-initdb.d/02-seed-ubicaciones.sql:ro
+      - ./database/seeds/admin_usuario.sql:/docker-entrypoint-initdb.d/03-seed-admin.sql:ro
+      - ./database/seeds/demo_usuarios.sql:/docker-entrypoint-initdb.d/04-seed-demo-users.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    profiles: [dev]
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  api:
+    build:
+      context: .
+      target: development
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  mariadb_data:

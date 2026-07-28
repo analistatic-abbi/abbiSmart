@@ -1,0 +1,143 @@
+<section class="wizard">
+  <header class="wizard__header">
+    <h1>Crear proceso</h1>
+    <div class="wizard__steps">
+      <span [class.active]="store.step() >= 1">1. Datos generales</span>
+      <span [class.active]="store.step() >= 2">2. Indicadores</span>
+      <span [class.active]="store.step() >= 3">3. Fechas</span>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="alert">{{ error() }}</div>
+  }
+
+  @if (store.step() === 1) {
+    <div class="panel grid">
+      <label>ID digitado <input [ngModel]="store.paso1().idDigitado" (ngModelChange)="updatePaso1('idDigitado', $event)" /></label>
+
+      <label>
+        <input type="checkbox" [ngModel]="store.paso1().usarOtro" (ngModelChange)="updatePaso1('usarOtro', $event)" />
+        Empresa "Otro"
+      </label>
+
+      @if (store.paso1().usarOtro) {
+        <label>Empresa otro <input [ngModel]="store.paso1().empresaOtro" (ngModelChange)="updatePaso1('empresaOtro', $event)" /></label>
+      } @else {
+        <label>
+          Cliente
+          <app-searchable-select
+            [options]="clienteOptions()"
+            [ngModel]="store.paso1().empresaClienteId"
+            (ngModelChange)="updatePaso1('empresaClienteId', $event)"
+            placeholder="Seleccione"
+            searchPlaceholder="Buscar cliente..."
+          />
+        </label>
+      }
+
+      <label>
+        Departamento
+        <select [ngModel]="store.paso1().departamento" (ngModelChange)="onDepartamentoChange($event)">
+          <option value="">Seleccione</option>
+          @for (d of departamentos(); track d) {
+            <option [value]="d">{{ d }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Municipio
+        <select [ngModel]="store.paso1().ubicacionId" (ngModelChange)="updatePaso1('ubicacionId', $event)">
+          <option [ngValue]="null">Seleccione</option>
+          @for (m of municipios(); track m.id) {
+            <option [ngValue]="m.id">{{ m.municipio }}</option>
+          }
+        </select>
+      </label>
+
+      <label>Cuantía <input type="number" [ngModel]="store.paso1().cuantia" (ngModelChange)="updatePaso1('cuantia', $event ? +$event : null)" /></label>
+
+      <label>
+        Segmento
+        <select [ngModel]="store.paso1().segmento" (ngModelChange)="updatePaso1('segmento', $event)">
+          @for (s of segmentos; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </label>
+
+      <label>
+        Tipo proceso
+        <select [ngModel]="store.paso1().tipoProceso" (ngModelChange)="updatePaso1('tipoProceso', $event)">
+          @for (t of tiposProceso; track t) { <option [value]="t">{{ t }}</option> }
+        </select>
+      </label>
+
+      <label>
+        Tipo instrumento
+        <select [ngModel]="store.paso1().tipoInstrumento" (ngModelChange)="updatePaso1('tipoInstrumento', $event)">
+          @for (t of tiposInstrumento; track t) { <option [value]="t">{{ t }}</option> }
+        </select>
+      </label>
+
+      <label>Plazo ejecución (meses) <input type="number" [ngModel]="store.paso1().plazoEjecucionMeses" (ngModelChange)="updatePaso1('plazoEjecucionMeses', +$event)" /></label>
+
+      <label>
+        <input type="checkbox" [ngModel]="store.paso1().experiencia" (ngModelChange)="updatePaso1('experiencia', $event)" />
+        Requiere experiencia
+      </label>
+
+      @if (store.paso1().experiencia) {
+        <label class="full">Observación <textarea [ngModel]="store.paso1().observacion" (ngModelChange)="updatePaso1('observacion', $event)"></textarea></label>
+      }
+    </div>
+  }
+
+  @if (store.step() === 2) {
+    <div class="panel">
+      <table class="indicadores">
+        <thead><tr><th>Indicador</th><th>Valor requerido</th></tr></thead>
+        <tbody>
+          @for (item of store.paso2(); track item.indicadorCodigo; let i = $index) {
+            <tr>
+              <td>{{ item.indicadorCodigo }}</td>
+              <td><input type="number" step="0.0001" [value]="item.valorRequerido ?? ''" (input)="updateIndicador(i, $any($event.target).value)" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (store.step() === 3) {
+    <div class="panel grid">
+      <label>Fecha apertura <input type="date" [ngModel]="store.paso3().fechaApertura" (ngModelChange)="updatePaso3('fechaApertura', $event)" /></label>
+      <label>Fecha cierre <input type="date" [ngModel]="store.paso3().fechaCierre" (ngModelChange)="updatePaso3('fechaCierre', $event)" /></label>
+    </div>
+  }
+
+  <footer class="wizard__footer">
+    @if (store.step() > 1) {
+      <button type="button" class="btn-secondary" (click)="store.prev()">Anterior</button>
+    }
+    @if (store.step() < 3) {
+      <button type="button" class="btn-primary" (click)="continuar()">Siguiente</button>
+    } @else {
+      <button type="button" class="btn-primary" [disabled]="loading()" (click)="crear()">
+        {{ loading() ? 'Creando...' : 'Crear proceso' }}
+      </button>
+    }
+  </footer>
+
+  @if (showConfirmVacios()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Indicadores vacíos</h3>
+        <p>Hay indicadores sin valor. ¿Desea continuar de todas formas?</p>
+        <div class="modal__actions">
+          <button type="button" class="btn-secondary" (click)="showConfirmVacios.set(false)">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="confirmarVacios()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

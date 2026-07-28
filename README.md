@@ -23,7 +23,94 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API backend **NestJS 11** del sistema Smart Licitaciones (ABBI): gestión de licitaciones, CRM, validación y proyecciones. Base de datos **MariaDB** con TypeORM.
+
+## Docker (recomendado)
+
+### Requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) o Docker Engine + Compose v2
+
+### Desarrollo
+
+```bash
+# 1. Copiar variables de entorno para Docker
+cp .env.docker.example .env
+
+# 2. Ajustar JWT_ACCESS_SECRET (mínimo 32 caracteres)
+
+# 3. Levantar frontend + API + MariaDB + Mailpit
+npm run docker:dev
+```
+
+| Servicio | URL |
+|----------|-----|
+| **Frontend (Angular)** | http://localhost:4200 |
+| API | http://localhost:3000/api/v1 |
+| Swagger | http://localhost:3000/api/docs |
+| Health | http://localhost:3000/api/v1/health |
+| Mailpit (correos) | http://localhost:8025 |
+
+El esquema (`modelo_bd.sql`), ubicaciones y usuarios demo se cargan automáticamente en el **primer arranque** del volumen MariaDB. Para datos de negocio demo (clientes, procesos, proyecciones), tras el primer `up`:
+
+```bash
+docker compose exec api npm run seed:demo-data
+```
+
+Para reiniciar la base de datos desde cero:
+
+```bash
+npm run docker:dev:down
+docker compose --profile dev down -v
+npm run docker:dev
+```
+
+### Producción
+
+```bash
+cp .env.docker.example .env
+# Ajustar secretos y COOKIE_SECURE=true si sirves por HTTPS
+
+npm run docker:prod
+```
+
+Detener:
+
+```bash
+npm run docker:prod:down
+```
+
+## Desarrollo local (sin Docker)
+
+```bash
+npm install
+cp .env.example .env
+# Aplicar modelo_bd.sql en MariaDB local
+npm run seed:ubicaciones
+npm run seed:demo
+npm run start:dev
+```
+
+### Usuarios y datos demo (desarrollo)
+
+Contraseña para todos: **Admin1234**
+
+| Correo | Rol | Notas |
+|--------|-----|-------|
+| `admin@abbi.com` | Administrador | Selecciona país al iniciar sesión |
+| `supervisor@abbi.com` | Supervisor del Sistema | Selecciona país al iniciar sesión |
+| `validador@abbi.com` | Validador | Bandeja de validación con 1 proceso pendiente |
+| `visitante@abbi.com` | Visitante | Solo lectura en módulos permitidos |
+| `operador.co@abbi.com` | Operador | País fijo: Colombia |
+| `operador.pe@abbi.com` | Operador | País fijo: Perú |
+
+Cargar o actualizar usuarios y datos demo:
+
+```bash
+npm run seed:demo
+```
+
+Solo usuarios: `npm run seed:demo-users` · Solo datos: `npm run seed:demo-data`
 
 ## Project setup
 

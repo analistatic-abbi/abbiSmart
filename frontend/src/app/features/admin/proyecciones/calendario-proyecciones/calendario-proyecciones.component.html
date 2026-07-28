@@ -1,0 +1,66 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Calendario de Proyecciones</h1>
+      <p>Vista global del pipeline de ventas.</p>
+    </div>
+    <div class="header-actions">
+      <app-proyecciones-vista-toggle vistaActual="calendario" [anio]="anio()" />
+      @if (puedeAsignarMercado()) {
+        <a class="btn-secondary" routerLink="/proyecciones/asignar-mercado">Asignar mercado</a>
+      }
+      @if (puedeEscribir()) {
+        <a class="btn-primary" routerLink="/proyecciones/nuevo">Nueva proyección</a>
+      }
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="year-selector">
+      <button type="button" class="year-selector__btn" (click)="anioAnterior()" aria-label="Año anterior">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <span class="year-selector__value">{{ anio() }}</span>
+      <button type="button" class="year-selector__btn" (click)="anioSiguiente()" aria-label="Año siguiente">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="loading">Cargando...</p>
+  } @else {
+    <div class="calendar-grid">
+      @for (mes of mesesAgrupados(); track mes.mesIndex) {
+        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
+          <div class="month-column__header">
+            <h3>{{ mes.nombre }}</h3>
+          </div>
+          <div class="month-column__body">
+            @if (mes.items.length === 0) {
+              <p class="month-column__empty">Sin proyecciones</p>
+            } @else {
+              @for (p of mes.items; track p.id) {
+                @let style = estadoStyle(p.estado);
+                <button
+                  type="button"
+                  class="proyeccion-card"
+                  [style.background]="style.bg"
+                  [style.borderColor]="style.border"
+                  (click)="navigateToDetail(p.id)"
+                >
+                  <div class="proyeccion-card__top">
+                    <span class="proyeccion-card__empresa">{{ empresaLabel(p) }}</span>
+                    <span class="material-symbols-outlined proyeccion-card__icon" [style.color]="style.text">open_in_new</span>
+                  </div>
+                  <div class="proyeccion-card__valor">{{ formatValor(p.valorVenta) }}</div>
+                  <div class="proyeccion-card__estado" [style.color]="style.text">{{ style.label }}</div>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

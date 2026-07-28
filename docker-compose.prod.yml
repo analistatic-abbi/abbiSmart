@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      target: production
+    environment:
+      NODE_ENV: production
+      SWAGGER_ENABLED: "false"
+      COOKIE_SECURE: "true"
+    volumes: !reset []
+    command: !reset []
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - "4200:80"
+    depends_on:
+      - api

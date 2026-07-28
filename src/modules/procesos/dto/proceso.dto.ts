@@ -300,12 +300,15 @@ export class ProcesoResponseDto {
 }
 
 export class CompletarTareaDto {
-  @ApiProperty()
+  @ApiPropertyOptional({
+    description: 'Nota escrita opcional. Obligatoria solo si no se adjunta archivo.',
+  })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  evidencia: string;
+  evidencia?: string;
 
   @ApiProperty({ description: 'Confirmación explícita de finalización (SEG-002)' })
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
   @IsBoolean()
   confirmar: boolean;
 }
@@ -316,9 +319,12 @@ export class TareaResponseDto {
   tareaCodigo: string;
   aplica: boolean;
   evidencia: string | null;
+  evidenciaArchivoNombre: string | null;
+  evidenciaUrl: string | null;
   completada: boolean;
   fechaCompletada: Date | null;
   usuarioCompletoId: number | null;
+  avancePorcentaje?: number;
 }
 
 export class AsignarValidadoresDto {

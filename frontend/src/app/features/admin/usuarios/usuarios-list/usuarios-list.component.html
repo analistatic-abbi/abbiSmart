@@ -1,0 +1,122 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Usuarios</h1>
+      <p>Gestión de usuarios del sistema.</p>
+    </div>
+    <a class="btn-primary" routerLink="/usuarios/nuevo">Nuevo usuario</a>
+  </header>
+
+  @if (feedback()) {
+    <p class="feedback">{{ feedback() }}</p>
+  }
+
+  <div class="filters">
+    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <select [ngModel]="rol()" (ngModelChange)="rol.set($event); onFilter()">
+      <option value="">Todos los roles</option>
+      @for (r of roles; track r) { <option [value]="r">{{ r }}</option> }
+    </select>
+    <select [ngModel]="paisId()" (ngModelChange)="paisId.set($event ? +$event : ''); onFilter()">
+      <option value="">Todos los países</option>
+      @for (p of paises(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+    </select>
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>País</th>
+            <th>Estado</th>
+            <th class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of items(); track u.id) {
+            <tr>
+              <td>{{ u.nombre }}</td>
+              <td>{{ u.correo }}</td>
+              <td>{{ u.rol }}</td>
+              <td>{{ paisNombre(u) }}</td>
+              <td>{{ u.estado }}</td>
+              <td class="actions">
+                <div class="actions-menu" [class.actions-menu--open]="menuAbierto(u.id)">
+                  <button
+                    type="button"
+                    class="actions-menu__trigger"
+                    [attr.aria-expanded]="menuAbierto(u.id)"
+                    aria-haspopup="menu"
+                    (click)="toggleMenu(u.id, $event)"
+                  >
+                    Acciones
+                    <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                  </button>
+
+                  @if (menuAbierto(u.id)) {
+                    <div class="actions-menu__panel" role="menu" (click)="$event.stopPropagation()">
+                      <a
+                        class="actions-menu__item"
+                        role="menuitem"
+                        [routerLink]="['/usuarios', u.id, 'editar']"
+                        (click)="menuAbiertoId.set(null)"
+                      >
+                        Editar
+                      </a>
+                      <button type="button" class="actions-menu__item" role="menuitem" (click)="solicitarConfirmacion('reset', u)">
+                        Restablecer contraseña
+                      </button>
+                      <button type="button" class="actions-menu__item" role="menuitem" (click)="solicitarConfirmacion('reenviar', u)">
+                        Reenviar activación
+                      </button>
+                      @if (u.estado === 'Bloqueada') {
+                        <button type="button" class="actions-menu__item" role="menuitem" (click)="solicitarConfirmacion('desbloquear', u)">
+                          Desbloquear cuenta
+                        </button>
+                      }
+                      <button type="button" class="actions-menu__item actions-menu__item--danger" role="menuitem" (click)="solicitarConfirmacion('desactivar', u)">
+                        Desactivar usuario
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No hay usuarios.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (confirmacion(); as pending) {
+    <div class="modal-backdrop" (click)="cancelarConfirmacion()">
+      <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <h3>{{ tituloConfirmacion() }}</h3>
+        <p>{{ mensajeConfirmacion() }}</p>
+        <p class="modal__user">{{ pending.usuario.nombre }} · {{ pending.usuario.correo }}</p>
+        <div class="modal__actions">
+          <button type="button" class="btn-secondary" [disabled]="actionLoading()" (click)="cancelarConfirmacion()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            [class]="pending.accion === 'desactivar' ? 'btn-danger' : 'btn-primary'"
+            [disabled]="actionLoading()"
+            (click)="confirmarAccion()"
+          >
+            {{ actionLoading() ? 'Procesando...' : etiquetaConfirmar() }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

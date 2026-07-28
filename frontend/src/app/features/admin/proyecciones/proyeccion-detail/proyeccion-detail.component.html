@@ -1,0 +1,207 @@
+@if (loading()) {
+
+  <p>Cargando...</p>
+
+} @else {
+
+  @if (proyeccion(); as p) {
+
+  <section class="page">
+
+    <a class="back" routerLink="/proyecciones">← Volver</a>
+
+    <header class="page__header">
+
+      <div>
+
+        <h1>Proyección · ID {{ p.id }}</h1>
+
+        <p>{{ p.empresa ?? 'Sin empresa' }} · <span [class]="badgeClass(p.estado)">{{ p.estado }}</span></p>
+
+      </div>
+
+      <div class="actions">
+
+        @if (puedeCerrar() && p.estado !== 'Publicado' && p.estado !== 'Cerrado') {
+
+          <button type="button" class="btn-secondary" (click)="cerrar()">Cerrar</button>
+
+        }
+
+      </div>
+
+    </header>
+
+
+
+    @if (error()) { <p class="error">{{ error() }}</p> }
+
+
+
+    <div class="panel cadena">
+
+      <h2>Cadena de proyección</h2>
+
+      <ol class="cadena__steps">
+
+        <li>
+
+          @if (p.procesoOrigenId) {
+
+            <a [routerLink]="['/procesos', p.procesoOrigenId]">
+
+              Proceso origen: {{ p.procesoOrigenCodigo ?? ('ID ' + p.procesoOrigenId) }}
+
+            </a>
+
+          } @else {
+
+            <span>Proyección manual (sin proceso origen)</span>
+
+          }
+
+        </li>
+
+        <li><strong>Esta proyección (ID {{ p.id }})</strong></li>
+
+        <li>
+
+          @if (p.procesoResultanteId) {
+
+            <a [routerLink]="['/procesos', p.procesoResultanteId]">
+
+              Proceso resultante: {{ p.procesoResultanteCodigo ?? ('ID ' + p.procesoResultanteId) }}
+
+            </a>
+
+          } @else {
+
+            <span>Sin proceso resultante vinculado</span>
+
+          }
+
+        </li>
+
+        @if (p.proyeccionSiguienteId) {
+
+          <li>
+
+            <a [routerLink]="['/proyecciones', p.proyeccionSiguienteId]">
+
+              Siguiente proyección (#{{ p.proyeccionSiguienteId }})
+
+            </a>
+
+          </li>
+
+        }
+
+      </ol>
+
+    </div>
+
+
+
+    <div class="panel form-grid">
+
+      <label>Año <input type="number" [disabled]="!puedeEscribir()" [ngModel]="anioProyectado()" (ngModelChange)="anioProyectado.set(+$event)" /></label>
+
+      <label>Fecha est. publicación <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaEstimadaPublicacion()" (ngModelChange)="fechaEstimadaPublicacion.set($event)" /></label>
+
+      <label>Valor venta <input type="number" step="0.01" [disabled]="!puedeEscribir()" [ngModel]="valorVenta()" (ngModelChange)="valorVenta.set(+$event)" /></label>
+
+      <label>Valor facturación <input type="number" step="0.01" [disabled]="!puedeEscribir()" [ngModel]="valorFacturacion()" (ngModelChange)="valorFacturacion.set(+$event)" /></label>
+
+      <label>Mercado <input type="text" [value]="p.mercado ?? 'Sin asignar'" disabled /></label>
+
+      <label>Días faltantes <input type="text" [value]="p.diasFaltantes ?? '—'" disabled /></label>
+
+    </div>
+
+
+
+    @if (puedeEscribir()) {
+
+      <div class="form-actions">
+
+        @if (puedeVincular()) {
+
+          <button type="button" class="btn-secondary" (click)="abrirVincular()">Vincular proceso resultante</button>
+
+        }
+
+        <button type="button" class="btn-primary" [disabled]="saving()" (click)="guardar()">Guardar</button>
+
+      </div>
+
+    }
+
+  </section>
+
+
+
+  @if (showVincularModal()) {
+
+    <div class="modal-backdrop" (click)="showVincularModal.set(false)">
+
+      <div class="modal" (click)="$event.stopPropagation()">
+
+        <h3>Vincular proceso resultante</h3>
+
+        <p>Busque el proceso licitatorio real que materializa esta proyección.</p>
+
+        <div class="modal__search">
+
+          <input type="search" placeholder="Código o ID de proceso..." [ngModel]="busquedaProceso()" (ngModelChange)="busquedaProceso.set($event)" (keyup.enter)="buscarProcesos()" />
+
+          <button type="button" class="btn-secondary" (click)="buscarProcesos()">Buscar</button>
+
+        </div>
+
+        @if (buscandoProcesos()) {
+
+          <p>Buscando...</p>
+
+        } @else {
+
+          <ul class="modal__results">
+
+            @for (proc of procesosBusqueda(); track proc.id) {
+
+              <li>
+
+                <button type="button" (click)="seleccionarProcesoResultante(proc)">
+
+                  {{ proc.codigo ?? ('#' + proc.id) }} — {{ proc.empresaMostrar || 'Sin empresa' }}
+
+                </button>
+
+              </li>
+
+            } @empty {
+
+              <li class="modal__empty">Sin resultados. Intente con otro término.</li>
+
+            }
+
+          </ul>
+
+        }
+
+        <div class="modal__footer">
+
+          <button type="button" class="btn-secondary" (click)="showVincularModal.set(false)">Cancelar</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+  }
+
+}
+
+

@@ -1,0 +1,7 @@
+@use '../../shared/crm-page';
+
+.filters .btn-secondary.active {
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
+  font-weight: 600;
+}

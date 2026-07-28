@@ -1,0 +1,44 @@
+<section class="page">
+  <a class="back" routerLink="/usuarios">← Volver</a>
+  <header class="page__header">
+    <div><h1>{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}</h1></div>
+  </header>
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+
+  <div class="panel form-grid">
+    <label>Nombre <input type="text" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" /></label>
+    @if (!isEdit()) {
+      <label>Correo <input type="email" [ngModel]="correo()" (ngModelChange)="correo.set($event)" /></label>
+    } @else {
+      <label>Correo <input type="email" [ngModel]="correo()" disabled /></label>
+    }
+    <label>Rol
+      <select [ngModel]="rol()" (ngModelChange)="rol.set($event)">
+        @for (r of roles; track r) { <option [value]="r">{{ r }}</option> }
+      </select>
+    </label>
+    <label>País
+      <select
+        [ngModel]="paisId()"
+        (ngModelChange)="onPaisChange($event)"
+        [compareWith]="comparePais"
+      >
+        <option [ngValue]="null">Seleccione...</option>
+        @for (p of paises(); track p.id) {
+          <option [ngValue]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
+    </label>
+    @if (paisSeleccionadoNombre(); as nombrePais) {
+      <p class="field-hint">País seleccionado: <strong>{{ nombrePais }}</strong></p>
+    }
+  </div>
+
+  <div class="form-actions">
+    <a class="btn-secondary" routerLink="/usuarios">Cancelar</a>
+    <button type="button" class="btn-primary" [disabled]="loading()" (click)="guardar()">
+      {{ isEdit() ? 'Guardar cambios' : 'Crear' }}
+    </button>
+  </div>
+</section>

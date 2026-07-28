@@ -68,3 +68,27 @@ export function tieneFechasOpcionales(fechas: FechasProcesoInput): boolean {
       fechas.fechaLimitacionMypymes,
   );
 }
+
+/** Normaliza fechas DATE devueltas por MariaDB (string o Date) a YYYY-MM-DD y año. */
+export function normalizarFechaDesdeBd(value: string | Date): {
+  fecha: string;
+  anio: number;
+} {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new Error('invalid date');
+    }
+
+    const fecha = value.toISOString().slice(0, 10);
+    return { fecha, anio: value.getUTCFullYear() };
+  }
+
+  const fecha = String(value).trim().slice(0, 10);
+  const anio = Number(fecha.slice(0, 4));
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || Number.isNaN(anio)) {
+    throw new Error('invalid date');
+  }
+
+  return { fecha, anio };
+}
