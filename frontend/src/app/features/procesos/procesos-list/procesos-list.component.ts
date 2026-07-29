@@ -22,6 +22,8 @@ export class ProcesosListComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly search = signal('');
   protected readonly total = signal(0);
+  protected readonly exportando = signal(false);
+  protected readonly exportError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -29,6 +31,16 @@ export class ProcesosListComponent implements OnInit {
 
   protected onFilter(): void {
     this.load();
+  }
+
+  protected exportar(): void {
+    this.exportando.set(true);
+    this.exportError.set(null);
+    this.procesos.exportar(this.search(), (message) => {
+      this.exportError.set(message);
+      this.exportando.set(false);
+    });
+    setTimeout(() => this.exportando.set(false), 1500);
   }
 
   private load(): void {

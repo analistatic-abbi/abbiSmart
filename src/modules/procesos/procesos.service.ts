@@ -18,10 +18,12 @@ import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { Rol } from '../../common/enums/rol.enum';
 import { TareaCodigo } from '../../common/enums/tarea-codigo.enum';
 import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
+import { buildSingleSheetBuffer } from '../../common/utils/spreadsheet-writer';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { PermisosService } from '../../common/services/permisos.service';
 import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
+import { AlertasControlService } from '../../common/services/alertas-control.service';
 import { resolveMonedaPorPaisNombre } from '../../common/utils/moneda.util';
 import {
   validateFechasEnRango,
@@ -30,15 +32,19 @@ import { Pais } from '../../database/entities/pais.entity';
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ProcesoTarea } from '../../database/entities/proceso-tarea.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
+import { ProcesoComentario } from '../../database/entities/proceso-comentario.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { ParametrosService } from '../parametros/parametros.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ProyeccionResponseDto } from '../proyecciones/dto/proyeccion.dto';
 import {
   CambiarEstadoProcesoDto,
   CompletarTareaDto,
+  CreateProcesoComentarioDto,
   CreateProcesoDto,
+  ProcesoComentarioResponseDto,
   ProcesoIndicadorInputDto,
   ProcesoIndicadorResponseDto,
   ProcesoResponseDto,
@@ -84,6 +90,8 @@ export class ProcesosService {
     private readonly indicadorRepository: Repository<ProcesoIndicador>,
     @InjectRepository(ProcesoTarea)
     private readonly tareaRepository: Repository<ProcesoTarea>,
+    @InjectRepository(ProcesoComentario)
+    private readonly comentarioRepository: Repository<ProcesoComentario>,
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
     private readonly clientesService: ClientesService,
@@ -94,6 +102,8 @@ export class ProcesosService {
     @Inject(forwardRef(() => ProyeccionesService))
     private readonly proyeccionesService: ProyeccionesService,
     private readonly eliminacionDependenciasService: EliminacionDependenciasService,
+    private readonly alertasControlService: AlertasControlService,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
 
   async findAll(
@@ -159,6 +169,40 @@ export class ProcesosService {
     };
   }
 
+  async exportarXlsx(
+    query: ProcesosQueryDto,
+    paisSesionId: number,
+    rol: Rol,
+  ): Promise<{ buffer: Buffer; filename: string; truncado: boolean }> {
+    const exportQuery: ProcesosQueryDto = {
+      ...query,
+      page: 1,
+      limit: 10_000,
+    };
+    const page = await this.findAll(exportQuery, paisSesionId, rol);
+    const fecha = new Date().toISOString().slice(0, 10);
+    const rows = page.data.map((proceso) => ({
+      'ID digitado': proceso.idDigitado,
+      Código: proceso.codigo,
+      Empresa: proceso.empresaMostrar ?? proceso.empresaOtro,
+      Estado: proceso.estado,
+      Segmento: proceso.segmento,
+      'Tipo proceso': proceso.tipoProceso,
+      Instrumento: proceso.tipoInstrumento,
+      Cuantía: proceso.cuantia,
+      Moneda: proceso.moneda,
+      'Fecha cierre': proceso.fechaCierre,
+      'Días restantes': proceso.diasRestantesCierre,
+      'Avance %': proceso.avancePorcentaje,
+    }));
+
+    return {
+      buffer: buildSingleSheetBuffer('Procesos', rows),
+      filename: `procesos-${fecha}.xlsx`,
+      truncado: page.total > exportQuery.limit!,
+    };
+  }
+
   async findById(id: number, paisSesionId: number): Promise<ProcesoResponseDto> {
     const proceso = await this.getProcesoActivoOrFail(id, paisSesionId, {
       indicadores: true,
@@ -188,6 +232,149 @@ export class ProcesosService {
       usuarioId: row.usuarioId,
       fechaHora: row.fechaHora,
     }));
+  }
+
+  async findComentarios(
+    procesoId: number,
+    paisSesionId: number,
+  ): Promise<ProcesoComentarioResponseDto[]> {
+    await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+
+    const rows = await this.comentarioRepository.find({
+      where: { procesoId },
+      relations: { usuario: true },
+      order: { fechaCreacion: 'ASC' },
+    });
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      procesoId: Number(row.procesoId),
+      usuarioId: Number(row.usuarioId),
+      usuarioNombre: row.usuario?.nombre ?? 'Usuario',
+      texto: row.texto,
+      fechaCreacion: row.fechaCreacion,
+    }));
+  }
+
+  async crearComentario(
+    procesoId: number,
+    dto: CreateProcesoComentarioDto,
+    usuarioId: number,
+    paisSesionId: number,
+  ): Promise<ProcesoComentarioResponseDto> {
+    await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+
+    const texto = dto.texto.trim();
+    if (!texto) {
+      throw new BusinessException(
+        ErrorCode.VALIDACION_COMENTARIO_REQUERIDO,
+        'El comentario no puede estar vacío',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const saved = await this.comentarioRepository.save(
+      this.comentarioRepository.create({
+        procesoId,
+        usuarioId,
+        texto,
+      }),
+    );
+
+    const withUsuario = await this.comentarioRepository.findOne({
+      where: { id: saved.id },
+      relations: { usuario: true },
+    });
+
+    return {
+      id: Number(saved.id),
+      procesoId: Number(saved.procesoId),
+      usuarioId: Number(saved.usuarioId),
+      usuarioNombre: withUsuario?.usuario?.nombre ?? 'Usuario',
+      texto: saved.texto,
+      fechaCreacion: saved.fechaCreacion,
+    };
+  }
+
+  async notificarCierresProximos(): Promise<{ notificacionesEnviadas: number }> {
+    const rows = await this.dataSource.query(
+      `SELECT p.id,
+              p.pais_id AS paisId,
+              p.codigo,
+              p.id_digitado AS idDigitado,
+              COALESCE(c.empresa, p.empresa_otro) AS empresaMostrar,
+              DATEDIFF(p.fecha_cierre, CURDATE()) AS diasRestantes
+       FROM procesos p
+       LEFT JOIN clientes c ON c.id = p.empresa_cliente_id
+       WHERE p.eliminado = FALSE
+         AND p.estado IN (?, ?)
+         AND DATEDIFF(p.fecha_cierre, CURDATE()) BETWEEN 0 AND 5`,
+      [EstadoProceso.POR_VALIDAR, EstadoProceso.EN_PROCESO],
+    );
+
+    let enviadas = 0;
+
+    for (const row of rows as Array<{
+      id: number;
+      paisId: number;
+      codigo: string | null;
+      idDigitado: string;
+      empresaMostrar: string | null;
+      diasRestantes: number;
+    }>) {
+      const procesoId = Number(row.id);
+      const dias = Number(row.diasRestantes);
+      const procesoLabel = row.codigo ?? row.idDigitado ?? `ID ${procesoId}`;
+      const empresa = row.empresaMostrar ?? 'Sin empresa';
+
+      const umbrales: Array<{ umbral: string; tipo: string; textoUmbral: string }> = [];
+      if (dias <= 5) {
+        umbrales.push({
+          umbral: 'cierre_5d',
+          tipo: 'proceso_cierre_proximo',
+          textoUmbral: '5 días o menos',
+        });
+      }
+      if (dias <= 2) {
+        umbrales.push({
+          umbral: 'cierre_2d',
+          tipo: 'proceso_cierre_urgente',
+          textoUmbral: '2 días o menos',
+        });
+      }
+
+      const destinatarios =
+        await this.proyeccionesService.resolverDestinatariosProyeccion(
+          Number(row.paisId),
+        );
+
+      for (const { umbral, tipo, textoUmbral } of umbrales) {
+        const yaEnviada = await this.alertasControlService.yaEnviadaProceso(
+          procesoId,
+          umbral,
+        );
+        if (yaEnviada) {
+          continue;
+        }
+
+        const mensaje = `El proceso ${procesoLabel} (${empresa}) cierra en ${dias} día(s) (${textoUmbral}). Requiere atención antes de validación.`;
+
+        for (const usuarioId of destinatarios) {
+          await this.notificacionesService.crear({
+            usuarioId,
+            tipo,
+            mensaje,
+            entidadTipo: 'proceso',
+            entidadId: procesoId,
+          });
+          enviadas += 1;
+        }
+
+        await this.alertasControlService.registrarProceso(procesoId, umbral);
+      }
+    }
+
+    return { notificacionesEnviadas: enviadas };
   }
 
   async create(

@@ -28,6 +28,7 @@ import {
   CompletarTareaDto,
   CreateProcesoDto,
   ProcesosQueryDto,
+  CreateProcesoComentarioDto,
   UpdateProcesoDto,
   UpdateProcesoFechasDto,
 } from './dto/proceso.dto';
@@ -55,6 +56,31 @@ export class ProcesosController {
       message: 'Procesos obtenidos correctamente',
       ...result,
     };
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Exportar listado de procesos a Excel (.xlsx)' })
+  async exportar(
+    @Query() query: ProcesosQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename, truncado } = await this.procesosService.exportarXlsx(
+      query,
+      user.paisSesionId!,
+      user.rol as Rol,
+    );
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    if (truncado) {
+      res.setHeader('X-Export-Truncated', 'true');
+    }
+
+    return res.send(buffer);
   }
 
   @Get(':id/dependencias')
@@ -88,6 +114,45 @@ export class ProcesosController {
     return {
       message: 'Historial de fechas obtenido correctamente',
       data,
+    };
+  }
+
+  @Get(':id/comentarios')
+  @ApiOperation({ summary: 'Listar comentarios internos del proceso' })
+  async findComentarios(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.procesosService.findComentarios(
+      id,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Comentarios del proceso obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Post(':id/comentarios')
+  @RequireWriteAccess()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Agregar comentario interno al proceso' })
+  async crearComentario(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateProcesoComentarioDto,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const comentario = await this.procesosService.crearComentario(
+      id,
+      dto,
+      actor.userId,
+      actor.paisSesionId!,
+    );
+
+    return {
+      message: 'Comentario registrado correctamente',
+      comentario,
     };
   }
 

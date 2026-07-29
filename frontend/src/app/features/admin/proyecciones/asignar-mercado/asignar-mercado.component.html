@@ -27,7 +27,7 @@
   }
 
   @if (loading()) {
-    <p>Cargando...</p>
+    <p>Cargando proyecciones...</p>
   } @else {
     <div class="table-wrap">
       <table>
@@ -46,19 +46,27 @@
               <td>
                 <select [ngModel]="row.mercado" (ngModelChange)="updateMercado(i, $event)">
                   <option value="">Sin asignar</option>
-                  @for (m of mercados; track m) { <option [value]="m">{{ m }}</option> }
+                  @for (m of mercados; track m) {
+                    <option [value]="m">{{ m }}</option>
+                  }
                 </select>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="3">No hay proyecciones para este año.</td></tr>
+            <tr>
+              <td colspan="3">No hay proyecciones para este año con los filtros actuales.</td>
+            </tr>
           }
         </tbody>
       </table>
     </div>
 
+    @if (rows().length) {
+      <p class="table-hint">{{ rows().length }} proyección(es) listadas para {{ anio() }}.</p>
+    }
+
     <div class="form-actions">
-      <button type="button" class="btn-primary" [disabled]="saving()" (click)="guardar()">
+      <button type="button" class="btn-primary" [disabled]="saving() || !rows().length" (click)="guardar()">
         {{ saving() ? 'Guardando...' : 'Guardar asignaciones' }}
       </button>
     </div>

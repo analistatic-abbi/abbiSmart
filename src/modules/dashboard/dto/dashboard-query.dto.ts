@@ -16,3 +16,16 @@ export class DashboardProyeccionesQueryDto {
   @IsInt()
   anio?: number;
 }
+
+export class DashboardExportQueryDto {
+  @ApiPropertyOptional({ description: 'Búsqueda por código, ID digitado o empresa' })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  anio?: number;
+}

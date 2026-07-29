@@ -299,6 +299,23 @@ export class ProcesoResponseDto {
   indicadores?: ProcesoIndicadorResponseDto[];
 }
 
+export class CreateProcesoComentarioDto {
+  @ApiProperty({ description: 'Texto del comentario interno', maxLength: 4000 })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(4000)
+  texto: string;
+}
+
+export class ProcesoComentarioResponseDto {
+  id: number;
+  procesoId: number;
+  usuarioId: number;
+  usuarioNombre: string;
+  texto: string;
+  fechaCreacion: Date;
+}
+
 export class CompletarTareaDto {
   @ApiPropertyOptional({
     description: 'Nota escrita opcional. Obligatoria solo si no se adjunta archivo.',

@@ -18,7 +18,14 @@
       (keyup.enter)="onFilter()"
     />
     <button type="button" class="btn-secondary" (click)="onFilter()">Buscar</button>
+    <button type="button" class="btn-secondary" [disabled]="exportando()" (click)="exportar()">
+      {{ exportando() ? 'Exportando...' : 'Exportar' }}
+    </button>
   </div>
+
+  @if (exportError()) {
+    <p class="error">{{ exportError() }}</p>
+  }
 
   @if (loading()) {
     <p>Cargando procesos...</p>

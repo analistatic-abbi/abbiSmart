@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,26 +7,32 @@ import {
   DashboardProyecciones,
   DashboardResumen,
   DashboardService,
+  ReporteGenerado,
 } from '../../core/services/dashboard.service';
+import { AuthService } from '../../core/services/auth.service';
 import { formatCurrencyAbbreviated } from '../../core/utils/currency.util';
+import { formatFechaHora } from '../../core/utils/date.util';
 import { claseBadgeEstadoProyeccion } from '../../core/utils/proyeccion-ui.util';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, DecimalPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboard = inject(DashboardService);
+  private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   protected readonly resumen = signal<DashboardResumen | null>(null);
   protected readonly procesos = signal<DashboardProceso[]>([]);
   protected readonly proyecciones = signal<DashboardProyecciones | null>(null);
+  protected readonly reportes = signal<ReporteGenerado[]>([]);
   protected readonly loading = signal(true);
+  protected readonly exportando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly sinPermiso = signal(false);
   protected readonly anioProyecciones = signal(new Date().getFullYear());
@@ -33,8 +40,11 @@ export class DashboardComponent implements OnInit {
   protected readonly buscandoProcesos = signal(false);
   protected readonly procesosBuscados = signal(false);
   protected readonly errorProcesos = signal<string | null>(null);
+  protected readonly exportError = signal<string | null>(null);
   protected readonly formatMoney = formatCurrencyAbbreviated;
+  protected readonly formatFecha = formatFechaHora;
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProyeccion(estado);
+  protected readonly puedeVerReportes = () => this.auth.puedeCerrarProyeccion();
 
   protected moneyTitle(value: string | number | null | undefined): string {
     const n = Number(value);
@@ -97,6 +107,27 @@ export class DashboardComponent implements OnInit {
     }));
   }
 
+  protected exportarDashboard(): void {
+    this.exportando.set(true);
+    this.exportError.set(null);
+    this.dashboard.exportar(
+      this.searchProcesos(),
+      this.anioProyecciones(),
+      (message) => {
+        this.exportError.set(message);
+        this.exportando.set(false);
+      },
+    );
+    setTimeout(() => this.exportando.set(false), 1500);
+  }
+
+  protected descargarReporte(reporte: ReporteGenerado): void {
+    this.exportError.set(null);
+    this.dashboard.descargarReporte(reporte.id, reporte.nombreArchivo, (message) => {
+      this.exportError.set(message);
+    });
+  }
+
   private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -117,5 +148,12 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       },
     });
+
+    if (this.puedeVerReportes()) {
+      this.dashboard.getReportes().subscribe({
+        next: (r) => this.reportes.set(r.data ?? []),
+        error: () => this.reportes.set([]),
+      });
+    }
   }
 }

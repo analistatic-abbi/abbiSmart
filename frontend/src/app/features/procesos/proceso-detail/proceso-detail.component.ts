@@ -16,8 +16,10 @@ import {
 } from '../../../core/models/proceso.model';
 import { labelTarea } from '../../../core/constants/tarea-labels';
 import { mensajeErrorApi } from '../../../core/utils/api-error.util';
+import { formatFechaHora } from '../../../core/utils/date.util';
+import { ProcesoComentario } from '../../../core/services/procesos.service';
 
-type Tab = 'info' | 'fechas' | 'tareas';
+type Tab = 'info' | 'fechas' | 'tareas' | 'comentarios';
 
 interface FechasForm {
   fechaApertura: string;
@@ -79,6 +81,13 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
   protected readonly historialFechas = signal<FechaHistorialItem[]>([]);
+
+  protected readonly comentarios = signal<ProcesoComentario[]>([]);
+  protected readonly comentarioTexto = signal('');
+  protected readonly comentarioLoading = signal(false);
+  protected readonly comentarioError = signal<string | null>(null);
+
+  protected readonly formatFechaHora = formatFechaHora;
 
   protected readonly showValidadoresModal = signal(false);
   protected readonly validadores = signal<ValidadorOption[]>([]);
@@ -187,6 +196,36 @@ export class ProcesoDetailComponent implements OnInit {
         error: () => this.historialFechas.set([]),
       });
     }
+
+    if (tab === 'comentarios') {
+      this.loadComentarios();
+    }
+  }
+
+  protected guardarComentario(): void {
+    const texto = this.comentarioTexto().trim();
+    if (!texto || !this.puedeEscribir()) return;
+
+    this.comentarioLoading.set(true);
+    this.comentarioError.set(null);
+    this.procesos.crearComentario(this.procesoId, texto).subscribe({
+      next: (r) => {
+        this.comentarios.update((items) => [...items, r.comentario]);
+        this.comentarioTexto.set('');
+        this.comentarioLoading.set(false);
+      },
+      error: (err) => {
+        this.comentarioError.set(mensajeErrorApi(err, 'No fue posible guardar el comentario.'));
+        this.comentarioLoading.set(false);
+      },
+    });
+  }
+
+  private loadComentarios(): void {
+    this.procesos.getComentarios(this.procesoId).subscribe({
+      next: (r) => this.comentarios.set(r.data),
+      error: () => this.comentarios.set([]),
+    });
   }
 
   protected estadosPermitidos(): EstadoProceso[] {
