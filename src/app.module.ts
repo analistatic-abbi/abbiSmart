@@ -24,6 +24,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProyeccionesModule } from './modules/proyecciones/proyecciones.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { CalendarioModule } from './modules/calendario/calendario.module';
 import { UsersModule } from './modules/users/users.module';
 import { SoporteModule } from './modules/soporte/soporte.module';
 
@@ -85,6 +86,7 @@ import { SoporteModule } from './modules/soporte/soporte.module';
     ProyeccionesModule,
     NotificacionesModule,
     JobsModule,
+    CalendarioModule,
     SoporteModule,
   ],
 })

@@ -9,8 +9,12 @@ import { ValidacionService, ValidadorOption } from '../../../core/services/valid
 import { Rol } from '../../../core/models/rol.enum';
 import {
   EstadoProceso,
+  MotivoPerdidaProceso,
+  MOTIVOS_PERDIDA,
   Proceso,
   ProcesoTarea,
+  requiereMotivoBackfill,
+  requiereMotivoPerdida,
   TipoProceso,
   TRANSICIONES_ESTADO,
 } from '../../../core/models/proceso.model';
@@ -74,6 +78,10 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected readonly showEstadoModal = signal(false);
   protected readonly nuevoEstado = signal<EstadoProceso | null>(null);
+  protected readonly motivoPerdida = signal<MotivoPerdidaProceso | null>(null);
+  protected readonly motivoPerdidaOtro = signal('');
+  protected readonly showMotivoBackfillModal = signal(false);
+  protected readonly motivosPerdida = MOTIVOS_PERDIDA;
   protected readonly evidencia = signal('');
   protected readonly archivoEvidencia = signal<File | null>(null);
   protected readonly tareaSeleccionada = signal<ProcesoTarea | null>(null);
@@ -112,6 +120,30 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly puedeSolicitarEliminacion = computed(() => {
     const rol = this.rol();
     return rol === Rol.Operador || rol === Rol.SupervisorSistema;
+  });
+
+  protected readonly necesitaMotivoBackfill = computed(() => {
+    const p = this.proceso();
+    return p ? requiereMotivoBackfill(p) : false;
+  });
+
+  protected readonly estadoModalRequiereMotivo = computed(() => {
+    const p = this.proceso();
+    const estado = this.nuevoEstado();
+    if (!p || !estado) return false;
+    return requiereMotivoPerdida(p.estado, estado);
+  });
+
+  protected readonly puedeConfirmarEstado = computed(() => {
+    const estado = this.nuevoEstado();
+    if (!estado) return false;
+    if (!this.estadoModalRequiereMotivo()) return true;
+    const motivo = this.motivoPerdida();
+    if (!motivo) return false;
+    if (motivo === MotivoPerdidaProceso.Otro) {
+      return this.motivoPerdidaOtro().trim().length > 0;
+    }
+    return true;
   });
 
   protected readonly tareasAplicables = computed(() =>
@@ -249,15 +281,61 @@ export class ProcesoDetailComponent implements OnInit {
     const permitidos = this.estadosPermitidos();
     if (permitidos.length === 0) return;
     this.nuevoEstado.set(permitidos[0]);
+    this.motivoPerdida.set(null);
+    this.motivoPerdidaOtro.set('');
     this.showEstadoModal.set(true);
+  }
+
+  protected abrirMotivoBackfill(): void {
+    this.motivoPerdida.set(null);
+    this.motivoPerdidaOtro.set('');
+    this.showMotivoBackfillModal.set(true);
+  }
+
+  protected confirmarMotivoBackfill(): void {
+    const motivo = this.motivoPerdida();
+    if (!motivo) return;
+    if (motivo === MotivoPerdidaProceso.Otro && !this.motivoPerdidaOtro().trim()) return;
+
+    this.actionLoading.set(true);
+    this.procesos
+      .registrarMotivoPerdida(
+        this.procesoId,
+        motivo,
+        motivo === MotivoPerdidaProceso.Otro ? this.motivoPerdidaOtro().trim() : undefined,
+      )
+      .subscribe({
+        next: (r) => {
+          this.proceso.set(r.proceso);
+          this.showMotivoBackfillModal.set(false);
+          this.actionLoading.set(false);
+          this.error.set(null);
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible registrar el motivo.'));
+          this.actionLoading.set(false);
+        },
+      });
   }
 
   protected confirmarCambioEstado(): void {
     const estado = this.nuevoEstado();
-    if (!estado) return;
+    if (!estado || !this.puedeConfirmarEstado()) return;
+
+    const p = this.proceso();
+    const motivo = this.estadoModalRequiereMotivo() ? this.motivoPerdida() : null;
+    const motivoOtro =
+      motivo === MotivoPerdidaProceso.Otro ? this.motivoPerdidaOtro().trim() : undefined;
 
     this.actionLoading.set(true);
-    this.procesos.cambiarEstado(this.procesoId, estado).subscribe({
+    this.procesos
+      .cambiarEstado(
+        this.procesoId,
+        estado,
+        motivo ?? undefined,
+        motivoOtro,
+      )
+      .subscribe({
       next: (r) => {
         this.proceso.set(r.proceso);
         this.showEstadoModal.set(false);

@@ -29,6 +29,7 @@ import {
   CreateProcesoDto,
   ProcesosQueryDto,
   CreateProcesoComentarioDto,
+  RegistrarMotivoPerdidaDto,
   UpdateProcesoDto,
   UpdateProcesoFechasDto,
 } from './dto/proceso.dto';
@@ -254,6 +255,28 @@ export class ProcesosController {
       message: 'Estado del proceso actualizado correctamente',
       proceso: result.proceso,
       proyeccionGenerada: result.proyeccionGenerada,
+    };
+  }
+
+  @Patch(':id/motivo-perdida')
+  @RequireWriteAccess()
+  @ApiOperation({ summary: 'Registrar motivo de descarte o no adjudicación (backfill)' })
+  async registrarMotivoPerdida(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RegistrarMotivoPerdidaDto,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const proceso = await this.procesosService.registrarMotivoPerdida(
+      id,
+      dto,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol as Rol,
+    );
+
+    return {
+      message: 'Motivo registrado correctamente',
+      proceso,
     };
   }
 

@@ -5,11 +5,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { SegmentoCliente } from '../../../../core/models/crm.model';
+import {
+  DuplicadoAlertaComponent,
+  DuplicadoSugerencia,
+} from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
 
 @Component({
   selector: 'app-cliente-form',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DuplicadoAlertaComponent],
   templateUrl: './cliente-form.component.html',
   styleUrl: './cliente-form.component.scss',
 })
@@ -34,8 +38,53 @@ export class ClienteFormComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly isEdit = signal(false);
+  protected readonly duplicados = signal<DuplicadoSugerencia[]>([]);
+  protected readonly mostrarDuplicados = signal(true);
 
   private clienteId = 0;
+  private similaresTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected onEmpresaChange(value: string): void {
+    this.empresa.set(value);
+    this.buscarDuplicados(value);
+  }
+
+  protected onEmpresaBlur(): void {
+    this.buscarDuplicados(this.empresa(), true);
+  }
+
+  private buscarDuplicados(value: string, immediate = false): void {
+    if (this.similaresTimer) {
+      clearTimeout(this.similaresTimer);
+      this.similaresTimer = null;
+    }
+
+    const term = value.trim();
+    if (term.length < 3) {
+      this.duplicados.set([]);
+      return;
+    }
+
+    const run = () => {
+      this.clientes.buscarSimilares(term).subscribe({
+        next: (r) => {
+          const filtered = r.data.filter((item) => item.id !== this.clienteId);
+          this.duplicados.set(filtered);
+          if (filtered.length > 0) {
+            this.mostrarDuplicados.set(true);
+          }
+        },
+        error: () => this.duplicados.set([]),
+      });
+    };
+
+    if (immediate) {
+      run();
+      return;
+    }
+
+    this.similaresTimer = setTimeout(run, 400);
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -77,6 +126,8 @@ export class ClienteFormComponent implements OnInit {
       this.error.set('Complete empresa y ubicación.');
       return;
     }
+
+    this.buscarDuplicados(this.empresa(), true);
 
     const payload = {
       empresa: this.empresa().trim(),

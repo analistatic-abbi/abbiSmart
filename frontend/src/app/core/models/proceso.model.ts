@@ -50,6 +50,40 @@ export enum TipoInstrumento {
   Licitacion = 'Licitación',
 }
 
+export enum MotivoPerdidaProceso {
+  PrecioNoCompetitivo = 'Precio no competitivo',
+  IncumplimientoIndicador = 'Incumplimiento de indicador financiero',
+  EntidadCancelo = 'La entidad canceló el proceso',
+  NoPresentoPropuesta = 'No se alcanzó a presentar propuesta',
+  Otro = 'Otro',
+}
+
+export const MOTIVOS_PERDIDA: MotivoPerdidaProceso[] = [
+  MotivoPerdidaProceso.PrecioNoCompetitivo,
+  MotivoPerdidaProceso.IncumplimientoIndicador,
+  MotivoPerdidaProceso.EntidadCancelo,
+  MotivoPerdidaProceso.NoPresentoPropuesta,
+  MotivoPerdidaProceso.Otro,
+];
+
+export function requiereMotivoPerdida(
+  estadoAnterior: EstadoProceso,
+  estadoNuevo: EstadoProceso,
+): boolean {
+  if (estadoNuevo === EstadoProceso.Descartado) return true;
+  if (estadoNuevo === EstadoProceso.Cerrado && estadoAnterior !== EstadoProceso.Adjudicado) {
+    return true;
+  }
+  return false;
+}
+
+export function requiereMotivoBackfill(proceso: Proceso): boolean {
+  if (proceso.motivoPerdida) return false;
+  if (proceso.estado === EstadoProceso.Descartado) return true;
+  if (proceso.estado === EstadoProceso.Cerrado && !proceso.fueAdjudicado) return true;
+  return false;
+}
+
 export const TRANSICIONES_ESTADO: Record<EstadoProceso, EstadoProceso[]> = {
   [EstadoProceso.PorValidar]: [EstadoProceso.EnProceso, EstadoProceso.Descartado],
   [EstadoProceso.EnProceso]: [EstadoProceso.Descartado],
@@ -90,6 +124,12 @@ export interface Proceso {
   plazoEjecucionMeses: number;
   experiencia: boolean;
   observacion: string | null;
+  motivoPerdida?: MotivoPerdidaProceso | null;
+  motivoPerdidaOtro?: string | null;
+  motivoPerdidaRegistradoEn?: string | null;
+  motivoPerdidaUsuarioId?: number | null;
+  motivoPerdidaUsuarioNombre?: string | null;
+  fueAdjudicado?: boolean;
   estado: EstadoProceso;
   fechaApertura: string | null;
   fechaCierre: string | null;

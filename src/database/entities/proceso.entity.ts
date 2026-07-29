@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
+import { MotivoPerdidaProceso } from '../../common/enums/motivo-perdida-proceso.enum';
 import { Moneda } from '../../common/enums/moneda.enum';
 import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
 import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
@@ -71,6 +72,34 @@ export class Proceso {
 
   @Column({ type: 'text', nullable: true })
   observacion: string | null;
+
+  @Column({ name: 'motivo_perdida', type: 'varchar', length: 80, nullable: true })
+  motivoPerdida: MotivoPerdidaProceso | null;
+
+  @Column({ name: 'motivo_perdida_otro', type: 'text', nullable: true })
+  motivoPerdidaOtro: string | null;
+
+  @Column({
+    name: 'motivo_perdida_registrado_en',
+    type: 'datetime',
+    nullable: true,
+  })
+  motivoPerdidaRegistradoEn: Date | null;
+
+  @Column({
+    name: 'motivo_perdida_usuario_id',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+  })
+  motivoPerdidaUsuarioId: number | null;
+
+  @Column({ name: 'fue_adjudicado', type: 'boolean', default: false })
+  fueAdjudicado: boolean;
+
+  @ManyToOne(() => Usuario, { nullable: true })
+  @JoinColumn({ name: 'motivo_perdida_usuario_id' })
+  motivoPerdidaUsuario: Usuario | null;
 
   @Column({ type: 'enum', enum: EstadoProceso, default: EstadoProceso.POR_VALIDAR })
   estado: EstadoProceso;

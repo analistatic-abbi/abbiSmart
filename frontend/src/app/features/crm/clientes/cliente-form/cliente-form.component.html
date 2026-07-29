@@ -13,7 +13,24 @@
   }
 
   <div class="panel form-grid">
-    <label class="full">Empresa <input type="text" [ngModel]="empresa()" (ngModelChange)="empresa.set($event)" /></label>
+    <label class="full">
+      Empresa
+      <input
+        type="text"
+        [ngModel]="empresa()"
+        (ngModelChange)="onEmpresaChange($event)"
+        (blur)="onEmpresaBlur()"
+      />
+    </label>
+
+    @if (mostrarDuplicados()) {
+      <app-duplicado-alerta
+        class="full"
+        tipo="cliente"
+        [sugerencias]="duplicados()"
+        (dismissed)="mostrarDuplicados.set(false)"
+      />
+    }
 
     <label>Departamento
       <select [ngModel]="departamento()" (ngModelChange)="onDepartamentoChange($event)">

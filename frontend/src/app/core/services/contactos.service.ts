@@ -48,6 +48,30 @@ export class ContactosService {
     return this.http.patch<{ contacto: Contacto }>(`${this.base}/contactos/${id}`, payload);
   }
 
+  buscarSimilares(
+    q: string,
+    clienteId?: number,
+    limit = 5,
+  ): Observable<{
+    data: Array<{
+      id: number;
+      nombre: string;
+      similitud: number;
+      clienteNombre?: string | null;
+    }>;
+  }> {
+    const params: Record<string, string | number> = { q, limit };
+    if (clienteId) params['clienteId'] = clienteId;
+    return this.http.get<{
+      data: Array<{
+        id: number;
+        nombre: string;
+        similitud: number;
+        clienteNombre?: string | null;
+      }>;
+    }>(`${this.base}/contactos/similares`, { params });
+  }
+
   eliminar(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/contactos/${id}`);
   }

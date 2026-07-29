@@ -8,11 +8,12 @@ import { SolicitudesEliminacionService } from '../../../../core/services/solicit
 import { Cliente, Contacto } from '../../../../core/models/crm.model';
 import { Rol } from '../../../../core/models/rol.enum';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
+import { ClienteHistorialComponent } from '../cliente-historial/cliente-historial.component';
 
 @Component({
   selector: 'app-cliente-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, SearchableSelectComponent],
+  imports: [FormsModule, RouterLink, SearchableSelectComponent, ClienteHistorialComponent],
   templateUrl: './cliente-detail.component.html',
   styleUrl: './cliente-detail.component.scss',
 })

@@ -1,6 +1,6 @@
 .wizard__header h1 {
   margin: 0 0 12px;
-  color: var(--color-primary);
+  color: var(--color-emphasis);
 }
 
 .wizard__steps {
@@ -11,7 +11,7 @@
   color: var(--color-on-surface-variant);
 
   .active {
-    color: var(--color-primary);
+    color: var(--color-link);
     font-weight: 600;
   }
 }
@@ -21,46 +21,6 @@
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-prime);
   padding: 20px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .full {
-    grid-column: 1 / -1;
-  }
-
-  input,
-  select,
-  textarea,
-  app-searchable-select {
-    height: 40px;
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--radius-prime);
-    padding: 0 12px;
-    font: inherit;
-  }
-
-  app-searchable-select {
-    height: auto;
-    padding: 0;
-    border: none;
-  }
-
-  textarea {
-    height: 80px;
-    padding: 8px 12px;
-  }
 }
 
 .indicadores {
@@ -73,26 +33,18 @@
     border-bottom: 1px solid var(--color-outline-variant);
     text-align: left;
   }
-
-  input {
-    width: 100%;
-    height: 36px;
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--radius-prime);
-    padding: 0 8px;
-  }
 }
 
 .wizard__footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .btn-primary,
 .btn-secondary {
-  height: 40px;
+  height: 44px;
   padding: 0 16px;
   border-radius: var(--radius-prime);
   font-weight: 600;
@@ -135,6 +87,7 @@
 
   h3 {
     margin: 0 0 8px;
+    color: var(--color-emphasis);
   }
 
   p {

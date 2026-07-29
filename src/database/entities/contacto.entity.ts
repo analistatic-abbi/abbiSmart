@@ -20,6 +20,9 @@ export class Contacto {
   @Column({ type: 'varchar', length: 255 })
   nombre: string;
 
+  @Column({ name: 'nombre_normalizado', type: 'varchar', length: 255, default: '' })
+  nombreNormalizado: string;
+
   @Column({ type: 'varchar', length: 150, nullable: true })
   cargo: string | null;
 

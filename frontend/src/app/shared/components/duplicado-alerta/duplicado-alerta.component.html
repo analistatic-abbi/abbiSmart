@@ -1,0 +1,23 @@
+@if (sugerencias().length > 0) {
+  <div class="duplicado-alerta" role="status">
+    <div class="duplicado-alerta__header">
+      <strong>Posibles duplicados</strong>
+      <button type="button" class="duplicado-alerta__dismiss" (click)="dismissed.emit()">
+        Ocultar
+      </button>
+    </div>
+    <ul>
+      @for (s of sugerencias(); track s.id) {
+        <li>
+          Ya existe un {{ labelTipo() }} parecido:
+          <a [routerLink]="ruta(s.id)">{{ s.nombre }}</a>
+          @if (s.clienteNombre) {
+            <span class="muted">({{ s.clienteNombre }})</span>
+          }
+          <span class="muted">— {{ (s.similitud * 100) | number: '1.0-0' }}% similar</span>
+        </li>
+      }
+    </ul>
+    <p class="muted">Puede continuar si confirma que es una entidad distinta.</p>
+  </div>
+}

@@ -1,0 +1,130 @@
+@use '../../shared/admin-page';
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.loading,
+.empty {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+
+  &--warning {
+    color: #6b4a12;
+  }
+}
+
+.report-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 16px;
+  align-items: start;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-table-wrap {
+  min-width: 0;
+}
+
+.report-table {
+  th,
+  td {
+    vertical-align: top;
+  }
+
+  &__separator td {
+    padding-top: 18px;
+    padding-bottom: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+    background: var(--color-surface-container-low);
+    border-bottom: 1px solid var(--color-outline-variant);
+  }
+}
+
+.metric-label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-emphasis);
+}
+
+.metric-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-on-surface-variant);
+}
+
+.chart-panel {
+  h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: var(--color-emphasis);
+  }
+
+  &__hint {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--color-on-surface-variant);
+  }
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 52px;
+  gap: 10px;
+  align-items: center;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+  }
+
+  &__track {
+    height: 18px;
+    border-radius: var(--radius-prime);
+    background: var(--color-surface-container-low);
+    overflow: hidden;
+  }
+
+  &__bar {
+    height: 100%;
+    min-width: 0;
+    border-radius: var(--radius-prime);
+    transition: width 0.2s ease;
+
+    &--general {
+      background: var(--color-primary);
+    }
+
+    &--objetivo {
+      background: var(--color-accent);
+    }
+  }
+
+  &__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+    text-align: right;
+  }
+}

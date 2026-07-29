@@ -26,6 +26,7 @@ import {
   VincularProcesoResultanteDto,
 } from './dto/proyeccion.dto';
 import { ProyeccionesService } from './proyecciones.service';
+import { EfectividadMercadoQueryDto } from './dto/efectividad-mercado.dto';
 
 @ApiTags('Proyecciones de mercado')
 @ApiBearerAuth()
@@ -68,6 +69,25 @@ export class ProyeccionesController {
     return {
       message: 'Mercado asignado correctamente',
       ...result,
+    };
+  }
+
+  @Get('efectividad-mercado')
+  @ApiOperation({
+    summary: 'Efectividad de la clasificación General/Objetivo por año proyectado',
+  })
+  async getEfectividadMercado(
+    @Query() query: EfectividadMercadoQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.proyeccionesService.getEfectividadMercado(
+      query.anio,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Efectividad de mercado obtenida correctamente',
+      data,
     };
   }
 

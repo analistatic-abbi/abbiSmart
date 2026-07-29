@@ -18,6 +18,7 @@ import {
 } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { EstadoProceso } from '../../../common/enums/estado-proceso.enum';
+import { MotivoPerdidaProceso } from '../../../common/enums/motivo-perdida-proceso.enum';
 import { IndicadorCodigo } from '../../../common/enums/indicador-codigo.enum';
 import { SegmentoProceso } from '../../../common/enums/segmento-proceso.enum';
 import { TipoInstrumento } from '../../../common/enums/tipo-instrumento.enum';
@@ -247,6 +248,31 @@ export class CambiarEstadoProcesoDto {
   @ApiProperty({ enum: EstadoProceso })
   @IsEnum(EstadoProceso)
   estado: EstadoProceso;
+
+  @ApiPropertyOptional({ enum: MotivoPerdidaProceso })
+  @IsOptional()
+  @IsEnum(MotivoPerdidaProceso)
+  motivoPerdida?: MotivoPerdidaProceso;
+
+  @ApiPropertyOptional({ description: 'Obligatorio si motivoPerdida es Otro' })
+  @ValidateIf((dto: CambiarEstadoProcesoDto) => dto.motivoPerdida === MotivoPerdidaProceso.OTRO)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2000)
+  motivoPerdidaOtro?: string;
+}
+
+export class RegistrarMotivoPerdidaDto {
+  @ApiProperty({ enum: MotivoPerdidaProceso })
+  @IsEnum(MotivoPerdidaProceso)
+  motivoPerdida: MotivoPerdidaProceso;
+
+  @ApiPropertyOptional({ description: 'Obligatorio si motivoPerdida es Otro' })
+  @ValidateIf((dto: RegistrarMotivoPerdidaDto) => dto.motivoPerdida === MotivoPerdidaProceso.OTRO)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2000)
+  motivoPerdidaOtro?: string;
 }
 
 export class ProcesoIndicadorResponseDto {
@@ -275,6 +301,12 @@ export class ProcesoResponseDto {
   plazoEjecucionMeses: number;
   experiencia: boolean;
   observacion: string | null;
+  motivoPerdida: MotivoPerdidaProceso | null;
+  motivoPerdidaOtro: string | null;
+  motivoPerdidaRegistradoEn: Date | null;
+  motivoPerdidaUsuarioId: number | null;
+  motivoPerdidaUsuarioNombre?: string | null;
+  fueAdjudicado: boolean;
   estado: EstadoProceso;
   usuarioCreadorId: number;
   fechaCreacion: Date;

@@ -12,14 +12,24 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { PermisosService } from '../../common/services/permisos.service';
+import {
+  normalizeEntityName,
+  rankBySimilarity,
+} from '../../common/utils/text-similarity.util';
 import { Cliente } from '../../database/entities/cliente.entity';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
+import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClienteResponseDto } from './dto/cliente-response.dto';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { SimilarEntityDto } from '../../common/dto/similares-query.dto';
+import {
+  ClienteHistorialItemDto,
+  ClienteHistorialQueryDto,
+} from './dto/cliente-historial.dto';
 
 export interface ClientesPage {
   data: ClienteResponseDto[];
@@ -37,6 +47,8 @@ export class ClientesService {
     private readonly contactoRepository: Repository<Contacto>,
     @InjectRepository(Proceso)
     private readonly procesoRepository: Repository<Proceso>,
+    @InjectRepository(Relacionamiento)
+    private readonly relacionamientoRepository: Repository<Relacionamiento>,
     @InjectRepository(UbicacionGeografica)
     private readonly ubicacionRepository: Repository<UbicacionGeografica>,
     private readonly dataSource: DataSource,
@@ -93,6 +105,88 @@ export class ClientesService {
     return this.toResponse(cliente);
   }
 
+  async buscarSimilares(
+    query: string,
+    paisSesionId: number,
+    limit = 5,
+  ): Promise<SimilarEntityDto[]> {
+    const normalized = normalizeEntityName(query);
+    if (normalized.length < 3) {
+      return [];
+    }
+
+    const prefix = normalized.slice(0, Math.min(4, normalized.length));
+    const candidatos = await this.clienteRepository
+      .createQueryBuilder('c')
+      .where('c.pais_id = :paisSesionId', { paisSesionId })
+      .andWhere('c.eliminado = false')
+      .andWhere('c.empresa_normalizada LIKE :prefix', { prefix: `${prefix}%` })
+      .take(100)
+      .getMany();
+
+    return rankBySimilarity(query, candidatos, (c) => c.empresa, 0.85, limit).map(
+      ({ item, similitud }) => ({
+        id: Number(item.id),
+        nombre: item.empresa,
+        similitud: Math.round(similitud * 100) / 100,
+      }),
+    );
+  }
+
+  async getHistorial(
+    clienteId: number,
+    query: ClienteHistorialQueryDto,
+    paisSesionId: number,
+  ): Promise<{ data: ClienteHistorialItemDto[]; total: number; page: number; limit: number }> {
+    await this.getClienteActivoOrFail(clienteId, paisSesionId);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+
+    const procesos = await this.procesoRepository.find({
+      where: { empresaClienteId: clienteId, eliminado: false },
+      order: { fechaCreacion: 'DESC' },
+    });
+
+    const relacionamientos = await this.relacionamientoRepository
+      .createQueryBuilder('r')
+      .innerJoinAndSelect('r.contacto', 'co')
+      .where('co.cliente_id = :clienteId', { clienteId })
+      .andWhere('r.eliminado = false')
+      .orderBy('r.fecha_mensaje', 'DESC')
+      .getMany();
+
+    const items: ClienteHistorialItemDto[] = [
+      ...procesos.map((proceso) => ({
+        tipo: 'proceso' as const,
+        entidadId: Number(proceso.id),
+        fecha: proceso.fechaCreacion.toISOString().slice(0, 10),
+        titulo: proceso.codigo ?? proceso.idDigitado,
+        subtitulo: 'Proceso de licitación',
+        estado: proceso.estado,
+      })),
+      ...relacionamientos.map((rel) => ({
+        tipo: 'relacionamiento' as const,
+        entidadId: Number(rel.id),
+        fecha: rel.fechaMensaje,
+        titulo: `${rel.canal} — ${rel.mensaje.slice(0, 80)}${rel.mensaje.length > 80 ? '…' : ''}`,
+        subtitulo: rel.fechaReunion
+          ? `Reunión: ${rel.fechaReunion}`
+          : rel.respuesta ?? undefined,
+        estado: rel.resultado,
+        contactoNombre: rel.contacto?.nombre ?? null,
+      })),
+    ];
+
+    items.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+    const total = items.length;
+    const start = (page - 1) * limit;
+    const data = items.slice(start, start + limit);
+
+    return { data, total, page, limit };
+  }
+
   async getClienteActivoOrFail(
     id: number,
     paisSesionId: number,
@@ -123,6 +217,7 @@ export class ClientesService {
     const saved = await this.dataSource.transaction(async (manager) => {
       const cliente = manager.create(Cliente, {
         empresa: dto.empresa,
+        empresaNormalizada: normalizeEntityName(dto.empresa),
         paisId: paisSesionId,
         ubicacionId: dto.ubicacionId,
         segmento: dto.segmento,
@@ -136,6 +231,9 @@ export class ClientesService {
       const contactoGenerico = manager.create(Contacto, {
         clienteId: clienteGuardado.id,
         nombre: `Contacto General - ${clienteGuardado.empresa}`,
+        nombreNormalizado: normalizeEntityName(
+          `Contacto General - ${clienteGuardado.empresa}`,
+        ),
         ubicacionId: clienteGuardado.ubicacionId,
         esGenerico: true,
         eliminado: false,
@@ -181,6 +279,7 @@ export class ClientesService {
 
     if (dto.empresa !== undefined) {
       cliente.empresa = dto.empresa;
+      cliente.empresaNormalizada = normalizeEntityName(dto.empresa);
     }
 
     cliente.segmento = segmento;

@@ -98,23 +98,6 @@
   color: var(--color-on-surface-variant);
 }
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-
-  input {
-    flex: 1;
-    min-width: 240px;
-    height: 40px;
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--radius-prime);
-    padding: 0 12px;
-    font: inherit;
-  }
-}
-
 .btn-secondary {
   display: inline-flex;
   align-items: center;

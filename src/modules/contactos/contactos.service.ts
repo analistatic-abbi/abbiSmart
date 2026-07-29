@@ -8,6 +8,10 @@ import {
 } from '../../common/enums/audit-accion.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import {
+  normalizeEntityName,
+  rankBySimilarity,
+} from '../../common/utils/text-similarity.util';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -15,6 +19,7 @@ import { ContactosQueryDto } from './dto/contactos-query.dto';
 import { ContactoResponseDto } from './dto/contacto-response.dto';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
+import { SimilarEntityDto } from '../../common/dto/similares-query.dto';
 
 export interface ContactosPage {
   data: ContactoResponseDto[];
@@ -93,6 +98,41 @@ export class ContactosService {
   async findById(id: number, paisSesionId: number): Promise<ContactoResponseDto> {
     const contacto = await this.getContactoActivoOrFail(id, paisSesionId);
     return this.toResponse(contacto);
+  }
+
+  async buscarSimilares(
+    query: string,
+    paisSesionId: number,
+    limit = 5,
+    clienteId?: number,
+  ): Promise<SimilarEntityDto[]> {
+    const normalized = normalizeEntityName(query);
+    if (normalized.length < 3) {
+      return [];
+    }
+
+    const prefix = normalized.slice(0, Math.min(4, normalized.length));
+    const qb = this.contactoRepository
+      .createQueryBuilder('co')
+      .innerJoinAndSelect('co.cliente', 'cl')
+      .where('co.eliminado = false')
+      .andWhere('cl.pais_id = :paisSesionId', { paisSesionId })
+      .andWhere('co.nombre_normalizado LIKE :prefix', { prefix: `${prefix}%` });
+
+    if (clienteId) {
+      qb.andWhere('co.cliente_id = :clienteId', { clienteId });
+    }
+
+    const candidatos = await qb.take(100).getMany();
+
+    return rankBySimilarity(query, candidatos, (c) => c.nombre, 0.85, limit).map(
+      ({ item, similitud }) => ({
+        id: Number(item.id),
+        nombre: item.nombre,
+        similitud: Math.round(similitud * 100) / 100,
+        clienteNombre: item.cliente?.empresa ?? null,
+      }),
+    );
   }
 
   async getContactoActivoOrFail(
@@ -174,6 +214,7 @@ export class ContactosService {
     const contacto = repo.create({
       clienteId,
       nombre: dto.nombre,
+      nombreNormalizado: normalizeEntityName(dto.nombre),
       ubicacionId: dto.ubicacionId,
       cargo: dto.cargo ?? null,
       telefono: dto.telefono ?? null,
@@ -236,7 +277,10 @@ export class ContactosService {
       contacto.referidoPorContactoId = dto.referidoPorContactoId;
     }
 
-    if (dto.nombre !== undefined) contacto.nombre = dto.nombre;
+    if (dto.nombre !== undefined) {
+      contacto.nombre = dto.nombre;
+      contacto.nombreNormalizado = normalizeEntityName(dto.nombre);
+    }
     if (dto.cargo !== undefined) contacto.cargo = dto.cargo;
     if (dto.telefono !== undefined) contacto.telefono = dto.telefono;
     if (dto.correo !== undefined) contacto.correo = dto.correo;

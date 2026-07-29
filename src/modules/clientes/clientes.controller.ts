@@ -15,6 +15,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { ClientesQueryDto } from '../../common/dto/pagination-query.dto';
+import { SimilaresQueryDto } from '../../common/dto/similares-query.dto';
+import { ClienteHistorialQueryDto } from './dto/cliente-historial.dto';
 import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
 import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
@@ -47,6 +49,24 @@ export class ClientesController {
     };
   }
 
+  @Get('similares')
+  @ApiOperation({ summary: 'Buscar clientes con nombre similar (advertencia de duplicados)' })
+  async buscarSimilares(
+    @Query() query: SimilaresQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.clientesService.buscarSimilares(
+      query.q,
+      user.paisSesionId!,
+      query.limit ?? 5,
+    );
+
+    return {
+      message: 'Coincidencias obtenidas correctamente',
+      data,
+    };
+  }
+
   @Get(':id/dependencias')
   @ApiOperation({ summary: 'Consultar dependencias antes de eliminar (TRX-013)' })
   async getDependencias(
@@ -61,6 +81,25 @@ export class ClientesController {
     return {
       message: 'Dependencias del cliente obtenidas correctamente',
       data,
+    };
+  }
+
+  @Get(':id/historial')
+  @ApiOperation({ summary: 'Historial unificado del cliente (procesos + relacionamientos)' })
+  async getHistorial(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: ClienteHistorialQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const result = await this.clientesService.getHistorial(
+      id,
+      query,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Historial del cliente obtenido correctamente',
+      ...result,
     };
   }
 
