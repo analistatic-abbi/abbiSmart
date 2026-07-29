@@ -18,6 +18,10 @@ export function etiquetaTipoNotificacion(tipo: string): string {
     proyeccion_proxima: 'Proyección próxima',
     proyeccion_sale_este_mes: 'Proyección sale este mes',
     proceso_validacion_correccion: 'Validación — correcciones',
+    proceso_cierre_proximo: 'Cierre de proceso próximo',
+    proceso_cierre_urgente: 'Cierre de proceso urgente',
+    relacionamiento_vencido: 'Relacionamiento vencido',
+    reporte_mensual_disponible: 'Reporte mensual disponible',
   };
   return map[tipo] ?? tipo;
 }

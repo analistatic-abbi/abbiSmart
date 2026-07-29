@@ -29,6 +29,7 @@ export class AlertasControlService {
       this.alertaRepository.create({
         proyeccionId,
         relacionamientoId: null,
+        procesoId: null,
         umbral,
       }),
     );
@@ -47,7 +48,27 @@ export class AlertasControlService {
       this.alertaRepository.create({
         proyeccionId: null,
         relacionamientoId,
+        procesoId: null,
         umbral: 'vencimiento',
+      }),
+    );
+  }
+
+  async yaEnviadaProceso(procesoId: number, umbral: string): Promise<boolean> {
+    const row = await this.alertaRepository.findOne({
+      where: { procesoId, umbral },
+    });
+
+    return Boolean(row);
+  }
+
+  async registrarProceso(procesoId: number, umbral: string): Promise<void> {
+    await this.alertaRepository.save(
+      this.alertaRepository.create({
+        proyeccionId: null,
+        relacionamientoId: null,
+        procesoId,
+        umbral,
       }),
     );
   }

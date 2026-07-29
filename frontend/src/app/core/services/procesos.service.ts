@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 import {
   CreateProcesoPayload,
   Proceso,
@@ -19,6 +20,15 @@ export interface FechaHistorial {
   fecha: string;
 }
 
+export interface ProcesoComentario {
+  id: number;
+  procesoId: number;
+  usuarioId: number;
+  usuarioNombre: string;
+  texto: string;
+  fechaCreacion: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProcesosService {
   private readonly http = inject(HttpClient);
@@ -30,6 +40,45 @@ export class ProcesosService {
     return this.http.get<{ data: ProcesoListItem[]; total: number }>(this.base, {
       params,
     });
+  }
+
+  exportar(search = '', onError?: (message: string) => void): void {
+    const params: Record<string, string> = {};
+    if (search.trim()) params['search'] = search.trim();
+
+    this.http
+      .get(`${this.base}/export`, { params, responseType: 'blob', observe: 'response' })
+      .subscribe({
+        next: async (response) => {
+          const blob = response.body;
+          if (!blob || blob.size === 0) {
+            onError?.('La exportación no devolvió datos.');
+            return;
+          }
+
+          const contentType = response.headers.get('Content-Type') ?? '';
+          if (contentType.includes('application/json')) {
+            const text = await blob.text();
+            try {
+              const json = JSON.parse(text) as { message?: string };
+              onError?.(json.message ?? 'No fue posible exportar los procesos.');
+            } catch {
+              onError?.('No fue posible exportar los procesos.');
+            }
+            return;
+          }
+
+          const fecha = new Date().toISOString().slice(0, 10);
+          await descargarBlob(blob, `procesos-${fecha}.xlsx`);
+        },
+        error: async (err: HttpErrorResponse) => {
+          const message = await parseBlobErrorMessage(
+            err,
+            'No fue posible exportar los procesos.',
+          );
+          onError?.(message);
+        },
+      });
   }
 
   getById(id: number): Observable<{ proceso: Proceso }> {
@@ -46,6 +95,16 @@ export class ProcesosService {
 
   getFechasHistorial(id: number): Observable<{ data: FechaHistorial[] }> {
     return this.http.get<{ data: FechaHistorial[] }>(`${this.base}/${id}/fechas/historial`);
+  }
+
+  getComentarios(id: number): Observable<{ data: ProcesoComentario[] }> {
+    return this.http.get<{ data: ProcesoComentario[] }>(`${this.base}/${id}/comentarios`);
+  }
+
+  crearComentario(id: number, texto: string): Observable<{ comentario: ProcesoComentario }> {
+    return this.http.post<{ comentario: ProcesoComentario }>(`${this.base}/${id}/comentarios`, {
+      texto,
+    });
   }
 
   cambiarEstado(

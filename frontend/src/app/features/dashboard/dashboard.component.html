@@ -1,8 +1,22 @@
 <section class="page">
   <header class="page__header">
-    <h1>Panel de Control</h1>
-    <p>Resumen de procesos y métricas del sistema.</p>
+    <div>
+      <h1>Panel de Control</h1>
+      <p>Resumen de procesos y métricas del sistema.</p>
+    </div>
+    <button
+      type="button"
+      class="btn-secondary"
+      [disabled]="exportando()"
+      (click)="exportarDashboard()"
+    >
+      {{ exportando() ? 'Exportando...' : 'Exportar' }}
+    </button>
   </header>
+
+  @if (exportError()) {
+    <p class="error">{{ exportError() }}</p>
+  }
 
   @if (sinPermiso()) {
     <div class="alert alert--warning">
@@ -182,6 +196,43 @@
               </table>
             </div>
           </div>
+        </div>
+      </section>
+    }
+
+    @if (puedeVerReportes()) {
+      <section class="panel">
+        <h2>Reportes mensuales</h2>
+        <p class="panel__hint">Archivos generados automáticamente el primer día de cada mes.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Periodo</th>
+                <th>Generado</th>
+                <th>Tamaño</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (reporte of reportes(); track reporte.id) {
+                <tr>
+                  <td>{{ reporte.periodo }}</td>
+                  <td>{{ formatFecha(reporte.generadoEn) }}</td>
+                  <td>{{ (reporte.tamanoBytes / 1024) | number: '1.0-0' }} KB</td>
+                  <td>
+                    <button type="button" class="link" (click)="descargarReporte(reporte)">
+                      Descargar
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4">No hay reportes mensuales disponibles.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       </section>
     }

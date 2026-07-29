@@ -81,6 +81,8 @@
 
       <button type="button" [class.active]="tab() === 'tareas'" (click)="setTab('tareas')">Tareas</button>
 
+      <button type="button" [class.active]="tab() === 'comentarios'" (click)="setTab('comentarios')">Comentarios</button>
+
     </nav>
 
 
@@ -334,6 +336,51 @@
 
       </div>
 
+    }
+
+    @if (tab() === 'comentarios') {
+      <div class="panel">
+        @if (puedeEscribir()) {
+          <div class="comentario-form">
+            <label class="full">Nuevo comentario
+              <textarea
+                [ngModel]="comentarioTexto()"
+                (ngModelChange)="comentarioTexto.set($event)"
+                rows="3"
+                placeholder="Escriba una nota interna sobre este proceso..."
+              ></textarea>
+            </label>
+            @if (comentarioError()) {
+              <p class="error">{{ comentarioError() }}</p>
+            }
+            <button
+              type="button"
+              class="btn-primary"
+              [disabled]="comentarioLoading() || !comentarioTexto().trim()"
+              (click)="guardarComentario()"
+            >
+              {{ comentarioLoading() ? 'Guardando...' : 'Agregar comentario' }}
+            </button>
+          </div>
+        }
+
+        <table>
+          <thead>
+            <tr><th>Usuario</th><th>Comentario</th><th>Fecha</th></tr>
+          </thead>
+          <tbody>
+            @for (c of comentarios(); track c.id) {
+              <tr>
+                <td>{{ c.usuarioNombre }}</td>
+                <td class="comentario-texto">{{ c.texto }}</td>
+                <td>{{ formatFechaHora(c.fechaCreacion) }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="3">Sin comentarios registrados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
 
   </section>

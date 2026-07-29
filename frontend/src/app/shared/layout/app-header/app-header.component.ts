@@ -25,8 +25,10 @@ export class AppHeaderComponent implements OnInit {
   protected readonly changingCountry = signal(false);
 
   protected readonly paisLabel = () => this.auth.paisNombre() ?? 'País';
-  protected readonly paisCodigo = () => countryIsoCode(this.auth.paisNombre());
-  protected readonly flagUrl = () => countryFlagUrl(this.auth.paisNombre());
+  protected readonly paisCodigo = () =>
+    countryIsoCode(this.auth.paisNombre(), this.auth.session()?.paisSesionId);
+  protected readonly flagUrl = () =>
+    countryFlagUrl(this.auth.paisNombre(), this.auth.session()?.paisSesionId);
   protected readonly unreadCount = () => this.notifs().filter((n) => !n.leida).length;
   protected readonly canChangeCountry = () => this.auth.canChangeCountry();
   protected readonly tipoLabel = (tipo: string) => etiquetaTipoNotificacion(tipo);
@@ -70,6 +72,11 @@ export class AppHeaderComponent implements OnInit {
     if (n.entidadTipo === 'proceso' && n.entidadId) {
       this.showNotifs.set(false);
       void this.router.navigate(['/procesos', n.entidadId]);
+      return;
+    }
+    if (n.entidadTipo === 'dashboard' || n.tipo === 'reporte_mensual_disponible') {
+      this.showNotifs.set(false);
+      void this.router.navigate(['/dashboard']);
     }
   }
 

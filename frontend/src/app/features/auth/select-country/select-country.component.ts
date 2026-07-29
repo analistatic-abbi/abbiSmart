@@ -28,8 +28,8 @@ export class SelectCountryComponent {
       ? 'Selecciona el nuevo país en el que vas a trabajar'
       : 'Selecciona el país en el que vas a trabajar';
 
-  protected flagUrl(nombre: string): string {
-    return countryFlagUrl(nombre, 160);
+  protected flagUrl(pais: PaisOption): string {
+    return countryFlagUrl(pais.nombre, pais.id);
   }
 
   protected selectPais(pais: PaisOption): void {
