@@ -6,6 +6,7 @@
     </div>
     <div class="header-actions">
       <app-proyecciones-vista-toggle vistaActual="tabla" [anio]="anio()" />
+      <a class="btn-secondary" routerLink="/proyecciones/efectividad-mercado">Efectividad de mercado</a>
       @if (puedeAsignarMercado()) {
         <a class="btn-secondary" routerLink="/proyecciones/asignar-mercado">Asignar mercado</a>
       }

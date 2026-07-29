@@ -16,15 +16,11 @@
   </header>
 
   <div class="toolbar">
-    <div class="year-selector">
-      <button type="button" class="year-selector__btn" (click)="anioAnterior()" aria-label="Año anterior">
-        <span class="material-symbols-outlined">chevron_left</span>
-      </button>
-      <span class="year-selector__value">{{ anio() }}</span>
-      <button type="button" class="year-selector__btn" (click)="anioSiguiente()" aria-label="Año siguiente">
-        <span class="material-symbols-outlined">chevron_right</span>
-      </button>
-    </div>
+    <app-year-selector
+      [anio]="anio()"
+      (anterior)="anioAnterior()"
+      (siguiente)="anioSiguiente()"
+    />
   </div>
 
   @if (loading()) {

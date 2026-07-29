@@ -29,6 +29,7 @@ export class AppSidebarComponent implements OnInit {
 
   private readonly allItems: NavItem[] = [
     { label: 'Panel de Control', icon: 'dashboard', route: '/dashboard' },
+    { label: 'Calendario', icon: 'calendar_month', route: '/calendario' },
     { label: 'Panel de procesos', icon: 'dashboard', route: '/procesos' },
     {
       label: 'Validación',

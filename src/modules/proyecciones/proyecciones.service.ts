@@ -16,6 +16,10 @@ import { AlertasControlService } from '../../common/services/alertas-control.ser
 import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { PermisosService } from '../../common/services/permisos.service';
 import { normalizarFechaDesdeBd } from '../../common/utils/proceso-fechas.util';
+import {
+  calcularMetricasMercado,
+  metricasMercadoVacias,
+} from '../../common/utils/efectividad-mercado.util';
 import { calcularEstadoSugerido } from '../../common/utils/proyeccion-calculos.util';
 import { detectarUmbralesTransicion } from '../../common/utils/proyeccion-transicion.util';
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -34,6 +38,10 @@ import {
   UpdateProyeccionDto,
   VincularProcesoResultanteDto,
 } from './dto/proyeccion.dto';
+import {
+  EfectividadMercadoReporteDto,
+  EfectividadMercadoRowRaw,
+} from './dto/efectividad-mercado.dto';
 
 export interface ProyeccionesPage {
   data: ProyeccionResponseDto[];
@@ -350,6 +358,116 @@ export class ProyeccionesService {
     });
 
     return { actualizadas };
+  }
+
+  async getEfectividadMercado(
+    anio: number,
+    paisSesionId: number,
+  ): Promise<EfectividadMercadoReporteDto> {
+    const sinMercadoRows = await this.proyeccionRepository.query(
+      `SELECT COUNT(*) AS total
+       FROM proyecciones py
+       WHERE py.eliminado = FALSE
+         AND py.pais_id = ?
+         AND py.anio_proyectado = ?
+         AND py.mercado IS NULL`,
+      [paisSesionId, anio],
+    );
+
+    const inconsistenciasRows = await this.proyeccionRepository.query(
+      `SELECT COUNT(*) AS total
+       FROM proyecciones py
+       LEFT JOIN procesos pr
+         ON pr.id = py.proceso_resultante_id
+        AND pr.eliminado = FALSE
+       WHERE py.eliminado = FALSE
+         AND py.pais_id = ?
+         AND py.anio_proyectado = ?
+         AND py.mercado IN ('General', 'Objetivo')
+         AND py.proceso_resultante_id IS NOT NULL
+         AND pr.id IS NULL`,
+      [paisSesionId, anio],
+    );
+
+    const rows = (await this.proyeccionRepository.query(
+      `SELECT
+         py.mercado AS mercado,
+         COUNT(*) AS total,
+         SUM(CASE
+           WHEN py.proceso_resultante_id IS NOT NULL
+            AND pr.id IS NOT NULL
+            AND (COALESCE(pr.fue_adjudicado, 0) = 1 OR pr.estado = ?)
+           THEN 1 ELSE 0 END) AS ganadas,
+         SUM(CASE
+           WHEN py.proceso_resultante_id IS NOT NULL
+            AND pr.id IS NOT NULL
+            AND NOT (COALESCE(pr.fue_adjudicado, 0) = 1 OR pr.estado = ?)
+           THEN 1 ELSE 0 END) AS materializadasNoGanadas,
+         SUM(CASE
+           WHEN py.proceso_resultante_id IS NULL AND py.estado = ?
+           THEN 1 ELSE 0 END) AS nuncaMaterializadas,
+         SUM(CASE
+           WHEN NOT (
+             (py.proceso_resultante_id IS NOT NULL AND pr.id IS NOT NULL)
+             OR (py.proceso_resultante_id IS NULL AND py.estado = ?)
+           ) THEN 1 ELSE 0 END) AS pendientes
+       FROM proyecciones py
+       LEFT JOIN procesos pr
+         ON pr.id = py.proceso_resultante_id
+        AND pr.eliminado = FALSE
+       WHERE py.eliminado = FALSE
+         AND py.pais_id = ?
+         AND py.anio_proyectado = ?
+         AND py.mercado IN ('General', 'Objetivo')
+       GROUP BY py.mercado`,
+      [
+        EstadoProceso.ADJUDICADO,
+        EstadoProceso.ADJUDICADO,
+        EstadoProyeccion.CERRADO,
+        EstadoProyeccion.CERRADO,
+        paisSesionId,
+        anio,
+      ],
+    )) as Array<Record<string, unknown>>;
+
+    const porMercado = new Map<MercadoProyeccion, EfectividadMercadoRowRaw>();
+
+    for (const row of rows) {
+      const mercado = String(row.mercado) as MercadoProyeccion;
+      porMercado.set(mercado, {
+        mercado,
+        total: Number(row.total ?? 0),
+        ganadas: Number(row.ganadas ?? 0),
+        materializadasNoGanadas: Number(row.materializadasNoGanadas ?? 0),
+        nuncaMaterializadas: Number(row.nuncaMaterializadas ?? 0),
+        pendientes: Number(row.pendientes ?? 0),
+      });
+    }
+
+    const generalRaw = porMercado.get(MercadoProyeccion.GENERAL);
+    const objetivoRaw = porMercado.get(MercadoProyeccion.OBJETIVO);
+
+    return {
+      anio,
+      sinMercado: Number(sinMercadoRows[0]?.total ?? 0),
+      inconsistencias: Number(inconsistenciasRows[0]?.total ?? 0),
+      general: generalRaw
+        ? calcularMetricasMercado({
+            nuncaMaterializadas: generalRaw.nuncaMaterializadas,
+            materializadasNoGanadas: generalRaw.materializadasNoGanadas,
+            ganadas: generalRaw.ganadas,
+            pendientes: generalRaw.pendientes,
+          })
+        : metricasMercadoVacias(),
+      objetivo: objetivoRaw
+        ? calcularMetricasMercado({
+            nuncaMaterializadas: objetivoRaw.nuncaMaterializadas,
+            materializadasNoGanadas: objetivoRaw.materializadasNoGanadas,
+            ganadas: objetivoRaw.ganadas,
+            pendientes: objetivoRaw.pendientes,
+          })
+        : metricasMercadoVacias(),
+    };
   }
 
   async vincularProcesoResultante(

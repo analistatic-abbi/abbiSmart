@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   CreateProyeccionPayload,
+  EfectividadMercadoReporte,
   EstadoProyeccion,
   Proyeccion,
 } from '../models/admin.model';
@@ -71,5 +72,12 @@ export class ProyeccionesService {
       anioProyectado,
       asignaciones,
     });
+  }
+
+  getEfectividadMercado(anio: number): Observable<{ data: EfectividadMercadoReporte }> {
+    return this.http.get<{ data: EfectividadMercadoReporte }>(
+      `${this.base}/efectividad-mercado`,
+      { params: { anio } },
+    );
   }
 }

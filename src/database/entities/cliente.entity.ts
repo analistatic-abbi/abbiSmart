@@ -20,6 +20,9 @@ export class Cliente {
   @Column({ type: 'varchar', length: 255 })
   empresa: string;
 
+  @Column({ name: 'empresa_normalizada', type: 'varchar', length: 255, default: '' })
+  empresaNormalizada: string;
+
   @Column({ name: 'pais_id', type: 'bigint', unsigned: true })
   paisId: number;
 

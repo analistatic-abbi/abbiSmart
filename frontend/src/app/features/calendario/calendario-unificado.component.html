@@ -1,0 +1,84 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Calendario</h1>
+      <p>Proyecciones, procesos activos y reuniones programadas.</p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="filters">
+      <label class="filter-toggle">
+        <input
+          type="checkbox"
+          [checked]="filtroProyecciones()"
+          (change)="toggleFiltro('proyeccion')"
+        />
+        Proyecciones
+      </label>
+      <label class="filter-toggle">
+        <input
+          type="checkbox"
+          [checked]="filtroProcesos()"
+          (change)="toggleFiltro('proceso')"
+        />
+        Procesos
+      </label>
+      <label class="filter-toggle">
+        <input
+          type="checkbox"
+          [checked]="filtroRelacionamientos()"
+          (change)="toggleFiltro('relacionamiento')"
+        />
+        Relacionamientos
+      </label>
+    </div>
+
+    <app-year-selector
+      [anio]="anio()"
+      (anterior)="anioAnterior()"
+      (siguiente)="anioSiguiente()"
+    />
+  </div>
+
+  @if (loading()) {
+    <p class="loading">Cargando...</p>
+  } @else {
+    <div class="calendar-grid">
+      @for (mes of mesesAgrupados(); track mes.mesIndex) {
+        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
+          <div class="month-column__header">
+            <h3>{{ mes.nombre }}</h3>
+          </div>
+          <div class="month-column__body">
+            @if (mes.items.length === 0) {
+              <p class="month-column__empty">Sin eventos</p>
+            } @else {
+              @for (evento of mes.items; track evento.tipo + '-' + evento.id) {
+                @let style = eventoStyle(evento.tipo, evento.estado);
+                <button
+                  type="button"
+                  class="evento-card evento-card--{{ evento.tipo }}"
+                  [style.background]="style.bg"
+                  [style.borderColor]="style.border"
+                  (click)="navigateToEvento(evento)"
+                >
+                  <div class="evento-card__top">
+                    <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
+                      {{ evento.icono }}
+                    </span>
+                    <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
+                  </div>
+                  <div class="evento-card__titulo">{{ evento.titulo }}</div>
+                  @if (evento.subtitulo) {
+                    <div class="evento-card__sub">{{ evento.subtitulo }}</div>
+                  }
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

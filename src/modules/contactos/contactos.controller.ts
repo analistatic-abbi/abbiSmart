@@ -18,6 +18,7 @@ import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { ContactosService } from './contactos.service';
 import { ContactosQueryDto } from './dto/contactos-query.dto';
+import { ContactoSimilaresQueryDto } from '../../common/dto/similares-query.dto';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
 
@@ -26,6 +27,25 @@ import { UpdateContactoDto } from './dto/update-contacto.dto';
 @Controller()
 export class ContactosController {
   constructor(private readonly contactosService: ContactosService) {}
+
+  @Get('contactos/similares')
+  @ApiOperation({ summary: 'Buscar contactos con nombre similar (advertencia de duplicados)' })
+  async buscarSimilares(
+    @Query() query: ContactoSimilaresQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.contactosService.buscarSimilares(
+      query.q,
+      user.paisSesionId!,
+      query.limit ?? 5,
+      query.clienteId,
+    );
+
+    return {
+      message: 'Coincidencias obtenidas correctamente',
+      data,
+    };
+  }
 
   @Get('contactos')
   @ApiOperation({ summary: 'Listar contactos con filtros (TRX-006)' })

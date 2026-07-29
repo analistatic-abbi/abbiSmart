@@ -24,7 +24,24 @@
       </label>
     }
 
-    <label class="full">Nombre <input type="text" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" /></label>
+    <label class="full">
+      Nombre
+      <input
+        type="text"
+        [ngModel]="nombre()"
+        (ngModelChange)="onNombreChange($event)"
+        (blur)="onNombreBlur()"
+      />
+    </label>
+
+    @if (mostrarDuplicados()) {
+      <app-duplicado-alerta
+        class="full"
+        tipo="contacto"
+        [sugerencias]="duplicados()"
+        (dismissed)="mostrarDuplicados.set(false)"
+      />
+    }
     <label>Cargo <input type="text" [ngModel]="cargo()" (ngModelChange)="cargo.set($event)" /></label>
     <label>Teléfono <input type="text" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" /></label>
     <label>Correo <input type="email" [ngModel]="correo()" (ngModelChange)="correo.set($event)" /></label>

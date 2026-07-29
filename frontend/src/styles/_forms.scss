@@ -1,0 +1,398 @@
+@mixin form-container-root {
+  @each $container in '.form-grid', '.grid', '.modal.form-grid' {
+    #{$container} {
+      @content;
+    }
+  }
+}
+
+@mixin abbi-text-field($full-width: true) {
+  @if $full-width {
+    width: 100%;
+  }
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-prime);
+  background-color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-emphasis);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: var(--color-input-placeholder);
+  }
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: #b8bcc4;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-input-border-focus);
+    box-shadow: 0 0 0 3px rgba(14, 59, 101, 0.12);
+  }
+
+  &:disabled {
+    background: var(--color-surface-container-low);
+    color: var(--color-on-surface-variant);
+    cursor: not-allowed;
+  }
+
+  &.ng-invalid.ng-touched,
+  &[aria-invalid='true'] {
+    border-color: var(--color-error);
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+  }
+}
+
+@mixin abbi-select($full-width: true) {
+  @include abbi-text-field($full-width);
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23233E5E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+
+  &:has(option[value='']:checked),
+  &:has(option[value='']:checked) {
+    color: var(--color-input-placeholder);
+  }
+
+  option {
+    color: var(--color-emphasis);
+  }
+
+  option[value=''] {
+    color: var(--color-input-placeholder);
+  }
+}
+
+@mixin abbi-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-input-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-input-border-focus);
+  }
+
+  &:checked {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(14, 59, 101, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+// Layout de cuadrícula de formularios
+@include form-container-root {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--form-group-gap);
+  align-items: start;
+}
+
+.form-grid label.full,
+.grid label.full,
+.form-grid > .full,
+.grid > .full {
+  grid-column: 1 / -1;
+}
+
+// Etiquetas y grupos de campo
+@include form-container-root {
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-field-gap);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+    line-height: 1.4;
+
+    &:has(> input[type='checkbox']),
+    &:has(> input[type='radio']) {
+      flex-direction: row;
+      align-items: center;
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--color-on-surface);
+      cursor: pointer;
+      min-height: 24px;
+    }
+  }
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--form-field-gap);
+  font-size: 14px;
+  color: var(--color-on-surface);
+
+  input[type='checkbox'] {
+    margin-top: 2px;
+  }
+}
+
+// Barra de filtros de listados (compacta, horizontal, sin ancho completo)
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  > input:not([type='checkbox']):not([type='radio']),
+  > select {
+    @include abbi-text-field($full-width: false);
+    flex: 0 1 auto;
+    width: auto;
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  > select {
+    @include abbi-select($full-width: false);
+    min-width: 168px;
+    max-width: 208px;
+  }
+
+  > input[type='search'],
+  > input[type='text'] {
+    min-width: 180px;
+    max-width: 280px;
+    flex: 1 1 200px;
+  }
+
+  > input[type='number'] {
+    width: 128px;
+    min-width: 128px;
+    max-width: 144px;
+    flex: 0 0 auto;
+  }
+
+  > label {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+    flex: 0 0 auto;
+
+    input:not([type='checkbox']):not([type='radio']) {
+      @include abbi-text-field($full-width: false);
+      width: 112px;
+      min-width: 112px;
+      min-height: 40px;
+      padding: 8px 12px;
+    }
+
+    input[type='checkbox'] {
+      @include abbi-checkbox;
+    }
+  }
+
+  > .btn-primary,
+  > .btn-secondary,
+  > button[type='button'] {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  input[type='checkbox'] {
+    @include abbi-checkbox;
+  }
+}
+
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--form-field-gap);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-emphasis);
+  cursor: pointer;
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  input[type='checkbox'] {
+    @include abbi-checkbox;
+  }
+}
+
+// Formularios apilados fuera de grid (p. ej. comentarios)
+.comentario-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-field-gap);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+  }
+
+  textarea {
+    @include abbi-text-field;
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .error {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  > .btn-primary,
+  > .btn-secondary {
+    align-self: flex-end;
+  }
+}
+
+.comentario-texto {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+@include form-container-root {
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='submit']):not([type='button']),
+  select,
+  textarea {
+    @include abbi-text-field;
+  }
+
+  select {
+    @include abbi-select;
+  }
+
+  textarea {
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    @include abbi-checkbox;
+  }
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+// Campos de texto, número, fecha, etc.
+.field-error,
+.form-field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-error);
+}
+
+label:has(> .field-error),
+label:has(> .form-field-error) {
+  gap: 4px;
+}
+
+// Acciones de formulario
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+// Inputs dentro de tablas de formulario (p. ej. indicadores)
+.indicadores {
+  input:not([type='checkbox']):not([type='radio']) {
+    @include abbi-text-field;
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+}
+
+// Auth pages (activate, reset, forgot)
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-group-gap);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-field-gap);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']) {
+    @include abbi-text-field;
+  }
+}
+
+// Modales con campos sueltos
+.modal {
+  textarea,
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']),
+  select {
+    @include abbi-text-field;
+  }
+
+  select {
+    @include abbi-select;
+  }
+
+  input[type='checkbox'] {
+    @include abbi-checkbox;
+  }
+}

@@ -25,31 +25,13 @@
   background: transparent;
 }
 
-h1 { margin: 0 0 8px; text-align: center; font-size: 24px; }
+h1 { margin: 0 0 8px; text-align: center; font-size: 24px; color: var(--color-emphasis); }
 p { text-align: center; color: var(--color-on-surface-variant); }
 .success { color: #1b5e20; text-align: center; }
 .error { color: var(--color-error); text-align: center; }
 
 form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   margin-top: 16px;
-
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 14px;
-  }
-
-  input {
-    height: 40px;
-    border: 1px solid var(--color-outline-variant);
-    border-radius: var(--radius-prime);
-    padding: 0 12px;
-    font: inherit;
-  }
 }
 
 .btn-primary {

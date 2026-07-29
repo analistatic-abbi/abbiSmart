@@ -7,6 +7,7 @@ import { formatCurrencyAbbreviated } from '../../../../core/utils/currency.util'
 import { parseIsoDateLocal } from '../../../../core/utils/date.util';
 import { getEstadoCalendarioStyle } from './estado-calendario.styles';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
+import { YearSelectorComponent } from '../../../../shared/components/year-selector/year-selector.component';
 
 interface MesCalendario {
   mesIndex: number;
@@ -17,7 +18,7 @@ interface MesCalendario {
 @Component({
   selector: 'app-calendario-proyecciones',
   standalone: true,
-  imports: [RouterLink, ProyeccionesVistaToggleComponent],
+  imports: [RouterLink, ProyeccionesVistaToggleComponent, YearSelectorComponent],
   templateUrl: './calendario-proyecciones.component.html',
   styleUrl: './calendario-proyecciones.component.scss',
 })

@@ -13,6 +13,7 @@ import {
 } from '../../common/enums/audit-accion.enum';
 import { CumpleIndicador } from '../../common/enums/cumple-indicador.enum';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
+import { MotivoPerdidaProceso } from '../../common/enums/motivo-perdida-proceso.enum';
 import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
 import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { Rol } from '../../common/enums/rol.enum';
@@ -49,6 +50,7 @@ import {
   ProcesoIndicadorResponseDto,
   ProcesoResponseDto,
   ProcesosQueryDto,
+  RegistrarMotivoPerdidaDto,
   TareaResponseDto,
   UpdateProcesoDto,
   UpdateProcesoFechasDto,
@@ -80,6 +82,35 @@ const TRANSICIONES_ESTADO: Record<EstadoProceso, EstadoProceso[]> = {
   [EstadoProceso.ADJUDICADO]: [EstadoProceso.CERRADO],
   [EstadoProceso.CERRADO]: [],
 };
+
+function requiereMotivoPerdida(
+  estadoAnterior: EstadoProceso,
+  estadoNuevo: EstadoProceso,
+): boolean {
+  if (estadoNuevo === EstadoProceso.DESCARTADO) {
+    return true;
+  }
+  if (
+    estadoNuevo === EstadoProceso.CERRADO &&
+    estadoAnterior !== EstadoProceso.ADJUDICADO
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function procesoRequiereMotivoBackfill(proceso: Proceso): boolean {
+  if (proceso.motivoPerdida) {
+    return false;
+  }
+  if (proceso.estado === EstadoProceso.DESCARTADO) {
+    return true;
+  }
+  if (proceso.estado === EstadoProceso.CERRADO && !proceso.fueAdjudicado) {
+    return true;
+  }
+  return false;
+}
 
 @Injectable()
 export class ProcesosService {
@@ -206,6 +237,7 @@ export class ProcesosService {
   async findById(id: number, paisSesionId: number): Promise<ProcesoResponseDto> {
     const proceso = await this.getProcesoActivoOrFail(id, paisSesionId, {
       indicadores: true,
+      motivoPerdidaUsuario: true,
     });
 
     return this.toResponse(
@@ -771,8 +803,21 @@ export class ProcesosService {
       );
     }
 
+    if (requiereMotivoPerdida(proceso.estado, dto.estado)) {
+      this.validarMotivoPerdida(dto.motivoPerdida, dto.motivoPerdidaOtro);
+    }
+
     const estadoPrevio = proceso.estado;
     proceso.estado = dto.estado;
+
+    if (dto.estado === EstadoProceso.ADJUDICADO) {
+      proceso.fueAdjudicado = true;
+    }
+
+    if (requiereMotivoPerdida(estadoPrevio, dto.estado)) {
+      this.aplicarMotivoPerdida(proceso, dto.motivoPerdida!, dto.motivoPerdidaOtro, actorId);
+    }
+
     const saved = await this.procesoRepository.save(proceso);
 
     await this.auditService.log({
@@ -804,6 +849,84 @@ export class ProcesosService {
       proceso: await this.findById(saved.id, paisSesionId),
       proyeccionGenerada,
     };
+  }
+
+  async registrarMotivoPerdida(
+    id: number,
+    dto: RegistrarMotivoPerdidaDto,
+    actorId: number,
+    paisSesionId: number,
+    rol: Rol,
+  ): Promise<ProcesoResponseDto> {
+    this.assertPuedeGestionar(rol);
+    const proceso = await this.getProcesoActivoOrFail(id, paisSesionId);
+
+    if (!procesoRequiereMotivoBackfill(proceso)) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_MOTIVO_PERDIDA_NO_APLICA,
+        'Este proceso no requiere registrar motivo de no adjudicación',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    this.validarMotivoPerdida(dto.motivoPerdida, dto.motivoPerdidaOtro);
+    this.aplicarMotivoPerdida(proceso, dto.motivoPerdida, dto.motivoPerdidaOtro, actorId);
+
+    const saved = await this.procesoRepository.save(proceso);
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.PROCESO_EDITAR,
+      entidadTipo: AuditEntidadTipo.PROCESO,
+      entidadId: saved.id,
+      campo: 'motivo_perdida',
+      valorAnterior: null,
+      valorNuevo: JSON.stringify({
+        motivoPerdida: saved.motivoPerdida,
+        motivoPerdidaOtro: saved.motivoPerdidaOtro,
+      }),
+    });
+
+    return this.findById(saved.id, paisSesionId);
+  }
+
+  private validarMotivoPerdida(
+    motivoPerdida: MotivoPerdidaProceso | undefined,
+    motivoPerdidaOtro: string | undefined,
+  ): void {
+    if (!motivoPerdida) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_MOTIVO_PERDIDA_REQUERIDO,
+        'Debe indicar el motivo de descarte o no adjudicación',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (motivoPerdida === MotivoPerdidaProceso.OTRO) {
+      const otro = motivoPerdidaOtro?.trim() ?? '';
+      if (!otro) {
+        throw new BusinessException(
+          ErrorCode.PROCESO_MOTIVO_OTRO_REQUERIDO,
+          'Debe describir el motivo cuando selecciona Otro',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+  }
+
+  private aplicarMotivoPerdida(
+    proceso: Proceso,
+    motivoPerdida: MotivoPerdidaProceso,
+    motivoPerdidaOtro: string | undefined,
+    actorId: number,
+  ): void {
+    proceso.motivoPerdida = motivoPerdida;
+    proceso.motivoPerdidaOtro =
+      motivoPerdida === MotivoPerdidaProceso.OTRO
+        ? motivoPerdidaOtro?.trim() ?? null
+        : null;
+    proceso.motivoPerdidaRegistradoEn = new Date();
+    proceso.motivoPerdidaUsuarioId = actorId;
   }
 
   async softDelete(
@@ -1018,7 +1141,7 @@ export class ProcesosService {
   async getProcesoActivoOrFail(
     id: number,
     paisSesionId: number,
-    relations: { indicadores?: boolean } = {},
+    relations: { indicadores?: boolean; motivoPerdidaUsuario?: boolean } = {},
   ): Promise<Proceso> {
     const proceso = await this.procesoRepository.findOne({
       where: { id, eliminado: false },
@@ -1294,6 +1417,12 @@ export class ProcesosService {
       plazoEjecucionMeses: proceso.plazoEjecucionMeses,
       experiencia: proceso.experiencia,
       observacion: proceso.observacion,
+      motivoPerdida: proceso.motivoPerdida,
+      motivoPerdidaOtro: proceso.motivoPerdidaOtro,
+      motivoPerdidaRegistradoEn: proceso.motivoPerdidaRegistradoEn,
+      motivoPerdidaUsuarioId: proceso.motivoPerdidaUsuarioId,
+      motivoPerdidaUsuarioNombre: proceso.motivoPerdidaUsuario?.nombre ?? null,
+      fueAdjudicado: proceso.fueAdjudicado,
       estado: proceso.estado,
       usuarioCreadorId: proceso.usuarioCreadorId,
       fechaCreacion: proceso.fechaCreacion,

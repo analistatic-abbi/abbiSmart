@@ -444,4 +444,82 @@ describe('Proyecciones Fase E (e2e)', () => {
       .send({ valor: 'true' })
       .expect(200);
   });
+
+  it('reporta efectividad de mercado por año proyectado', async () => {
+    const token = await setupAdminToken();
+    const anioReporte = 9000 + (Date.now() % 1000);
+
+    const antesRes = await request(app.getHttpServer())
+      .get('/api/v1/proyecciones/efectividad-mercado')
+      .query({ anio: anioReporte })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const generalRes = await request(app.getHttpServer())
+      .post('/api/v1/proyecciones')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        anioProyectado: anioReporte,
+        fechaEstimadaPublicacion: `${anioReporte}-06-15`,
+        valorVenta: 1000000,
+        valorFacturacion: 800000,
+      })
+      .expect(201);
+
+    const objetivoRes = await request(app.getHttpServer())
+      .post('/api/v1/proyecciones')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        anioProyectado: anioReporte,
+        fechaEstimadaPublicacion: `${anioReporte}-08-01`,
+        valorVenta: 1200000,
+        valorFacturacion: 900000,
+      })
+      .expect(201);
+
+    const generalId = Number(generalRes.body.proyeccion.id);
+    const objetivoId = Number(objetivoRes.body.proyeccion.id);
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/proyecciones/asignar-mercado')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        anioProyectado: anioReporte,
+        asignaciones: [
+          { proyeccionId: generalId, mercado: 'General' },
+          { proyeccionId: objetivoId, mercado: 'Objetivo' },
+        ],
+      })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/proyecciones/${generalId}/cerrar`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const reporteRes = await request(app.getHttpServer())
+      .get('/api/v1/proyecciones/efectividad-mercado')
+      .query({ anio: anioReporte })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(reporteRes.body.data.anio).toBe(anioReporte);
+    expect(reporteRes.body.data.general.total).toBe(
+      antesRes.body.data.general.total + 1,
+    );
+    expect(reporteRes.body.data.general.nuncaMaterializadas).toBe(
+      antesRes.body.data.general.nuncaMaterializadas + 1,
+    );
+    expect(reporteRes.body.data.general.pendientes).toBe(
+      antesRes.body.data.general.pendientes,
+    );
+    expect(reporteRes.body.data.general.pctNuncaMaterializadas).toBe(100);
+    expect(reporteRes.body.data.objetivo.total).toBe(
+      antesRes.body.data.objetivo.total + 1,
+    );
+    expect(reporteRes.body.data.objetivo.pendientes).toBe(
+      antesRes.body.data.objetivo.pendientes + 1,
+    );
+    expect(reporteRes.body.data.objetivo.pctGanadas).toBeNull();
+  });
 });

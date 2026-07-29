@@ -1,0 +1,117 @@
+<section class="page">
+  <a class="back" routerLink="/proyecciones">← Volver a proyecciones</a>
+
+  <header class="page__header">
+    <div>
+      <h1>Efectividad de mercado</h1>
+      <p>
+        Compara qué tan acertada fue la clasificación General u Objetivo según el desenlace
+        real de las proyecciones del año seleccionado.
+      </p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <app-year-selector
+      [anio]="anio()"
+      (anterior)="anioAnterior()"
+      (siguiente)="anioSiguiente()"
+    />
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="loading">Cargando reporte...</p>
+  } @else {
+    @if (reporte(); as data) {
+  <div class="report-layout">
+    <div class="panel report-table-wrap">
+      @if (sinDatos()) {
+        <p class="empty">Sin datos de proyecciones con mercado asignado para este año.</p>
+      } @else {
+        @if (pendientesTotales() > 0) {
+          <p class="hint">
+            {{ pendientesTotales() }} proyección(es) aún en curso; no se incluyen en los porcentajes.
+          </p>
+        }
+        @if (data.sinMercado > 0) {
+          <p class="hint">
+            {{ data.sinMercado }} proyección(es) sin mercado asignado quedaron fuera del comparativo.
+          </p>
+        }
+        @if (data.inconsistencias > 0) {
+          <p class="hint hint--warning">
+            {{ data.inconsistencias }} proyección(es) tienen un proceso resultante inconsistente y se contaron como pendientes.
+          </p>
+        }
+
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th>General</th>
+                <th>Objetivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of filas(); track fila.label) {
+                @if (fila.separador) {
+                  <tr class="report-table__separator">
+                    <td colspan="3">
+                      Los siguientes porcentajes se calculan solo sobre proyecciones que sí se materializaron.
+                    </td>
+                  </tr>
+                }
+                <tr>
+                  <td>
+                    <span class="metric-label">{{ fila.label }}</span>
+                    @if (fila.nota && !fila.separador) {
+                      <small class="metric-note">{{ fila.nota }}</small>
+                    }
+                  </td>
+                  <td>{{ fila.general }}</td>
+                  <td>{{ fila.objetivo }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <aside class="panel chart-panel">
+      <h2>% ganadas de las materializadas</h2>
+      <p class="chart-panel__hint">Comparación visual General vs Objetivo.</p>
+
+      <div class="chart-bars">
+        <div class="chart-row">
+          <span class="chart-row__label">General</span>
+          <div class="chart-row__track">
+            <div
+              class="chart-row__bar chart-row__bar--general"
+              [style.width.%]="barWidth(data.general)"
+            ></div>
+          </div>
+          <span class="chart-row__value">{{ formatPct(data.general.pctGanadasDeMaterializadas) }}</span>
+        </div>
+
+        <div class="chart-row">
+          <span class="chart-row__label">Objetivo</span>
+          <div class="chart-row__track">
+            <div
+              class="chart-row__bar chart-row__bar--objetivo"
+              [style.width.%]="barWidth(data.objetivo)"
+            ></div>
+          </div>
+          <span class="chart-row__value">{{ formatPct(data.objetivo.pctGanadasDeMaterializadas) }}</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+    }
+  }
+</section>

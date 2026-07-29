@@ -110,11 +110,27 @@ export class ProcesosService {
   cambiarEstado(
     id: number,
     estado: EstadoProceso,
+    motivoPerdida?: string,
+    motivoPerdidaOtro?: string,
   ): Observable<{ proceso: Proceso; proyeccionGenerada: Proyeccion | null }> {
+    const body: Record<string, string> = { estado };
+    if (motivoPerdida) body['motivoPerdida'] = motivoPerdida;
+    if (motivoPerdidaOtro) body['motivoPerdidaOtro'] = motivoPerdidaOtro;
+
     return this.http.patch<{ proceso: Proceso; proyeccionGenerada: Proyeccion | null }>(
       `${this.base}/${id}/estado`,
-      { estado },
+      body,
     );
+  }
+
+  registrarMotivoPerdida(
+    id: number,
+    motivoPerdida: string,
+    motivoPerdidaOtro?: string,
+  ): Observable<{ proceso: Proceso }> {
+    const body: Record<string, string> = { motivoPerdida };
+    if (motivoPerdidaOtro) body['motivoPerdidaOtro'] = motivoPerdidaOtro;
+    return this.http.patch<{ proceso: Proceso }>(`${this.base}/${id}/motivo-perdida`, body);
   }
 
   getTareas(id: number): Observable<{ data: ProcesoTarea[] }> {

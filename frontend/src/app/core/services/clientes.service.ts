@@ -39,6 +39,51 @@ export class ClientesService {
     return this.http.patch<{ cliente: Cliente }>(`${this.base}/${id}`, payload);
   }
 
+  buscarSimilares(
+    q: string,
+    limit = 5,
+  ): Observable<{
+    data: Array<{ id: number; nombre: string; similitud: number }>;
+  }> {
+    return this.http.get<{
+      data: Array<{ id: number; nombre: string; similitud: number }>;
+    }>(`${this.base}/similares`, { params: { q, limit } });
+  }
+
+  getHistorial(
+    id: number,
+    page = 1,
+    limit = 50,
+  ): Observable<{
+    data: Array<{
+      tipo: 'proceso' | 'relacionamiento';
+      entidadId: number;
+      fecha: string;
+      titulo: string;
+      subtitulo?: string | null;
+      estado?: string | null;
+      contactoNombre?: string | null;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    return this.http.get<{
+      data: Array<{
+        tipo: 'proceso' | 'relacionamiento';
+        entidadId: number;
+        fecha: string;
+        titulo: string;
+        subtitulo?: string | null;
+        estado?: string | null;
+        contactoNombre?: string | null;
+      }>;
+      total: number;
+      page: number;
+      limit: number;
+    }>(`${this.base}/${id}/historial`, { params: { page, limit } });
+  }
+
   getDependencias(id: number): Observable<{
     data: {
       tieneDependientes: boolean;

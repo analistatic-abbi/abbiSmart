@@ -54,6 +54,13 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
+        path: 'calendario',
+        loadComponent: () =>
+          import('./features/calendario/calendario-unificado.component').then(
+            (m) => m.CalendarioUnificadoComponent,
+          ),
+      },
+      {
         path: 'procesos',
         loadComponent: () =>
           import('./features/procesos/procesos-list/procesos-list.component').then(
@@ -218,6 +225,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/proyecciones/asignar-mercado/asignar-mercado.component').then(
             (m) => m.AsignarMercadoComponent,
+          ),
+      },
+      {
+        path: 'proyecciones/efectividad-mercado',
+        loadComponent: () =>
+          import('./features/admin/proyecciones/efectividad-mercado/efectividad-mercado.component').then(
+            (m) => m.EfectividadMercadoComponent,
           ),
       },
       {

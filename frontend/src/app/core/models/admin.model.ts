@@ -96,3 +96,25 @@ export interface SolicitudEliminacion {
   estado: string;
   fechaSolicitud: string;
 }
+
+export interface EfectividadMercadoMercado {
+  total: number;
+  pendientes: number;
+  resueltas: number;
+  nuncaMaterializadas: number;
+  materializadasNoGanadas: number;
+  ganadas: number;
+  materializadas: number;
+  pctNuncaMaterializadas: number | null;
+  pctMaterializadasNoGanadas: number | null;
+  pctGanadas: number | null;
+  pctGanadasDeMaterializadas: number | null;
+}
+
+export interface EfectividadMercadoReporte {
+  anio: number;
+  sinMercado: number;
+  inconsistencias: number;
+  general: EfectividadMercadoMercado;
+  objetivo: EfectividadMercadoMercado;
+}

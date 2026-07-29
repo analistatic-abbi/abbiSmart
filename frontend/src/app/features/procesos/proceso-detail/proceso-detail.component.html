@@ -66,6 +66,15 @@
       <div class="guide">{{ guia }}</div>
     }
 
+    @if (necesitaMotivoBackfill()) {
+      <div class="guide guide--warning">
+        Este proceso requiere registrar el motivo de no adjudicación.
+        @if (puedeEscribir()) {
+          <button type="button" class="link" (click)="abrirMotivoBackfill()">Registrar motivo</button>
+        }
+      </div>
+    }
+
     @if (proyeccionRecienGeneradaId(); as proyeccionId) {
       <div class="guide guide--success">
         Se generó la proyección de mercado.
@@ -115,6 +124,24 @@
             <strong>
               <a [routerLink]="['/proyecciones', proyeccionId]">ID {{ proyeccionId }}</a>
             </strong>
+          </div>
+        }
+
+        @if (p.motivoPerdida) {
+          <div class="motivo-perdida">
+            <span>Motivo de no adjudicación</span>
+            <strong>{{ p.motivoPerdida }}</strong>
+            @if (p.motivoPerdidaOtro) {
+              <p class="muted">{{ p.motivoPerdidaOtro }}</p>
+            }
+            @if (p.motivoPerdidaRegistradoEn) {
+              <small class="muted">
+                Registrado {{ formatFechaHora(p.motivoPerdidaRegistradoEn) }}
+                @if (p.motivoPerdidaUsuarioNombre) {
+                  por {{ p.motivoPerdidaUsuarioNombre }}
+                }
+              </small>
+            }
           </div>
         }
 
@@ -342,7 +369,7 @@
       <div class="panel">
         @if (puedeEscribir()) {
           <div class="comentario-form">
-            <label class="full">Nuevo comentario
+            <label>Nuevo comentario
               <textarea
                 [ngModel]="comentarioTexto()"
                 (ngModelChange)="comentarioTexto.set($event)"
@@ -405,11 +432,43 @@
 
         </select>
 
+        @if (estadoModalRequiereMotivo()) {
+          <label class="modal-field">
+            Motivo
+            <select
+              [ngModel]="motivoPerdida()"
+              (ngModelChange)="motivoPerdida.set($event)"
+            >
+              <option [ngValue]="null">Seleccione un motivo</option>
+              @for (m of motivosPerdida; track m) {
+                <option [ngValue]="m">{{ m }}</option>
+              }
+            </select>
+          </label>
+
+          @if (motivoPerdida() === 'Otro') {
+            <label class="modal-field">
+              Descripción
+              <textarea
+                rows="3"
+                [ngModel]="motivoPerdidaOtro()"
+                (ngModelChange)="motivoPerdidaOtro.set($event)"
+                placeholder="Describa el motivo"
+              ></textarea>
+            </label>
+          }
+        }
+
         <div class="modal__actions">
 
           <button type="button" class="btn-secondary" (click)="showEstadoModal.set(false)">Cancelar</button>
 
-          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="confirmarCambioEstado()">Confirmar</button>
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="actionLoading() || !puedeConfirmarEstado()"
+            (click)="confirmarCambioEstado()"
+          >Confirmar</button>
 
         </div>
 
@@ -540,6 +599,60 @@
             {{ puedeEliminarDirecto() ? 'Eliminar' : 'Enviar solicitud' }}
 
           </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+
+  @if (showMotivoBackfillModal()) {
+
+    <div class="modal-backdrop">
+
+      <div class="modal">
+
+        <h3>Registrar motivo de no adjudicación</h3>
+
+        <label class="modal-field">
+          Motivo
+          <select
+            [ngModel]="motivoPerdida()"
+            (ngModelChange)="motivoPerdida.set($event)"
+          >
+            <option [ngValue]="null">Seleccione un motivo</option>
+            @for (m of motivosPerdida; track m) {
+              <option [ngValue]="m">{{ m }}</option>
+            }
+          </select>
+        </label>
+
+        @if (motivoPerdida() === 'Otro') {
+          <label class="modal-field">
+            Descripción
+            <textarea
+              rows="3"
+              [ngModel]="motivoPerdidaOtro()"
+              (ngModelChange)="motivoPerdidaOtro.set($event)"
+              placeholder="Describa el motivo"
+            ></textarea>
+          </label>
+        }
+
+        <div class="modal__actions">
+
+          <button type="button" class="btn-secondary" (click)="showMotivoBackfillModal.set(false)">Cancelar</button>
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="actionLoading() || !puedeConfirmarEstado()"
+            (click)="confirmarMotivoBackfill()"
+          >Guardar</button>
 
         </div>
 
