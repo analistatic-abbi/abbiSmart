@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { LogAuditoria } from '../../database/entities/log-auditoria.entity';
+import { Pais } from '../../database/entities/pais.entity';
 import { AuditQueryDto } from './dto/audit-query.dto';
 import { AuditLogResponseDto } from './dto/audit-log-response.dto';
 
@@ -29,6 +30,8 @@ export class AuditService {
   constructor(
     @InjectRepository(LogAuditoria)
     private readonly logRepository: Repository<LogAuditoria>,
+    @InjectRepository(Pais)
+    private readonly paisRepository: Repository<Pais>,
   ) {}
 
   async log(input: AuditLogInput): Promise<void> {
@@ -86,13 +89,16 @@ export class AuditService {
 
     const [rows, total] = await this.logRepository.findAndCount({
       where,
+      relations: { usuario: true },
       order: { fechaHora: 'DESC', id: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
 
+    const paisNombres = await this.loadPaisNombres();
+
     return {
-      data: rows.map((row) => AuditLogResponseDto.fromEntity(row)),
+      data: rows.map((row) => AuditLogResponseDto.fromEntity(row, paisNombres)),
       total,
       page,
       limit,
@@ -112,10 +118,20 @@ export class AuditService {
 
     const rows = await this.logRepository.find({
       where,
+      relations: { usuario: true },
       order: { fechaHora: 'DESC', id: 'DESC' },
       take: options?.limit ?? 50,
     });
 
-    return rows.map((row) => AuditLogResponseDto.fromEntity(row));
+    const paisNombres = await this.loadPaisNombres();
+
+    return rows.map((row) => AuditLogResponseDto.fromEntity(row, paisNombres));
+  }
+
+  private async loadPaisNombres(): Promise<Record<string, string>> {
+    const paises = await this.paisRepository.find();
+    return Object.fromEntries(
+      paises.map((pais) => [String(Number(pais.id)), pais.nombre]),
+    );
   }
 }

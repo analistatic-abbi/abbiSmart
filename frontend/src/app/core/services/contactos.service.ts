@@ -22,7 +22,9 @@ export class ContactosService {
     };
     if (params.search) query['search'] = params.search;
     if (params.clienteId) query['clienteId'] = params.clienteId;
-    if (params.esGenerico !== undefined) query['esGenerico'] = params.esGenerico;
+    if (params.esGenerico !== undefined) {
+      query['esGenerico'] = params.esGenerico ? 'true' : 'false';
+    }
 
     return this.http.get<{ data: Contacto[]; total: number }>(`${this.base}/contactos`, {
       params: query,

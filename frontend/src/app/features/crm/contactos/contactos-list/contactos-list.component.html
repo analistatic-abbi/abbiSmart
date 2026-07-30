@@ -12,8 +12,28 @@
   </header>
 
   <div class="filters">
-    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <input
+      type="search"
+      placeholder="Buscar por nombre, cargo, correo o empresa..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      (keyup.enter)="onFilter()"
+    />
+    <select [ngModel]="clienteId()" (ngModelChange)="clienteId.set($event); onFilter()">
+      <option value="">Todas las empresas</option>
+      @for (cliente of clientesOptions(); track cliente.id) {
+        <option [value]="cliente.id">{{ cliente.empresa }}</option>
+      }
+    </select>
+    <select [ngModel]="esGenerico()" (ngModelChange)="esGenerico.set($event); onFilter()">
+      <option value="">Todos los contactos</option>
+      <option value="false">Solo específicos</option>
+      <option value="true">Solo genéricos</option>
+    </select>
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
   </div>
 
   @if (loading()) {
@@ -24,6 +44,7 @@
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Empresa</th>
             <th>Cargo</th>
             <th>Teléfono</th>
             <th>Correo</th>
@@ -37,6 +58,7 @@
           @for (contacto of items(); track contacto.id) {
             <tr>
               <td>{{ contacto.nombre }}</td>
+              <td>{{ empresaContacto(contacto) }}</td>
               <td>{{ contacto.cargo ?? '—' }}</td>
               <td>{{ contacto.telefono ?? '—' }}</td>
               <td>{{ contacto.correo ?? '—' }}</td>
@@ -46,10 +68,21 @@
               }
             </tr>
           } @empty {
-            <tr><td colspan="6">No hay contactos registrados.</td></tr>
+            <tr>
+              <td [attr.colspan]="puedeEscribir() ? 7 : 6">
+                @if (tieneFiltrosActivos()) {
+                  No se encontraron contactos con los filtros seleccionados.
+                } @else {
+                  No hay contactos registrados.
+                }
+              </td>
+            </tr>
           }
         </tbody>
       </table>
     </div>
+    @if (total() > items().length) {
+      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} contactos.</p>
+    }
   }
 </section>

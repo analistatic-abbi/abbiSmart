@@ -79,6 +79,7 @@ export interface Relacionamiento {
   canal: CanalRelacionamiento;
   mensaje: string;
   fechaMensaje: string;
+  diasEsperaRespuesta: number;
   respuesta: string | null;
   fechaRespuesta: string | null;
   resultado: ResultadoRelacionamiento;
@@ -86,7 +87,6 @@ export interface Relacionamiento {
 }
 
 export interface RelacionamientoVencido extends Relacionamiento {
-  diasEsperaConfigurado: number;
   fechaLimiteRespuesta: string;
 }
 
@@ -103,6 +103,7 @@ export interface CreateRelacionamientoPayload {
   canal: CanalRelacionamiento;
   mensaje: string;
   fechaMensaje: string;
+  diasEsperaRespuesta?: number;
   resultado: ResultadoRelacionamiento;
   fechaReunion?: string;
   contactoReferido?: ContactoReferidoPayload;

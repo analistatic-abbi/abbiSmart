@@ -88,6 +88,7 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
+  protected readonly fechasError = signal<string | null>(null);
   protected readonly historialFechas = signal<FechaHistorialItem[]>([]);
 
   protected readonly comentarios = signal<ProcesoComentario[]>([]);
@@ -389,10 +390,12 @@ export class ProcesoDetailComponent implements OnInit {
       fechaRespuestaAclaracion: p.fechaRespuestaAclaracion ?? '',
       fechaLimitacionMypymes: p.fechaLimitacionMypymes ?? '',
     });
+    this.fechasError.set(null);
     this.editandoFechas.set(true);
   }
 
   protected cancelarEdicionFechas(): void {
+    this.fechasError.set(null);
     this.editandoFechas.set(false);
   }
 
@@ -414,6 +417,13 @@ export class ProcesoDetailComponent implements OnInit {
     payload['fechaRespuestaAclaracion'] = form.fechaRespuestaAclaracion || null;
     payload['fechaLimitacionMypymes'] = form.fechaLimitacionMypymes || null;
 
+    const validacionLocal = this.validarFechasFormulario(form);
+    if (validacionLocal) {
+      this.fechasError.set(validacionLocal);
+      return;
+    }
+
+    this.fechasError.set(null);
     this.actionLoading.set(true);
     this.procesos.updateFechas(this.procesoId, payload).subscribe({
       next: (r) => {
@@ -422,8 +432,13 @@ export class ProcesoDetailComponent implements OnInit {
         this.actionLoading.set(false);
         this.loadTareas();
       },
-      error: () => {
-        this.error.set('No fue posible actualizar las fechas.');
+      error: (err) => {
+        this.fechasError.set(
+          mensajeErrorApi(
+            err,
+            'No fue posible actualizar las fechas. Verifique que sean coherentes y estén dentro del rango de apertura y cierre.',
+          ),
+        );
         this.actionLoading.set(false);
       },
     });
@@ -596,6 +611,41 @@ export class ProcesoDetailComponent implements OnInit {
       next: (r) => this.tareas.set(r.data),
       error: () => this.tareas.set([]),
     });
+  }
+
+  private validarFechasFormulario(form: FechasForm): string | null {
+    if (!form.fechaApertura || !form.fechaCierre) {
+      return 'Debe registrar la fecha de apertura y la fecha de cierre.';
+    }
+
+    if (form.fechaCierre < form.fechaApertura) {
+      return `La fecha de cierre (${this.formatFecha(form.fechaCierre)}) no puede ser anterior a la de apertura (${this.formatFecha(form.fechaApertura)}).`;
+    }
+
+    const opcionales: Array<[string, string]> = [
+      ['Manifestación de interés', form.fechaManifestacionInteres],
+      ['Adquisición de derecho', form.fechaAdquisicionDerecho],
+      ['Reunión aclaratoria', form.fechaReunionAclaratoria],
+      ['Visita técnica', form.fechaVisitaTecnica],
+      ['Solicitudes de aclaración', form.fechaSolicitudesAclaracion],
+      ['Respuesta a aclaración', form.fechaRespuestaAclaracion],
+      ['Limitación MyPymes', form.fechaLimitacionMypymes],
+    ];
+
+    for (const [label, valor] of opcionales) {
+      if (!valor) continue;
+
+      if (valor < form.fechaApertura || valor > form.fechaCierre) {
+        return `La fecha de ${label} (${this.formatFecha(valor)}) debe estar entre la apertura (${this.formatFecha(form.fechaApertura)}) y el cierre (${this.formatFecha(form.fechaCierre)}).`;
+      }
+    }
+
+    return null;
+  }
+
+  private formatFecha(value: string): string {
+    const [anio, mes, dia] = value.split('-');
+    return `${dia}/${mes}/${anio}`;
   }
 
   private emptyFechasForm(): FechasForm {

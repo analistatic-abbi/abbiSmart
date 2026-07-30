@@ -46,7 +46,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-    command: npm run start:dev
+    command: node dist/src/main
 
   frontend:
     build:

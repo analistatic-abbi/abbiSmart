@@ -138,6 +138,10 @@ export class LoginService {
         );
       }
 
+      const pais = await this.paisRepository.findOne({
+        where: { id: usuario.paisId },
+      });
+
       const session = await this.sesionService.createSession(
         usuario.id,
         usuario.paisId,
@@ -149,7 +153,7 @@ export class LoginService {
         entidadTipo: AuditEntidadTipo.AUTH,
         entidadId: usuario.id,
         campo: 'pais_sesion',
-        valorNuevo: String(usuario.paisId),
+        valorNuevo: pais?.nombre ?? String(usuario.paisId),
       });
 
       return {
@@ -214,6 +218,10 @@ export class LoginService {
       );
     }
 
+    const paisSeleccionado = paises.find(
+      (p) => Number(p.id) === Number(paisId),
+    );
+
     const session = await this.sesionService.createSession(usuarioId, paisId);
     this.preAuthService.revokeToken(preAuthToken);
 
@@ -223,7 +231,7 @@ export class LoginService {
       entidadTipo: AuditEntidadTipo.AUTH,
       entidadId: usuarioId,
       campo: 'pais_sesion',
-      valorNuevo: String(paisId),
+      valorNuevo: paisSeleccionado?.nombre ?? String(paisId),
     });
 
     return {

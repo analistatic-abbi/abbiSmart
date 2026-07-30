@@ -151,9 +151,12 @@ describe('CRM Fase C (e2e)', () => {
         canal: 'Correo',
         mensaje: 'Seguimiento inicial',
         fechaMensaje: '2020-01-01',
+        diasEsperaRespuesta: 3,
         resultado: ResultadoRelacionamiento.NINGUNO,
       })
       .expect(201);
+
+    expect(relacionRes.body.relacionamiento.diasEsperaRespuesta).toBe(3);
 
     const relacionamientoId = relacionRes.body.relacionamiento.id as number;
 

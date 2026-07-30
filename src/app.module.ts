@@ -11,7 +11,6 @@ import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthorizationDemoModule } from './modules/authorization-demo/authorization-demo.module';
 import { CatalogosModule } from './modules/catalogos/catalogos.module';
-import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
 import { ClientesModule } from './modules/clientes/clientes.module';
 import { ContactosModule } from './modules/contactos/contactos.module';
 import { RelacionamientosModule } from './modules/relacionamientos/relacionamientos.module';
@@ -73,7 +72,6 @@ import { SoporteModule } from './modules/soporte/soporte.module';
     UsersModule,
     AuthorizationDemoModule,
     CatalogosModule,
-    ConfiguracionModule,
     ClientesModule,
     ContactosModule,
     RelacionamientosModule,

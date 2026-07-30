@@ -256,7 +256,7 @@ export class ProyeccionDetailComponent implements OnInit {
 
     this.buscandoProcesos.set(true);
 
-    this.procesos.list(1, 20, q).subscribe({
+    this.procesos.list({ page: 1, limit: 20, search: q }).subscribe({
 
       next: (r) => {
 

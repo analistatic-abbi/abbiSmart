@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard, paisSesionGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { writeAccessGuard } from './core/guards/write-access.guard';
-import { cargaMasivaGuard } from './core/guards/carga-masiva.guard';
 import { Rol } from './core/models/rol.enum';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
 
@@ -242,11 +241,11 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'configuracion',
-        canActivate: [roleGuard([Rol.Administrador])],
+        path: 'carga-masiva',
+        canActivate: [roleGuard([Rol.Administrador, Rol.SupervisorSistema, Rol.Operador])],
         loadComponent: () =>
-          import('./features/admin/configuracion/configuracion.component').then(
-            (m) => m.ConfiguracionComponent,
+          import('./features/admin/carga-masiva/carga-masiva.component').then(
+            (m) => m.CargaMasivaComponent,
           ),
       },
       {
@@ -262,14 +261,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/parametros/parametros-list/parametros-list.component').then(
             (m) => m.ParametrosListComponent,
-          ),
-      },
-      {
-        path: 'carga-masiva',
-        canActivate: [cargaMasivaGuard],
-        loadComponent: () =>
-          import('./features/admin/carga-masiva/carga-masiva.component').then(
-            (m) => m.CargaMasivaComponent,
           ),
       },
       {

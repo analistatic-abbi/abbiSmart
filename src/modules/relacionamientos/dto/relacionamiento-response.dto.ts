@@ -49,6 +49,9 @@ export class RelacionamientoResponseDto {
   @ApiProperty()
   fechaMensaje: string;
 
+  @ApiProperty({ example: 7 })
+  diasEsperaRespuesta: number;
+
   @ApiPropertyOptional()
   respuesta: string | null;
 
@@ -63,9 +66,6 @@ export class RelacionamientoResponseDto {
 }
 
 export class RelacionamientoVencidoResponseDto extends RelacionamientoResponseDto {
-  @ApiProperty()
-  diasEsperaConfigurado: number;
-
   @ApiProperty()
   fechaLimiteRespuesta: string;
 }

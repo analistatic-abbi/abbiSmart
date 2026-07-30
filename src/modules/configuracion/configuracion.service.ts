@@ -24,22 +24,6 @@ const CONFIG_VALIDATORS: Record<string, (valor: string) => void> = {
       );
     }
   },
-  anio_reporte_vigente: (valor) => {
-    const parsed = Number.parseInt(valor, 10);
-    const currentYear = new Date().getFullYear();
-
-    if (
-      !Number.isInteger(parsed) ||
-      parsed < 2000 ||
-      parsed > currentYear + 10
-    ) {
-      throw new BusinessException(
-        ErrorCode.CONFIGURACION_VALOR_INVALIDO,
-        `anio_reporte_vigente debe ser un año entre 2000 y ${currentYear + 10}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  },
   carga_masiva_habilitada: (valor) => {
     if (valor !== 'true' && valor !== 'false') {
       throw new BusinessException(
@@ -50,6 +34,8 @@ const CONFIG_VALIDATORS: Record<string, (valor: string) => void> = {
     }
   },
 };
+
+const CONFIGURACION_OCULTA = new Set(['anio_reporte_vigente']);
 
 @Injectable()
 export class ConfiguracionService {
@@ -64,7 +50,9 @@ export class ConfiguracionService {
       order: { clave: 'ASC' },
     });
 
-    return items.map((item) => this.toResponse(item));
+    return items
+      .filter((item) => !CONFIGURACION_OCULTA.has(item.clave))
+      .map((item) => this.toResponse(item));
   }
 
   async findByClave(clave: string): Promise<ConfiguracionResponseDto> {

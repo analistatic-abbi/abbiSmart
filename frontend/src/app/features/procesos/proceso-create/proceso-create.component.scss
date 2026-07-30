@@ -80,7 +80,7 @@
 }
 
 .modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-prime);
   padding: 24px;
   width: min(420px, 90vw);

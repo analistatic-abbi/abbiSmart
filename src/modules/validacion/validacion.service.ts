@@ -27,6 +27,7 @@ export interface ValidacionPendienteDto {
   codigo: string | null;
   empresaMostrar: string;
   estado: EstadoProceso;
+  validadorNombre?: string;
 }
 
 @Injectable()
@@ -65,19 +66,36 @@ export class ValidacionService {
   }
 
   async findPendientes(
-    validadorId: number,
+    userId: number,
     paisSesionId: number,
+    rol: Rol,
     search?: string,
   ): Promise<ValidacionPendienteDto[]> {
-    const params: unknown[] = [validadorId, paisSesionId];
+    if (!this.permisosService.puedeAccederModuloValidacion(rol)) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'No tiene permisos para ver la bandeja de validación',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const esSupervision =
+      rol === Rol.ADMINISTRADOR || rol === Rol.SUPERVISOR_SISTEMA;
+    const params: unknown[] = esSupervision
+      ? [paisSesionId]
+      : [userId, paisSesionId];
     let searchClause = '';
 
     if (search?.trim()) {
-      searchClause =
-        ' AND (v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ?)';
       const term = `%${search.trim()}%`;
-      params.push(term, term, term);
+      const searchFields = esSupervision
+        ? `(v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ? OR u.nombre LIKE ? OR u.correo LIKE ?)`
+        : `(v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ?)`;
+      searchClause = ` AND ${searchFields}`;
+      params.push(...(esSupervision ? [term, term, term, term, term] : [term, term, term]));
     }
+
+    const validadorFilter = esSupervision ? '' : 'v.validador_id = ? AND ';
 
     const rows = await this.validacionRepository.query(
       `SELECT
@@ -85,12 +103,18 @@ export class ValidacionService {
          v.proceso_id AS procesoId,
          v.codigo,
          v.empresa_mostrar AS empresaMostrar,
-         v.estado
+         v.estado${
+           esSupervision ? ',\n         u.nombre AS validadorNombre' : ''
+         }
        FROM vista_procesos_por_validar v
        INNER JOIN validaciones_proceso vp2
          ON vp2.proceso_id = v.proceso_id AND vp2.validador_id = v.validador_id
-       INNER JOIN procesos p ON p.id = v.proceso_id
-       WHERE v.validador_id = ? AND p.pais_id = ?${searchClause}
+       INNER JOIN procesos p ON p.id = v.proceso_id${
+         esSupervision
+           ? '\n       INNER JOIN usuarios u ON u.id = v.validador_id'
+           : ''
+       }
+       WHERE ${validadorFilter}p.pais_id = ?${searchClause}
        ORDER BY vp2.fecha_asignacion ASC`,
       params,
     );

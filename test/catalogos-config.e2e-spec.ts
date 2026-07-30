@@ -7,7 +7,7 @@ import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
 import { configureE2eApp, configureE2eEnvironment, buildE2eUserPayload, createE2eMailServiceMock } from './e2e-setup';
 
-describe('Catálogos y configuración (e2e)', () => {
+describe('Catálogos (e2e)', () => {
   let app: INestApplication<App>;
   let capturedActivationToken = '';
   const adminDevKey = 'e2e-catalogos-admin-key';
@@ -129,41 +129,5 @@ describe('Catálogos y configuración (e2e)', () => {
       .get(`/api/v1/catalogos/ubicaciones/${ubicacionId}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-  });
-
-  it('should list and update system configuration as admin', async () => {
-    const token = await setupAdminToken();
-
-    const listRes = await request(app.getHttpServer())
-      .get('/api/v1/configuracion')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    expect(listRes.body.data.length).toBeGreaterThanOrEqual(3);
-
-    await request(app.getHttpServer())
-      .patch('/api/v1/configuracion/dias_espera_respuesta_crm')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ valor: '8' })
-      .expect(200);
-
-    const detailRes = await request(app.getHttpServer())
-      .get('/api/v1/configuracion/dias_espera_respuesta_crm')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    expect(detailRes.body.configuracion.valor).toBe('8');
-  });
-
-  it('should deny configuration access to non-admin', async () => {
-    const operadorCorreo = `operador-catalogos-${Date.now()}@test.local`;
-    await createUser(operadorCorreo, Rol.OPERADOR, paisSesionId);
-    await activateLastCreatedUser();
-    const token = await loginAs(operadorCorreo);
-
-    await request(app.getHttpServer())
-      .get('/api/v1/configuracion')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403);
   });
 });

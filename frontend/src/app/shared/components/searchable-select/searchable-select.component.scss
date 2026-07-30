@@ -21,7 +21,7 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: #b8bcc4;
+    border-color: var(--color-input-border-hover);
   }
 
   &:disabled {
@@ -32,7 +32,7 @@
 
 .searchable-select--open .searchable-select__trigger {
   border-color: var(--color-input-border-focus);
-  box-shadow: 0 0 0 3px rgba(14, 59, 101, 0.12);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .searchable-select__value {
@@ -63,10 +63,10 @@
   left: 0;
   right: 0;
   z-index: 40;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-prime);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px var(--color-shadow);
   overflow: hidden;
 }
 
@@ -95,7 +95,7 @@
   &:focus {
     outline: none;
     border-color: var(--color-input-border-focus);
-    box-shadow: 0 0 0 3px rgba(14, 59, 101, 0.12);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
   }
 }
 

@@ -33,6 +33,9 @@ export class Relacionamiento {
   @Column({ name: 'fecha_mensaje', type: 'date' })
   fechaMensaje: string;
 
+  @Column({ name: 'dias_espera_respuesta', type: 'int', unsigned: true, default: 7 })
+  diasEsperaRespuesta: number;
+
   @Column({ type: 'text', nullable: true })
   respuesta: string | null;
 

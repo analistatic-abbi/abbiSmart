@@ -1,4 +1,14 @@
 <div class="login-shell">
+  <button
+    type="button"
+    class="login-theme-toggle"
+    [attr.aria-label]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+    [attr.title]="themeService.isDark() ? 'Modo claro' : 'Modo oscuro'"
+    (click)="themeService.toggle()"
+  >
+    <span class="material-symbols-outlined">{{ themeService.isDark() ? 'dark_mode' : 'light_mode' }}</span>
+  </button>
+
   @if (faqOpen()) {
     <div class="login-faq-backdrop" (click)="closeFaqPanel()" role="presentation"></div>
     <aside

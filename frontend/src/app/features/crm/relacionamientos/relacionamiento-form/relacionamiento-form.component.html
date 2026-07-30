@@ -30,6 +30,16 @@
 
     <label class="full">Mensaje <textarea [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea></label>
     <label>Fecha mensaje <input type="date" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" /></label>
+    <label>Días de espera para alerta
+      <input
+        type="number"
+        min="1"
+        max="365"
+        [ngModel]="diasEsperaRespuesta()"
+        (ngModelChange)="diasEsperaRespuesta.set(+$event)"
+      />
+    </label>
+    <p class="field-hint full">Si no hay respuesta en este plazo, se notificará al emisor del relacionamiento.</p>
 
     <label>Resultado
       <select [ngModel]="resultado()" (ngModelChange)="resultado.set($event)">

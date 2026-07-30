@@ -242,14 +242,19 @@ export class UsersService {
       dto.paisId !== undefined &&
       Number(dto.paisId) !== Number(previousPaisId)
     ) {
+      const [paisAnterior, paisNuevo] = await Promise.all([
+        this.resolvePaisNombre(previousPaisId),
+        this.resolvePaisNombre(saved.paisId),
+      ]);
+
       await this.auditService.log({
         usuarioId: actorUserId ?? null,
         accion: AuditAccion.USUARIO_EDITAR,
         entidadTipo: AuditEntidadTipo.USUARIO,
         entidadId: saved.id,
         campo: 'pais_id',
-        valorAnterior: previousPaisId ? String(previousPaisId) : null,
-        valorNuevo: saved.paisId ? String(saved.paisId) : null,
+        valorAnterior: paisAnterior,
+        valorNuevo: paisNuevo,
       });
     }
 
@@ -414,5 +419,14 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private async resolvePaisNombre(
+    paisId: number | null | undefined,
+  ): Promise<string | null> {
+    if (!paisId) return null;
+
+    const pais = await this.paisRepository.findOne({ where: { id: paisId } });
+    return pais?.nombre ?? String(paisId);
   }
 }

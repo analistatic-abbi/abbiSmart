@@ -5,10 +5,13 @@ import { environment } from '../../../environments/environment';
 import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 import {
   CreateProcesoPayload,
+  EstadoProceso,
   Proceso,
   ProcesoListItem,
   ProcesoTarea,
-  EstadoProceso,
+  SegmentoProceso,
+  TipoInstrumento,
+  TipoProceso,
 } from '../models/proceso.model';
 import { Proyeccion } from '../models/admin.model';
 
@@ -29,25 +32,54 @@ export interface ProcesoComentario {
   fechaCreacion: string;
 }
 
+export interface ProcesosListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  estado?: EstadoProceso;
+  segmento?: SegmentoProceso;
+  tipoProceso?: TipoProceso;
+  tipoInstrumento?: TipoInstrumento;
+  incluirEliminados?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProcesosService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/procesos`;
 
-  list(page = 1, limit = 20, search = ''): Observable<{ data: ProcesoListItem[]; total: number }> {
-    const params: Record<string, string | number> = { page, limit };
-    if (search.trim()) params['search'] = search.trim();
+  list(
+    params: ProcesosListParams = {},
+  ): Observable<{ data: ProcesoListItem[]; total: number }> {
+    const query: Record<string, string | number | boolean> = {
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+    };
+
+    if (params.search?.trim()) query['search'] = params.search.trim();
+    if (params.estado) query['estado'] = params.estado;
+    if (params.segmento) query['segmento'] = params.segmento;
+    if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
+    if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
+    if (params.incluirEliminados) query['incluirEliminados'] = 'true';
+
     return this.http.get<{ data: ProcesoListItem[]; total: number }>(this.base, {
-      params,
+      params: query,
     });
   }
 
-  exportar(search = '', onError?: (message: string) => void): void {
-    const params: Record<string, string> = {};
-    if (search.trim()) params['search'] = search.trim();
+  exportar(params: ProcesosListParams = {}, onError?: (message: string) => void): void {
+    const query: Record<string, string> = {};
+
+    if (params.search?.trim()) query['search'] = params.search.trim();
+    if (params.estado) query['estado'] = params.estado;
+    if (params.segmento) query['segmento'] = params.segmento;
+    if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
+    if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
+    if (params.incluirEliminados) query['incluirEliminados'] = 'true';
 
     this.http
-      .get(`${this.base}/export`, { params, responseType: 'blob', observe: 'response' })
+      .get(`${this.base}/export`, { params: query, responseType: 'blob', observe: 'response' })
       .subscribe({
         next: async (response) => {
           const blob = response.body;

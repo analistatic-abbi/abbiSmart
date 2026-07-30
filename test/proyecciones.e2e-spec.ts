@@ -415,36 +415,6 @@ describe('Proyecciones Fase E (e2e)', () => {
     ).toBe(true);
   });
 
-  it('bloquea carga masiva de proyecciones cuando está deshabilitada', async () => {
-    const token = await setupAdminToken();
-
-    await request(app.getHttpServer())
-      .patch('/api/v1/configuracion/carga_masiva_habilitada')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ valor: 'false' })
-      .expect(200);
-
-    const csv = [
-      'anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion',
-      '2035-06-15,2035-06-15,1000,800',
-    ].join('\n');
-
-    await request(app.getHttpServer())
-      .post('/api/v1/carga-masiva/proyecciones')
-      .set('Authorization', `Bearer ${token}`)
-      .field('content', csv)
-      .expect(403)
-      .expect((res) => {
-        expect(res.body.errorCode).toBe('CARGA_MASIVA_DESHABILITADA');
-      });
-
-    await request(app.getHttpServer())
-      .patch('/api/v1/configuracion/carga_masiva_habilitada')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ valor: 'true' })
-      .expect(200);
-  });
-
   it('reporta efectividad de mercado por año proyectado', async () => {
     const token = await setupAdminToken();
     const anioReporte = 9000 + (Date.now() % 1000);

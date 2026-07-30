@@ -18,14 +18,21 @@ function parseDate(value: string): Date {
   return new Date(`${value}T00:00:00`);
 }
 
+function formatFechaLegible(value: string): string {
+  const [anio, mes, dia] = value.split('-');
+  return `${dia}/${mes}/${anio}`;
+}
+
 export function validateFechasEnRango(fechas: FechasProcesoInput): void {
   const apertura = parseDate(fechas.fechaApertura);
   const cierre = parseDate(fechas.fechaCierre);
+  const aperturaTexto = formatFechaLegible(fechas.fechaApertura);
+  const cierreTexto = formatFechaLegible(fechas.fechaCierre);
 
   if (cierre < apertura) {
     throw new BusinessException(
       ErrorCode.PROCESO_FECHAS_FUERA_RANGO,
-      'La fecha de cierre no puede ser anterior a la fecha de apertura',
+      `La fecha de cierre (${cierreTexto}) no puede ser anterior a la de apertura (${aperturaTexto}).`,
       HttpStatus.BAD_REQUEST,
     );
   }
@@ -50,7 +57,7 @@ export function validateFechasEnRango(fechas: FechasProcesoInput): void {
     if (fecha < apertura || fecha > cierre) {
       throw new BusinessException(
         ErrorCode.PROCESO_FECHAS_FUERA_RANGO,
-        `La fecha de ${label} debe estar entre apertura y cierre`,
+        `La fecha de ${label} (${formatFechaLegible(valor)}) debe estar entre la apertura (${aperturaTexto}) y el cierre (${cierreTexto}).`,
         HttpStatus.BAD_REQUEST,
       );
     }

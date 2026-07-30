@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificacionesService, Notificacion } from '../../../core/services/notificaciones.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { LOGO_ABBI } from '../../../core/constants/branding';
 import { etiquetaTipoNotificacion } from '../../../core/utils/proyeccion-ui.util';
 import { countryFlagUrl, countryIsoCode } from '../../../core/utils/country.util';
@@ -15,6 +16,7 @@ import { formatFechaHora, formatTiempoRelativo } from '../../../core/utils/date.
 })
 export class AppHeaderComponent implements OnInit {
   protected readonly auth = inject(AuthService);
+  protected readonly themeService = inject(ThemeService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly router = inject(Router);
 

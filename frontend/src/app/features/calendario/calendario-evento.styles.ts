@@ -1,4 +1,5 @@
 import { CalendarioEventoTipo } from '../../core/services/calendario.service';
+import { cssThemeVar } from '../../core/utils/theme-css.util';
 import { getEstadoCalendarioStyle } from '../admin/proyecciones/calendario-proyecciones/estado-calendario.styles';
 
 export interface CalendarioEventoStyle {
@@ -8,11 +9,20 @@ export interface CalendarioEventoStyle {
   label: string;
 }
 
-const TIPO_STYLES: Record<CalendarioEventoTipo, CalendarioEventoStyle> = {
-  proyeccion: { bg: '#eef6fb', border: '#b6d4e8', text: '#0e3b65', label: 'Proyección' },
-  proceso: { bg: '#f3f0ff', border: '#c9b8f5', text: '#4a2f91', label: 'Proceso' },
-  relacionamiento: { bg: '#fff8ee', border: '#e8c9a0', text: '#6b4a12', label: 'Relacionamiento' },
+const TIPO_LABELS: Record<CalendarioEventoTipo, string> = {
+  proyeccion: 'Proyección',
+  proceso: 'Proceso',
+  relacionamiento: 'Relacionamiento',
 };
+
+function tipoStyle(tipo: Exclude<CalendarioEventoTipo, 'proyeccion'>): CalendarioEventoStyle {
+  return {
+    bg: cssThemeVar(`--cal-${tipo}-bg`),
+    border: cssThemeVar(`--cal-${tipo}-border`),
+    text: cssThemeVar(`--cal-${tipo}-text`),
+    label: TIPO_LABELS[tipo],
+  };
+}
 
 export function getEventoCalendarioStyle(
   tipo: CalendarioEventoTipo,
@@ -28,7 +38,7 @@ export function getEventoCalendarioStyle(
     };
   }
 
-  const base = TIPO_STYLES[tipo];
+  const base = tipoStyle(tipo);
   return {
     ...base,
     label: estado || base.label,

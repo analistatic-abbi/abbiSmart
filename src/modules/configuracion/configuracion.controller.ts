@@ -17,7 +17,7 @@ export class ConfiguracionController {
 
   @Get()
   @ApiOperation({
-    summary: 'Listar parámetros del sistema (REL-007, SGP-006, TRX-014)',
+    summary: 'Listar parámetros globales del sistema',
   })
   async findAll() {
     const data = await this.configuracionService.findAll();

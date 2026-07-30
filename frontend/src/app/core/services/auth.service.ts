@@ -197,6 +197,11 @@ export class AuthService {
     return this.puedeCerrarProyeccion();
   }
 
+  puedeVerEliminados(): boolean {
+    const rol = this.rol();
+    return rol === 'Administrador' || rol === 'Supervisor del Sistema';
+  }
+
   setPaisNombre(nombre: string): void {
     const current = this.state();
     this.state.set({ ...current, paisNombre: nombre });

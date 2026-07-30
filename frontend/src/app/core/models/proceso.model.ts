@@ -150,6 +150,8 @@ export interface ProcesoListItem {
   empresaMostrar: string;
   estado: EstadoProceso;
   segmento: SegmentoProceso;
+  tipoProceso: TipoProceso;
+  tipoInstrumento: TipoInstrumento;
 }
 
 export interface ProcesoTarea {

@@ -38,6 +38,7 @@ export class RelacionamientoFormComponent implements OnInit {
   protected readonly canal = signal<CanalRelacionamiento>(CanalRelacionamiento.Correo);
   protected readonly mensaje = signal('');
   protected readonly fechaMensaje = signal('');
+  protected readonly diasEsperaRespuesta = signal(7);
   protected readonly resultado = signal<ResultadoRelacionamiento>(ResultadoRelacionamiento.Ninguno);
   protected readonly fechaReunion = signal('');
 
@@ -65,6 +66,7 @@ export class RelacionamientoFormComponent implements OnInit {
       canal: this.canal(),
       mensaje: this.mensaje().trim(),
       fechaMensaje: this.fechaMensaje(),
+      diasEsperaRespuesta: this.diasEsperaRespuesta(),
       resultado: this.resultado(),
       ...(this.resultado() === ResultadoRelacionamiento.ReunionProgramada
         ? { fechaReunion: this.fechaReunion() }

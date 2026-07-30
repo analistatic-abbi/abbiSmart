@@ -69,9 +69,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(139, 41, 66, 0.25);
+  border: 1px solid var(--color-logout-border);
   border-radius: var(--radius-prime);
-  background: #fdf2f4;
+  background: var(--color-logout-bg);
   color: var(--color-logout);
   font-weight: 600;
   font-size: 14px;
@@ -84,6 +84,6 @@
   }
 
   &:hover {
-    background: #f8e4e8;
+    background: var(--color-logout-bg-hover);
   }
 }

@@ -432,6 +432,7 @@ CREATE TABLE relacionamientos (
     canal               ENUM('Correo','Llamada','Mensaje','Presencial') NOT NULL,
     mensaje             TEXT NOT NULL,
     fecha_mensaje       DATE NOT NULL,
+    dias_espera_respuesta INT UNSIGNED NOT NULL DEFAULT 7,
     respuesta           TEXT NULL,
     fecha_respuesta     DATE NULL,
     resultado           ENUM('Reunión programada','Referido a tercero','Ninguno') NOT NULL,
@@ -475,11 +476,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO paises (nombre) VALUES ('Colombia'), ('Perú');
 
-INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
-    ('dias_espera_respuesta_crm', '7', 'Días de espera por defecto para recibir Respuesta a un Relacionamiento antes de alertar (REL-007)'),
-    ('anio_reporte_vigente', '2026', 'Año calendario usado para calcular Meses de ejecución y Facturación estimada (SGP-005, SGP-006)'),
-    ('carga_masiva_habilitada', 'true', 'Activa o desactiva por completo la carga masiva de Proyecciones/Clientes/Contactos (TRX-014)');
-
 -- Administrador inicial (desarrollo): admin@abbi.com / Admin1234
 INSERT IGNORE INTO usuarios (nombre, correo, password_hash, rol, pais_id, estado)
 VALUES (
@@ -514,22 +510,21 @@ SELECT
     DATEDIFF(p.fecha_finalizacion, CURDATE()) AS dias_espera,
     CONCAT(DATE_FORMAT(p.fecha_finalizacion, '%M'), '-', DATE_FORMAT(p.fecha_finalizacion, '%y')) AS fecha_esperada,
     DATEDIFF(p.fecha_cierre, CURDATE()) AS dias_restantes_cierre,
-    cfg.anio_reporte,
+    YEAR(CURDATE()) AS anio_reporte,
     GREATEST(0, TIMESTAMPDIFF(MONTH,
-        GREATEST(p.fecha_inicio_ejecucion, MAKEDATE(cfg.anio_reporte, 1)),
-        LEAST(p.fecha_finalizacion, MAKEDATE(cfg.anio_reporte + 1, 1))
+        GREATEST(p.fecha_inicio_ejecucion, MAKEDATE(YEAR(CURDATE()), 1)),
+        LEAST(p.fecha_finalizacion, MAKEDATE(YEAR(CURDATE()) + 1, 1))
     )) AS meses_ejecucion_anio_reporte,
     ROUND(
         (p.cuantia / p.plazo_ejecucion_meses) *
         GREATEST(0, TIMESTAMPDIFF(MONTH,
-            GREATEST(p.fecha_inicio_ejecucion, MAKEDATE(cfg.anio_reporte, 1)),
-            LEAST(p.fecha_finalizacion, MAKEDATE(cfg.anio_reporte + 1, 1))
+            GREATEST(p.fecha_inicio_ejecucion, MAKEDATE(YEAR(CURDATE()), 1)),
+            LEAST(p.fecha_finalizacion, MAKEDATE(YEAR(CURDATE()) + 1, 1))
         ))
     , 2) AS facturacion_estimada_anio_reporte
 FROM procesos p
 JOIN paises pa ON pa.id = p.pais_id
 LEFT JOIN clientes c ON c.id = p.empresa_cliente_id
-CROSS JOIN (SELECT CAST(valor AS UNSIGNED) AS anio_reporte FROM configuracion_sistema WHERE clave = 'anio_reporte_vigente') cfg
 WHERE p.eliminado = FALSE;
 
 CREATE VIEW vista_procesos_avance AS
@@ -595,13 +590,12 @@ SELECT
     r.contacto_id,
     r.emisor_usuario_id,
     r.fecha_mensaje,
-    CAST(cfg.valor AS UNSIGNED) AS dias_espera_configurado,
-    DATE_ADD(r.fecha_mensaje, INTERVAL CAST(cfg.valor AS UNSIGNED) DAY) AS fecha_limite_respuesta
+    r.dias_espera_respuesta AS dias_espera_configurado,
+    DATE_ADD(r.fecha_mensaje, INTERVAL r.dias_espera_respuesta DAY) AS fecha_limite_respuesta
 FROM relacionamientos r
-CROSS JOIN (SELECT valor FROM configuracion_sistema WHERE clave = 'dias_espera_respuesta_crm') cfg
 WHERE r.respuesta IS NULL
   AND r.eliminado = FALSE
-  AND CURDATE() > DATE_ADD(r.fecha_mensaje, INTERVAL CAST(cfg.valor AS UNSIGNED) DAY);
+  AND CURDATE() > DATE_ADD(r.fecha_mensaje, INTERVAL r.dias_espera_respuesta DAY);
 
 -- Vista de procesos pendientes por Validador (VAL-005)
 CREATE VIEW vista_procesos_por_validar AS

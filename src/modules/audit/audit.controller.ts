@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Header, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Rol } from '../../common/enums/rol.enum';
@@ -12,6 +12,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
+  @Header('Cache-Control', 'no-store')
   @Roles(Rol.ADMINISTRADOR)
   @ApiOperation({ summary: 'Consultar registros de auditoría (solo Administrador)' })
   async findAll(@Query() query: AuditQueryDto) {

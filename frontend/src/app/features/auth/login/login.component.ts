@@ -9,6 +9,7 @@ import { LOGO_ABBI, LOGIN_HERO_EQUIPO, LOGIN_OPERADOR } from '../../../core/cons
 import { DEV_LOGIN_ACCOUNTS, DevLoginAccount } from '../../../core/constants/dev-login';
 import { environment } from '../../../../environments/environment';
 import { LOGIN_FAQ_ITEMS } from './login-faq';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  protected readonly themeService = inject(ThemeService);
 
   protected readonly logoUrl = LOGO_ABBI;
   protected readonly loginHeroEquipo = LOGIN_HERO_EQUIPO;

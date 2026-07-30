@@ -1,7 +1,6 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { SupportUiService } from '../../../core/services/support-ui.service';
 import { Rol } from '../../../core/models/rol.enum';
 
@@ -10,7 +9,6 @@ interface NavItem {
   icon: string;
   route: string;
   roles?: Rol[];
-  requiresCargaMasiva?: boolean;
 }
 
 @Component({
@@ -20,12 +18,9 @@ interface NavItem {
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.scss',
 })
-export class AppSidebarComponent implements OnInit {
+export class AppSidebarComponent {
   private readonly auth = inject(AuthService);
-  private readonly configuracion = inject(ConfiguracionService);
   private readonly supportUi = inject(SupportUiService);
-
-  private readonly cargaMasivaHabilitada = signal(true);
 
   private readonly allItems: NavItem[] = [
     { label: 'Panel de Control', icon: 'dashboard', route: '/dashboard' },
@@ -53,7 +48,6 @@ export class AppSidebarComponent implements OnInit {
       icon: 'upload_file',
       route: '/carga-masiva',
       roles: [Rol.Administrador, Rol.SupervisorSistema, Rol.Operador],
-      requiresCargaMasiva: true,
     },
     {
       label: 'Solicitudes eliminación',
@@ -67,35 +61,14 @@ export class AppSidebarComponent implements OnInit {
       route: '/admin/auditoria',
       roles: [Rol.Administrador],
     },
-    {
-      label: 'Configuración',
-      icon: 'settings',
-      route: '/configuracion',
-      roles: [Rol.Administrador],
-    },
   ];
 
   protected readonly items = computed(() => {
     const rol = this.auth.rol();
     if (!rol) return [];
 
-    return this.allItems.filter((item) => {
-      if (item.roles && !item.roles.includes(rol)) return false;
-      if (item.requiresCargaMasiva && !this.cargaMasivaHabilitada()) return false;
-      return true;
-    });
+    return this.allItems.filter((item) => !item.roles || item.roles.includes(rol));
   });
-
-  ngOnInit(): void {
-    this.configuracion.list().subscribe({
-      next: (r) => {
-        const habilitada =
-          r.data.find((item) => item.clave === 'carga_masiva_habilitada')?.valor === 'true';
-        this.cargaMasivaHabilitada.set(habilitada);
-      },
-      error: () => this.cargaMasivaHabilitada.set(false),
-    });
-  }
 
   protected logout(): void {
     this.auth.logout().subscribe();

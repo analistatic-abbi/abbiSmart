@@ -8,31 +8,31 @@
 }
 
 .estado-badge--lejano {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #43474f;
+  background: var(--badge-lejano-bg);
+  border-color: var(--badge-lejano-border);
+  color: var(--badge-lejano-text);
 }
 
 .estado-badge--proximo {
-  background: #fef3c7;
-  border-color: #fcd34d;
-  color: #92400e;
+  background: var(--badge-proximo-bg);
+  border-color: var(--badge-proximo-border);
+  color: var(--badge-proximo-text);
 }
 
 .estado-badge--sale {
-  background: #ffedd5;
-  border-color: #fdba74;
-  color: #be5535;
+  background: var(--badge-sale-bg);
+  border-color: var(--badge-sale-border);
+  color: var(--badge-sale-text);
 }
 
 .estado-badge--publicado {
-  background: #dcfce7;
-  border-color: #86efac;
-  color: #166534;
+  background: var(--badge-publicado-bg);
+  border-color: var(--badge-publicado-border);
+  color: var(--badge-publicado-text);
 }
 
 .estado-badge--cerrado {
-  background: #dbeafe;
-  border-color: #2e8ec2;
-  color: #1e40af;
+  background: var(--badge-cerrado-bg);
+  border-color: var(--badge-cerrado-border);
+  color: var(--badge-cerrado-text);
 }
