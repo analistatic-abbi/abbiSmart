@@ -39,9 +39,10 @@ describe('PermisosService', () => {
     expect(service.puedeAccederModuloValidacion(Rol.VISITANTE)).toBe(false);
   });
 
-  it('Validador y Admin ejecutan validación', () => {
+  it('solo Validador emite veredictos', () => {
     expect(service.puedeEjecutarValidacion(Rol.VALIDADOR)).toBe(true);
-    expect(service.puedeEjecutarValidacion(Rol.ADMINISTRADOR)).toBe(true);
+    expect(service.puedeEjecutarValidacion(Rol.ADMINISTRADOR)).toBe(false);
+    expect(service.puedeEjecutarValidacion(Rol.SUPERVISOR_SISTEMA)).toBe(false);
   });
 
   it('gestión de procesos excluye Visitante y Validador', () => {

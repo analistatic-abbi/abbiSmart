@@ -109,12 +109,12 @@ describe('Carga masiva (e2e)', () => {
     expect(ubicRes.body.data.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('importa clientes desde CSV con columnas legibles (CLI-004)', async () => {
+  it('importa clientes desde CSV con columnas unificadas (CLI-004)', async () => {
     const token = await setupAdminToken();
     const empresa = `Empresa Carga ${Date.now()}`;
     const csv = [
-      'empresa,pais,region,segmento',
-      `${empresa},${paisNombre},Antioquia,Minería`,
+      'empresa,segmento,pais,departamento,municipio,segmento_otro',
+      `${empresa},Minería,${paisNombre},Antioquia,,`,
     ].join('\n');
 
     const res = await request(app.getHttpServer())
@@ -146,8 +146,8 @@ describe('Carga masiva (e2e)', () => {
     const contactoNuevo = `Contacto Importado ${Date.now()}`;
 
     const clienteCsv = [
-      'empresa,pais,region,segmento',
-      `${empresa},${paisNombre},Antioquia,Minería`,
+      'empresa,segmento,pais,departamento,municipio,segmento_otro',
+      `${empresa},Minería,${paisNombre},Antioquia,,`,
     ].join('\n');
 
     await request(app.getHttpServer())
@@ -157,8 +157,8 @@ describe('Carga masiva (e2e)', () => {
       .expect(200);
 
     const contactoReferenteCsv = [
-      'empresa,nombre,region,cargo',
-      `${empresa},${referente},Antioquia,Gerente`,
+      'empresa,nombre,departamento,municipio,cargo,telefono,correo,referido_por',
+      `${empresa},${referente},Antioquia,,Gerente,,,`,
     ].join('\n');
 
     await request(app.getHttpServer())
@@ -168,8 +168,8 @@ describe('Carga masiva (e2e)', () => {
       .expect(200);
 
     const contactoCsv = [
-      'empresa,nombre,region,cargo,referido_por_nombre',
-      `${empresa},${contactoNuevo},Antioquia,Analista,${referente}`,
+      'empresa,nombre,departamento,municipio,cargo,telefono,correo,referido_por',
+      `${empresa},${contactoNuevo},Antioquia,,Analista,,,${referente}`,
     ].join('\n');
 
     const res = await request(app.getHttpServer())
@@ -194,8 +194,8 @@ describe('Carga masiva (e2e)', () => {
     const token = await setupAdminToken();
     const anio = 2030 + (Date.now() % 50);
     const csv = [
-      'anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion',
-      `${anio},${anio}-06-15,150000.50,75000.25`,
+      'anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,proceso_codigo,mercado',
+      `${anio},${anio}-06-15,150000.50,75000.25,,`,
     ].join('\n');
 
     const res = await request(app.getHttpServer())
@@ -216,12 +216,30 @@ describe('Carga masiva (e2e)', () => {
     expect(listRes.body.data.length).toBeGreaterThanOrEqual(1);
   });
 
+  it('importa cliente con solo país y sin departamento', async () => {
+    const token = await setupAdminToken();
+    const empresa = `Empresa Solo Pais ${Date.now()}`;
+    const csv = [
+      'empresa,segmento,pais,departamento,municipio,segmento_otro',
+      `${empresa},Minería,${paisNombre},,,`,
+    ].join('\n');
+
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/carga-masiva/clientes')
+      .set('Authorization', `Bearer ${token}`)
+      .field('content', csv)
+      .expect(200);
+
+    expect(res.body.filasExitosas).toBe(1);
+    expect(res.body.filasRechazadas).toBe(0);
+  });
+
   it('rechaza fila de cliente con país distinto a la sesión activa', async () => {
     const token = await setupAdminToken();
     const otroPais = paisNombre === 'Colombia' ? 'Perú' : 'Colombia';
     const csv = [
-      'empresa,pais,region,segmento',
-      `Empresa Pais Invalido ${Date.now()},${otroPais},Antioquia,Minería`,
+      'empresa,segmento,pais,departamento,municipio,segmento_otro',
+      `Empresa Pais Invalido ${Date.now()},Minería,${otroPais},Antioquia,,`,
     ].join('\n');
 
     const res = await request(app.getHttpServer())

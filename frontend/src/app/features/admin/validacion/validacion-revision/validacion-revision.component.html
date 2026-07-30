@@ -97,24 +97,30 @@
       <p class="warn">Hay {{ tareasPendientes().length }} tarea(s) aplicables pendientes de completar.</p>
     }
 
-    <h2>Veredicto</h2>
-    <div class="panel form-grid">
-      <label>Veredicto
-        <select [ngModel]="veredicto()" (ngModelChange)="veredicto.set($event)">
-          <option value="Aprobado">Aprobado</option>
-          <option value="Requiere Corrección">Requiere Corrección</option>
-        </select>
-      </label>
-      <label class="full">Comentario
-        <textarea [ngModel]="comentario()" (ngModelChange)="comentario.set($event)"></textarea>
-      </label>
-    </div>
+    @if (puedeEmitirVeredicto()) {
+      <h2>Veredicto</h2>
+      <div class="panel form-grid">
+        <label>Veredicto
+          <select [ngModel]="veredicto()" (ngModelChange)="veredicto.set($event)">
+            <option value="Aprobado">Aprobado</option>
+            <option value="Requiere Corrección">Requiere Corrección</option>
+          </select>
+        </label>
+        <label class="full">Comentario
+          <textarea [ngModel]="comentario()" (ngModelChange)="comentario.set($event)"></textarea>
+        </label>
+      </div>
 
-    <div class="form-actions">
-      <button type="button" class="btn-primary" [disabled]="saving()" (click)="enviarVeredicto()">
-        {{ saving() ? 'Enviando...' : 'Registrar veredicto' }}
-      </button>
-    </div>
+      <div class="form-actions">
+        <button type="button" class="btn-primary" [disabled]="saving()" (click)="enviarVeredicto()">
+          {{ saving() ? 'Enviando...' : 'Registrar veredicto' }}
+        </button>
+      </div>
+    } @else {
+      <div class="panel readonly-hint">
+        <p>Vista de solo lectura. Solo los validadores asignados pueden registrar un veredicto.</p>
+      </div>
+    }
   </section>
   }
 }

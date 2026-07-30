@@ -22,9 +22,33 @@
         <div class="config-row">
           <div>
             <strong>{{ titulo(item.clave) }}</strong>
-            <p>{{ item.descripcion }}</p>
+            <p>{{ descripcion(item) }}</p>
           </div>
-          <input type="text" [ngModel]="valores()[item.clave]" (ngModelChange)="updateValor(item.clave, $event)" />
+          @switch (tipoCampo(item.clave)) {
+            @case ('boolean') {
+              <select
+                [ngModel]="valores()[item.clave]"
+                (ngModelChange)="updateValor(item.clave, $event)"
+              >
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+              </select>
+            }
+            @case ('number') {
+              <input
+                type="number"
+                [ngModel]="valores()[item.clave]"
+                (ngModelChange)="updateValor(item.clave, $event)"
+              />
+            }
+            @default {
+              <input
+                type="text"
+                [ngModel]="valores()[item.clave]"
+                (ngModelChange)="updateValor(item.clave, $event)"
+              />
+            }
+          }
           <button type="button" class="btn-secondary" [disabled]="saving() === item.clave" (click)="guardar(item.clave)">
             {{ saving() === item.clave ? 'Guardando...' : 'Guardar' }}
           </button>

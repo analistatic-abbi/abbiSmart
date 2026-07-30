@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Max,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
@@ -60,6 +61,18 @@ export class CreateRelacionamientoDto {
   @ApiProperty({ example: '2026-03-15' })
   @IsDateString()
   fechaMensaje: string;
+
+  @ApiPropertyOptional({
+    example: 7,
+    description: 'Días de espera para recibir respuesta antes de generar alerta',
+    default: 7,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  @Max(365)
+  diasEsperaRespuesta?: number;
 
   @ApiProperty({ enum: ResultadoRelacionamiento })
   @IsEnum(ResultadoRelacionamiento)

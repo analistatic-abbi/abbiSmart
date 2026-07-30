@@ -4,10 +4,26 @@ import { RouterLink } from '@angular/router';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
 import { ConfiguracionItem } from '../../../core/models/admin.model';
 
-const CONFIG_TITULOS: Record<string, string> = {
-  anio_reporte_vigente: 'Año de reporte vigente',
-  carga_masiva_habilitada: 'Carga masiva habilitada',
-  dias_espera_respuesta_crm: 'Días de espera de respuesta CRM',
+type ConfigFieldType = 'text' | 'number' | 'boolean';
+
+interface ConfigMeta {
+  titulo: string;
+  descripcion: string;
+  tipo: ConfigFieldType;
+}
+
+const CONFIG_META: Record<string, ConfigMeta> = {
+  carga_masiva_habilitada: {
+    titulo: 'Carga masiva habilitada',
+    descripcion: 'Activa o desactiva la carga masiva de proyecciones, clientes y contactos.',
+    tipo: 'boolean',
+  },
+  dias_espera_respuesta_crm: {
+    titulo: 'Días de espera de respuesta CRM',
+    descripcion:
+      'Días de espera por defecto para recibir respuesta a un relacionamiento antes de generar alerta.',
+    tipo: 'number',
+  },
 };
 
 @Component({
@@ -43,7 +59,19 @@ export class ConfiguracionComponent implements OnInit {
   }
 
   protected titulo(clave: string): string {
-    return CONFIG_TITULOS[clave] ?? clave.replaceAll('_', ' ');
+    return CONFIG_META[clave]?.titulo ?? clave.replaceAll('_', ' ');
+  }
+
+  protected descripcion(item: ConfiguracionItem): string {
+    return CONFIG_META[item.clave]?.descripcion ?? this.limpiarDescripcion(item.descripcion);
+  }
+
+  protected tipoCampo(clave: string): ConfigFieldType {
+    return CONFIG_META[clave]?.tipo ?? 'text';
+  }
+
+  private limpiarDescripcion(descripcion: string): string {
+    return descripcion.replace(/\s*\([A-Z]+-\d+(?:,\s*[A-Z]+-\d+)*\)/g, '').trim();
   }
 
   protected updateValor(clave: string, valor: string): void {

@@ -28,6 +28,9 @@ export class AuditService {
     if (params.fechaDesde) query['fechaDesde'] = params.fechaDesde;
     if (params.fechaHasta) query['fechaHasta'] = params.fechaHasta;
 
-    return this.http.get<{ data: AuditLog[]; total: number }>(this.base, { params: query });
+    return this.http.get<{ data: AuditLog[]; total: number }>(this.base, {
+      params: query,
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    });
   }
 }

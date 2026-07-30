@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { countryFlagUrl } from '../../../core/utils/country.util';
 
@@ -11,7 +10,7 @@ interface PaisOption {
 @Component({
   selector: 'app-select-country',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './select-country.component.html',
   styleUrl: './select-country.component.scss',
 })

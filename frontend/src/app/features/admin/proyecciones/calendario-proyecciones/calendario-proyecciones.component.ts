@@ -8,6 +8,7 @@ import { parseIsoDateLocal } from '../../../../core/utils/date.util';
 import { getEstadoCalendarioStyle } from './estado-calendario.styles';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
 import { YearSelectorComponent } from '../../../../shared/components/year-selector/year-selector.component';
+import { ThemeService } from '../../../../core/services/theme.service';
 
 interface MesCalendario {
   mesIndex: number;
@@ -27,6 +28,7 @@ export class CalendarioProyeccionesComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly items = signal<Proyeccion[]>([]);
   protected readonly loading = signal(true);
@@ -60,7 +62,10 @@ export class CalendarioProyeccionesComponent implements OnInit {
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
 
   protected readonly formatValor = formatCurrencyAbbreviated;
-  protected readonly estadoStyle = getEstadoCalendarioStyle;
+  protected estadoStyle(estado: string) {
+    this.themeService.theme();
+    return getEstadoCalendarioStyle(estado);
+  }
 
   ngOnInit(): void {
     this.syncAnioFromRoute();

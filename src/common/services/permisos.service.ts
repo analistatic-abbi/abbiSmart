@@ -25,7 +25,7 @@ export class PermisosService {
   }
 
   puedeEjecutarValidacion(rol: Rol): boolean {
-    return rol === Rol.VALIDADOR || rol === Rol.ADMINISTRADOR;
+    return rol === Rol.VALIDADOR;
   }
 
   puedeGestionarProcesos(rol: Rol): boolean {

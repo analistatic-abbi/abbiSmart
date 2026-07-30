@@ -7,6 +7,7 @@ import {
 } from '../../core/services/calendario.service';
 import { parseIsoDateLocal } from '../../core/utils/date.util';
 import { YearSelectorComponent } from '../../shared/components/year-selector/year-selector.component';
+import { ThemeService } from '../../core/services/theme.service';
 import {
   getEventoCalendarioStyle,
   rutaEventoCalendario,
@@ -29,6 +30,7 @@ export class CalendarioUnificadoComponent implements OnInit {
   private readonly calendario = inject(CalendarioService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly items = signal<CalendarioEvento[]>([]);
   protected readonly loading = signal(true);
@@ -60,7 +62,10 @@ export class CalendarioUnificadoComponent implements OnInit {
     }));
   });
 
-  protected readonly eventoStyle = getEventoCalendarioStyle;
+  protected eventoStyle(tipo: CalendarioEventoTipo, estado: string) {
+    this.themeService.theme();
+    return getEventoCalendarioStyle(tipo, estado);
+  }
 
   ngOnInit(): void {
     this.syncAnioFromRoute();

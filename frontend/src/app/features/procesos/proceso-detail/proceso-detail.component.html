@@ -205,6 +205,12 @@
 
         @if (editandoFechas()) {
 
+          @if (fechasError()) {
+            <p class="error">{{ fechasError() }}</p>
+          }
+
+          <p class="hint">Las fechas intermedias deben estar entre la apertura y el cierre del proceso.</p>
+
           <div class="grid form-grid">
 
             <label>Fecha apertura <input type="date" [ngModel]="fechasForm().fechaApertura" (ngModelChange)="updateFecha('fechaApertura', $event)" /></label>

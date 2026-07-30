@@ -13,7 +13,6 @@ import { Pais } from '../../database/entities/pais.entity';
 import { CargaMasivaLog } from '../../database/entities/carga-masiva-log.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
-import { ConfiguracionService } from '../configuracion/configuracion.service';
 import { ContactosService } from '../contactos/contactos.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
 import { CreateClienteDto } from '../clientes/dto/create-cliente.dto';
@@ -38,7 +37,6 @@ export class CargaMasivaService {
     private readonly ubicacionRepository: Repository<UbicacionGeografica>,
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
-    private readonly configuracionService: ConfiguracionService,
     private readonly clientesService: ClientesService,
     private readonly contactosService: ContactosService,
     private readonly proyeccionesService: ProyeccionesService,
@@ -61,18 +59,9 @@ export class CargaMasivaService {
     actorId: number,
     paisSesionId: number,
   ): Promise<CargaMasivaResult> {
-    await this.assertCargaHabilitada();
-
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
-    this.assertHeaderSet(headers, [
-      ['empresa', 'ubicacion_id', 'segmento'],
-      ['empresa', 'region', 'segmento'],
-      ['empresa', 'departamento', 'segmento'],
-      ['empresa', 'pais', 'region', 'segmento'],
-      ['empresa', 'país', 'region', 'segmento'],
-      ['empresa', 'pais', 'departamento', 'segmento'],
-    ]);
+    this.assertRequiredHeaders(headers, ['empresa', 'segmento']);
 
     const detalleErrores: Array<{ fila: number; error: string }> = [];
     let filasExitosas = 0;
@@ -89,19 +78,17 @@ export class CargaMasivaService {
         await this.assertPaisRowMatchesSesion(headers, row, paisSesionId);
 
         const empresa = this.getCell(headers, row, 'empresa');
-        const ubicacionId = headers.has('ubicacion_id')
-          ? Number.parseInt(this.getCell(headers, row, 'ubicacion_id'), 10)
-          : await this.resolveUbicacionId(
-              paisSesionId,
-              this.getCell(headers, row, 'departamento', 'region', 'región'),
-              this.getCell(
-                headers,
-                row,
-                'municipio',
-                'municipio_provincia',
-                'ciudad',
-              ),
-            );
+        const ubicacionId = await this.resolveUbicacionId(
+          paisSesionId,
+          this.getCell(headers, row, 'departamento', 'region', 'región'),
+          this.getCell(
+            headers,
+            row,
+            'municipio',
+            'municipio_provincia',
+            'ciudad',
+          ),
+        );
 
         const dto: CreateClienteDto = {
           empresa,
@@ -136,15 +123,9 @@ export class CargaMasivaService {
     actorId: number,
     paisSesionId: number,
   ): Promise<CargaMasivaResult> {
-    await this.assertCargaHabilitada();
-
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
-    this.assertHeaderSet(headers, [
-      ['cliente_id', 'nombre', 'ubicacion_id'],
-      ['empresa', 'nombre', 'region'],
-      ['empresa', 'nombre', 'departamento'],
-    ]);
+    this.assertRequiredHeaders(headers, ['empresa', 'nombre']);
 
     const detalleErrores: Array<{ fila: number; error: string }> = [];
     let filasExitosas = 0;
@@ -158,26 +139,24 @@ export class CargaMasivaService {
       }
 
       try {
-        const clienteId = headers.has('cliente_id')
-          ? Number.parseInt(this.getCell(headers, row, 'cliente_id'), 10)
-          : await this.clientesService.findClienteIdByEmpresa(
-              this.getCell(headers, row, 'empresa'),
-              paisSesionId,
-            );
+        const clienteId = await this.clientesService.findClienteIdByEmpresa(
+          this.getCell(headers, row, 'empresa'),
+          paisSesionId,
+        );
 
-        const ubicacionId = headers.has('ubicacion_id')
-          ? Number.parseInt(this.getCell(headers, row, 'ubicacion_id'), 10)
-          : await this.resolveUbicacionId(
-              paisSesionId,
-              this.getCell(headers, row, 'departamento', 'region', 'región'),
-              this.getCell(
-                headers,
-                row,
-                'municipio',
-                'municipio_provincia',
-                'ciudad',
-              ),
-            );
+        await this.assertPaisRowMatchesSesion(headers, row, paisSesionId);
+
+        const ubicacionId = await this.resolveUbicacionId(
+          paisSesionId,
+          this.getCell(headers, row, 'departamento', 'region', 'región'),
+          this.getCell(
+            headers,
+            row,
+            'municipio',
+            'municipio_provincia',
+            'ciudad',
+          ),
+        );
 
         const referidoPorContactoId = await this.resolveReferidoPorContactoId(
           headers,
@@ -225,26 +204,13 @@ export class CargaMasivaService {
     actorId: number,
     paisSesionId: number,
   ): Promise<CargaMasivaResult> {
-    await this.assertCargaHabilitada();
-
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
-    this.assertHeaderSet(headers, [
-      ['anio_proyectado', 'fecha_estimada_publicacion', 'valor_venta', 'valor_facturacion'],
-      [
-        'anio_proyectado',
-        'fecha_estimada_publicacion',
-        'valor_venta',
-        'valor_facturacion',
-        'proceso_origen_id',
-      ],
-      [
-        'anio_proyectado',
-        'fecha_estimada_publicacion',
-        'valor_venta',
-        'valor_facturacion',
-        'proceso_codigo',
-      ],
+    this.assertRequiredHeaders(headers, [
+      'anio_proyectado',
+      'fecha_estimada_publicacion',
+      'valor_venta',
+      'valor_facturacion',
     ]);
 
     const detalleErrores: Array<{ fila: number; error: string }> = [];
@@ -399,20 +365,6 @@ export class CargaMasivaService {
     );
   }
 
-  private async assertCargaHabilitada(): Promise<void> {
-    const config = await this.configuracionService.findByClave(
-      'carga_masiva_habilitada',
-    );
-
-    if (config.valor !== 'true') {
-      throw new BusinessException(
-        ErrorCode.CARGA_MASIVA_DESHABILITADA,
-        'La carga masiva está deshabilitada por configuración del sistema',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-  }
-
   private async persistLog(
     entidadTipo: string,
     fileName: string,
@@ -467,18 +419,16 @@ export class CargaMasivaService {
     return map;
   }
 
-  private assertHeaderSet(
+  private assertRequiredHeaders(
     headers: Map<string, number>,
-    alternatives: string[][],
+    required: string[],
   ): void {
-    const matches = alternatives.some((set) =>
-      set.every((column) => headers.has(column)),
-    );
+    const missing = required.filter((column) => !headers.has(column));
 
-    if (!matches) {
+    if (missing.length) {
       throw new BusinessException(
         ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
-        'Las columnas del archivo no coinciden con ningún formato soportado',
+        `Faltan columnas obligatorias: ${missing.join(', ')}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -504,26 +454,52 @@ export class CargaMasivaService {
     departamento: string,
     municipio: string,
   ): Promise<number> {
-    if (!departamento.trim()) {
-      throw new BusinessException(
-        ErrorCode.UBICACION_NO_ENCONTRADA,
-        'Debe indicar departamento o región para resolver la ubicación',
-        HttpStatus.BAD_REQUEST,
-      );
+    const dep = departamento.trim();
+    const mun = municipio.trim();
+
+    if (!dep && !mun) {
+      const fallback = await this.ubicacionRepository.findOne({
+        where: { paisId: paisSesionId },
+        order: { departamento: 'ASC', municipioProvincia: 'ASC' },
+      });
+
+      if (!fallback) {
+        throw new BusinessException(
+          ErrorCode.UBICACION_NO_ENCONTRADA,
+          'No hay ubicaciones registradas para el país de la sesión',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return fallback.id;
+    }
+
+    if (!dep && mun) {
+      const ubicacion = await this.ubicacionRepository.findOne({
+        where: { paisId: paisSesionId, municipioProvincia: mun },
+      });
+
+      if (!ubicacion) {
+        throw new BusinessException(
+          ErrorCode.UBICACION_NO_ENCONTRADA,
+          `No se encontró el municipio "${mun}" en el país de la sesión`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return ubicacion.id;
     }
 
     const qb = this.ubicacionRepository
       .createQueryBuilder('u')
       .where('u.pais_id = :paisSesionId', { paisSesionId })
-      .andWhere('u.departamento = :departamento', { departamento });
+      .andWhere('u.departamento = :departamento', { departamento: dep });
 
-    if (municipio.trim()) {
-      qb.andWhere('u.municipio_provincia = :municipio', { municipio });
+    if (mun) {
+      qb.andWhere('u.municipio_provincia = :municipio', { municipio: mun });
     }
 
-    const ubicacion = municipio.trim()
-      ? await qb.getOne()
-      : (await qb.getMany())[0];
+    const ubicacion = mun ? await qb.getOne() : (await qb.getMany())[0];
 
     if (!ubicacion) {
       throw new BusinessException(

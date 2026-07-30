@@ -1,8 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ValidacionService } from '../../../../core/services/validacion.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ValidacionPendiente } from '../../../../core/models/admin.model';
+import { Rol } from '../../../../core/models/rol.enum';
 
 @Component({
   selector: 'app-validacion-list',
@@ -13,10 +15,15 @@ import { ValidacionPendiente } from '../../../../core/models/admin.model';
 })
 export class ValidacionListComponent implements OnInit {
   private readonly validacion = inject(ValidacionService);
+  private readonly auth = inject(AuthService);
 
   protected readonly items = signal<ValidacionPendiente[]>([]);
   protected readonly loading = signal(true);
   protected readonly search = signal('');
+  protected readonly esVistaSupervision = computed(() => {
+    const rol = this.auth.rol();
+    return rol === Rol.Administrador || rol === Rol.SupervisorSistema;
+  });
 
   ngOnInit(): void {
     this.load();

@@ -32,6 +32,7 @@ export class RelacionamientoDetailComponent implements OnInit {
   protected readonly fechaRespuesta = signal('');
   protected readonly mensaje = signal('');
   protected readonly fechaMensaje = signal('');
+  protected readonly diasEsperaRespuesta = signal(7);
   protected readonly canal = signal<CanalRelacionamiento>(CanalRelacionamiento.Correo);
   protected readonly resultado = signal<ResultadoRelacionamiento>(ResultadoRelacionamiento.Ninguno);
   protected readonly fechaReunion = signal('');
@@ -52,6 +53,7 @@ export class RelacionamientoDetailComponent implements OnInit {
         this.fechaRespuesta.set(item.fechaRespuesta ?? '');
         this.mensaje.set(item.mensaje);
         this.fechaMensaje.set(item.fechaMensaje);
+        this.diasEsperaRespuesta.set(item.diasEsperaRespuesta);
         this.canal.set(item.canal);
         this.resultado.set(item.resultado);
         this.fechaReunion.set(item.fechaReunion ?? '');

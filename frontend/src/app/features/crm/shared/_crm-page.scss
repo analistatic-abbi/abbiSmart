@@ -42,8 +42,8 @@
 }
 
 .btn-danger {
-  background: #fdecea;
-  color: #b3261e;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
 }
 
 .table-wrap {
@@ -109,14 +109,14 @@ th {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay);
   display: grid;
   place-items: center;
   z-index: 100;
 }
 
 .modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-prime);
   padding: 24px;
   width: min(480px, 90vw);

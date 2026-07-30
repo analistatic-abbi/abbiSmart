@@ -1,1 +1,13 @@
 @use '../../shared/admin-page';
+
+.table-hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+}
+
+td:last-child {
+  max-width: 360px;
+  white-space: normal;
+  word-break: break-word;
+}

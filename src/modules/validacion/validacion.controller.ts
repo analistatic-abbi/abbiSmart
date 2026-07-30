@@ -9,9 +9,11 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { AsignarValidadoresDto, VeredictoValidacionDto } from '../procesos/dto/proceso.dto';
@@ -35,6 +37,7 @@ export class ValidacionController {
   }
 
   @Get('validacion/pendientes')
+  @Roles(Rol.VALIDADOR, Rol.ADMINISTRADOR, Rol.SUPERVISOR_SISTEMA)
   @ApiOperation({ summary: 'Bandeja de procesos pendientes por validar (VAL-005)' })
   @ApiQuery({ name: 'search', required: false })
   async findPendientes(
@@ -44,6 +47,7 @@ export class ValidacionController {
     const data = await this.validacionService.findPendientes(
       user.userId,
       user.paisSesionId!,
+      user.rol as Rol,
       search,
     );
 
@@ -54,6 +58,7 @@ export class ValidacionController {
   }
 
   @Get('validacion/procesos/:id/revision')
+  @Roles(Rol.VALIDADOR, Rol.ADMINISTRADOR, Rol.SUPERVISOR_SISTEMA)
   @ApiOperation({ summary: 'Revisión completa del proceso para validar (VAL-003)' })
   async getRevision(
     @Param('id', ParseIntPipe) procesoId: number,
@@ -112,6 +117,7 @@ export class ValidacionController {
   }
 
   @Patch('validacion/:id/veredicto')
+  @Roles(Rol.VALIDADOR)
   @ApiOperation({ summary: 'Registrar veredicto de validación (VAL-004)' })
   async registrarVeredicto(
     @Param('id', ParseIntPipe) validacionId: number,

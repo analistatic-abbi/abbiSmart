@@ -2,7 +2,11 @@
   <header class="page__header">
     <div>
       <h1>Bandeja de validación</h1>
-      <p>Procesos pendientes por validar.</p>
+      @if (esVistaSupervision()) {
+        <p>Procesos pendientes de veredicto por los validadores asignados (solo lectura).</p>
+      } @else {
+        <p>Procesos pendientes por validar.</p>
+      }
     </div>
   </header>
 
@@ -21,6 +25,9 @@
             <th>ID validación</th>
             <th>Código</th>
             <th>Empresa</th>
+            @if (esVistaSupervision()) {
+              <th>Validador</th>
+            }
             <th>Estado</th>
             <th></th>
           </tr>
@@ -31,15 +38,18 @@
               <td>{{ item.validacionId }}</td>
               <td>{{ item.codigo ?? '—' }}</td>
               <td>{{ item.empresaMostrar }}</td>
+              @if (esVistaSupervision()) {
+                <td>{{ item.validadorNombre ?? '—' }}</td>
+              }
               <td><span class="badge">{{ item.estado }}</span></td>
               <td>
                 <a [routerLink]="['/validacion/procesos', item.procesoId]" [queryParams]="{ validacionId: item.validacionId }">
-                  Revisar
+                  {{ esVistaSupervision() ? 'Ver' : 'Revisar' }}
                 </a>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5">No hay procesos pendientes de validación.</td></tr>
+            <tr><td [attr.colspan]="esVistaSupervision() ? 6 : 5">No hay procesos pendientes de validación.</td></tr>
           }
         </tbody>
       </table>

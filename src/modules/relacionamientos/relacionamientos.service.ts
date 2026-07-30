@@ -100,7 +100,7 @@ export class RelacionamientosService {
          r.fecha_respuesta AS fechaRespuesta,
          r.resultado,
          r.fecha_reunion AS fechaReunion,
-         v.dias_espera_configurado AS diasEsperaConfigurado,
+         r.dias_espera_respuesta AS diasEsperaRespuesta,
          v.fecha_limite_respuesta AS fechaLimiteRespuesta
        FROM vista_relacionamientos_vencidos v
        INNER JOIN relacionamientos r ON r.id = v.id
@@ -128,6 +128,9 @@ export class RelacionamientosService {
     paisSesionId: number,
   ): Promise<RelacionamientoResponseDto> {
     this.validateFechaReunion(dto.resultado, dto.fechaReunion);
+    const diasEsperaRespuesta = this.resolveDiasEsperaRespuesta(
+      dto.diasEsperaRespuesta,
+    );
 
     if (
       dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
@@ -153,6 +156,7 @@ export class RelacionamientosService {
           canal: dto.canal,
           mensaje: dto.mensaje,
           fechaMensaje: dto.fechaMensaje,
+          diasEsperaRespuesta,
           resultado: dto.resultado,
           fechaReunion:
             dto.resultado === ResultadoRelacionamiento.REUNION_PROGRAMADA
@@ -300,6 +304,20 @@ export class RelacionamientosService {
     return relacionamiento;
   }
 
+  private resolveDiasEsperaRespuesta(dias?: number): number {
+    const valor = dias ?? 7;
+
+    if (!Number.isInteger(valor) || valor < 1 || valor > 365) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'Los días de espera deben ser un entero entre 1 y 365',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return valor;
+  }
+
   private validateFechaReunion(
     resultado: ResultadoRelacionamiento,
     fechaReunion?: string,
@@ -334,6 +352,7 @@ export class RelacionamientosService {
       canal: relacionamiento.canal,
       mensaje: relacionamiento.mensaje,
       fechaMensaje: relacionamiento.fechaMensaje,
+      diasEsperaRespuesta: relacionamiento.diasEsperaRespuesta,
       respuesta: relacionamiento.respuesta,
       fechaRespuesta: relacionamiento.fechaRespuesta,
       resultado: relacionamiento.resultado,

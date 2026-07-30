@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditAccion, AuditEntidadTipo } from '../../common/enums/audit-accion.enum';
 import { LogAuditoria } from '../../database/entities/log-auditoria.entity';
+import { Pais } from '../../database/entities/pais.entity';
 import { AuditService } from './audit.service';
 
 describe('AuditService', () => {
@@ -19,6 +20,15 @@ describe('AuditService', () => {
             create: jest.fn(),
             save: jest.fn(),
             findAndCount: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Pais),
+          useValue: {
+            find: jest.fn().mockResolvedValue([
+              { id: 1, nombre: 'Colombia' },
+              { id: 2, nombre: 'Perú' },
+            ]),
           },
         },
       ],

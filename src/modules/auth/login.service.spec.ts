@@ -55,6 +55,7 @@ describe('LoginService', () => {
           provide: getRepositoryToken(Pais),
           useValue: {
             find: jest.fn(),
+            findOne: jest.fn(),
           },
         },
         {
@@ -118,6 +119,13 @@ describe('LoginService', () => {
     };
     usuarioRepository.findOne.mockResolvedValue(operador);
     usuarioRepository.save.mockResolvedValue(operador);
+    paisRepository.findOne.mockResolvedValue({
+      id: 1,
+      nombre: 'Colombia',
+      activo: true,
+      usuarios: [],
+      sesiones: [],
+    });
     sesionService.createSession.mockResolvedValue({
       id: 10,
       paisSesionId: 1,

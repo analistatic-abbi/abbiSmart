@@ -35,7 +35,7 @@
 
   &--warning {
     border-color: #e8c9a0;
-    background: #fff8ee;
+  background: var(--color-duplicado-bg);
     color: #6b4a12;
   }
 }
@@ -273,14 +273,14 @@ table {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay);
   display: grid;
   place-items: center;
   z-index: 100;
 }
 
 .modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-prime);
   padding: 24px;
   width: min(480px, 90vw);
@@ -314,4 +314,10 @@ table {
 
 .error {
   color: var(--color-error);
+}
+
+.hint {
+  margin: 0 0 12px;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
 }

@@ -66,13 +66,18 @@ export interface ConfiguracionItem {
 
 export interface AuditLog {
   id: number;
-  usuarioId: number;
+  usuarioId: number | null;
+  usuarioNombre: string | null;
   accion: string;
+  accionLabel: string;
   entidadTipo: string;
   entidadId: number | null;
+  entidadLabel: string;
+  campo: string | null;
   valorAnterior: string | null;
   valorNuevo: string | null;
-  fecha: string;
+  detalle: string | null;
+  fechaHora: string;
 }
 
 export interface ValidacionPendiente {
@@ -81,6 +86,7 @@ export interface ValidacionPendiente {
   codigo: string | null;
   empresaMostrar: string;
   estado: string;
+  validadorNombre?: string;
 }
 
 export interface ValidacionRevision {

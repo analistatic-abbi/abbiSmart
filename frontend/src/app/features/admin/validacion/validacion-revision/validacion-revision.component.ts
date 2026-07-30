@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ValidacionService } from '../../../../core/services/validacion.service';
 import { ProcesosService } from '../../../../core/services/procesos.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Proceso, ProcesoTarea } from '../../../../core/models/proceso.model';
+import { Rol } from '../../../../core/models/rol.enum';
 import { labelTarea } from '../../../../core/constants/tarea-labels';
 
 @Component({
@@ -18,6 +20,7 @@ export class ValidacionRevisionComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly validacion = inject(ValidacionService);
   private readonly procesos = inject(ProcesosService);
+  private readonly auth = inject(AuthService);
 
   protected readonly proceso = signal<Proceso | null>(null);
   protected readonly tareas = signal<ProcesoTarea[]>([]);
@@ -27,6 +30,10 @@ export class ValidacionRevisionComponent implements OnInit {
 
   protected readonly veredicto = signal<'Aprobado' | 'Requiere Corrección'>('Aprobado');
   protected readonly comentario = signal('');
+
+  protected readonly puedeEmitirVeredicto = computed(
+    () => this.auth.rol() === Rol.Validador,
+  );
 
   protected readonly tareasConEvidencia = computed(() =>
     this.tareas().filter(

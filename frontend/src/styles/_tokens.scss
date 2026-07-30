@@ -1,4 +1,6 @@
 :root {
+  color-scheme: light;
+
   /* ABBI Corporate System */
   --color-primary: #0e3b65;
   --color-primary-container: #0e3b65;
@@ -18,11 +20,62 @@
   --color-on-surface-variant: #6b7280;
   --color-outline-variant: #d1d5db;
   --color-input-border: #d1d5db;
+  --color-input-border-hover: #b8bcc4;
   --color-input-border-focus: #0e3b65;
   --color-input-placeholder: #9ca3af;
   --color-error: #dc2626;
   --color-notification: #be5535;
   --color-logout: #8b2942;
+  --color-logout-bg: #fdf2f4;
+  --color-logout-bg-hover: #f8e4e8;
+  --color-logout-border: rgba(139, 41, 66, 0.3);
+  --color-overlay: rgba(0, 0, 0, 0.4);
+  --color-overlay-strong: rgba(0, 37, 70, 0.35);
+  --color-shadow: rgba(0, 0, 0, 0.12);
+  --color-shadow-strong: rgba(0, 0, 0, 0.18);
+  --color-focus-ring: rgba(14, 59, 101, 0.12);
+  --color-focus-ring-link: rgba(46, 142, 194, 0.15);
+  --color-link-hover-bg: #eef6fb;
+  --color-danger-bg: #fdecea;
+  --color-danger-text: #b3261e;
+  --color-success-bg: #e8f5e9;
+  --color-success-text: #1b5e20;
+  --color-alert-error-bg: #ffdad6;
+  --color-alert-error-text: #ba1a1a;
+  --color-alert-warning-bg: #fff3e0;
+  --color-alert-warning-text: #8b4513;
+  --color-warning-bg: #fff8e1;
+  --color-warning-border: #ffe082;
+  --color-warning-text: #6d4c00;
+  --color-duplicado-bg: #fff8ee;
+  --color-text-muted: #64748b;
+  --color-flag-border: rgba(0, 0, 0, 0.08);
+
+  /* Badges / calendario */
+  --badge-lejano-bg: #f3f4f6;
+  --badge-lejano-border: #d1d5db;
+  --badge-lejano-text: #43474f;
+  --badge-proximo-bg: #fef3c7;
+  --badge-proximo-border: #fcd34d;
+  --badge-proximo-text: #92400e;
+  --badge-sale-bg: #ffedd5;
+  --badge-sale-border: #fdba74;
+  --badge-sale-text: #be5535;
+  --badge-publicado-bg: #dcfce7;
+  --badge-publicado-border: #86efac;
+  --badge-publicado-text: #166534;
+  --badge-cerrado-bg: #dbeafe;
+  --badge-cerrado-border: #2e8ec2;
+  --badge-cerrado-text: #1e40af;
+  --cal-proyeccion-bg: #eef6fb;
+  --cal-proyeccion-border: #b6d4e8;
+  --cal-proyeccion-text: #0e3b65;
+  --cal-proceso-bg: #f3f0ff;
+  --cal-proceso-border: #c9b8f5;
+  --cal-proceso-text: #4a2f91;
+  --cal-relacionamiento-bg: #fff8ee;
+  --cal-relacionamiento-border: #e8c9a0;
+  --cal-relacionamiento-text: #6b4a12;
 
   --font-family: 'Inter', 'Roboto', system-ui, sans-serif;
   --header-height: 64px;
@@ -30,4 +83,83 @@
   --radius-prime: 6px;
   --form-field-gap: 8px;
   --form-group-gap: 20px;
+}
+
+:root[data-theme='dark'],
+:root.dark {
+  color-scheme: dark;
+
+  --color-primary: #7eb8e8;
+  --color-primary-container: #1a4a72;
+  --color-on-primary: #ffffff;
+  --color-emphasis: #e2e8f0;
+  --color-secondary: #94a3b8;
+  --color-secondary-container: #1e3a5f;
+  --color-on-secondary-container: #bcd6fe;
+  --color-accent: #e07a5a;
+  --color-link: #5eb8e8;
+  --color-background: #0f1419;
+  --color-surface: #1a1f26;
+  --color-surface-container-lowest: #151a21;
+  --color-surface-container-low: #1e242c;
+  --color-surface-container: #252b34;
+  --color-on-surface: #e8eaed;
+  --color-on-surface-variant: #9aa0a6;
+  --color-outline-variant: #3c4450;
+  --color-input-border: #4a5568;
+  --color-input-border-hover: #5a6578;
+  --color-input-border-focus: #5eb8e8;
+  --color-input-placeholder: #6b7280;
+  --color-error: #f87171;
+  --color-notification: #e07a5a;
+  --color-logout: #f0a0b0;
+  --color-logout-bg: #2a1a20;
+  --color-logout-bg-hover: #3a2228;
+  --color-logout-border: rgba(240, 160, 176, 0.35);
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --color-overlay-strong: rgba(0, 0, 0, 0.75);
+  --color-shadow: rgba(0, 0, 0, 0.35);
+  --color-shadow-strong: rgba(0, 0, 0, 0.5);
+  --color-focus-ring: rgba(94, 184, 232, 0.2);
+  --color-focus-ring-link: rgba(94, 184, 232, 0.25);
+  --color-link-hover-bg: #1a2e42;
+  --color-danger-bg: #3d1f1f;
+  --color-danger-text: #fca5a5;
+  --color-success-bg: #1a2e1f;
+  --color-success-text: #86efac;
+  --color-alert-error-bg: #3d1f1f;
+  --color-alert-error-text: #fca5a5;
+  --color-alert-warning-bg: #3d2e1a;
+  --color-alert-warning-text: #fcd34d;
+  --color-warning-bg: #3d3520;
+  --color-warning-border: #a16207;
+  --color-warning-text: #fcd34d;
+  --color-duplicado-bg: #3d2e1a;
+  --color-text-muted: #9aa0a6;
+  --color-flag-border: rgba(255, 255, 255, 0.12);
+
+  --badge-lejano-bg: #2a2f38;
+  --badge-lejano-border: #4a5568;
+  --badge-lejano-text: #cbd5e1;
+  --badge-proximo-bg: #3d3520;
+  --badge-proximo-border: #a16207;
+  --badge-proximo-text: #fcd34d;
+  --badge-sale-bg: #3d2a1a;
+  --badge-sale-border: #c2410c;
+  --badge-sale-text: #fdba74;
+  --badge-publicado-bg: #1a2e22;
+  --badge-publicado-border: #22c55e;
+  --badge-publicado-text: #86efac;
+  --badge-cerrado-bg: #1a2a3d;
+  --badge-cerrado-border: #3b82f6;
+  --badge-cerrado-text: #93c5fd;
+  --cal-proyeccion-bg: #1a2e42;
+  --cal-proyeccion-border: #2e5a7a;
+  --cal-proyeccion-text: #7eb8e8;
+  --cal-proceso-bg: #2a1f42;
+  --cal-proceso-border: #5a4a8a;
+  --cal-proceso-text: #c4b5fd;
+  --cal-relacionamiento-bg: #3d2e1a;
+  --cal-relacionamiento-border: #8a6a3a;
+  --cal-relacionamiento-text: #fcd34d;
 }
