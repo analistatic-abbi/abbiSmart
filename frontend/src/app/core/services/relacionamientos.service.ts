@@ -8,6 +8,7 @@ import {
   Relacionamiento,
   RelacionamientoVencido,
   ResultadoRelacionamiento,
+  UpdateRelacionamientoPayload,
 } from '../models/crm.model';
 
 @Injectable({ providedIn: 'root' })
@@ -49,7 +50,7 @@ export class RelacionamientosService {
 
   update(
     id: number,
-    payload: Partial<CreateRelacionamientoPayload> & { respuesta?: string; fechaRespuesta?: string },
+    payload: UpdateRelacionamientoPayload,
   ): Observable<{ relacionamiento: Relacionamiento }> {
     return this.http.patch<{ relacionamiento: Relacionamiento }>(`${this.base}/${id}`, payload);
   }

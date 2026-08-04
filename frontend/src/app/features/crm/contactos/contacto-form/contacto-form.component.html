@@ -63,6 +63,15 @@
         }
       </select>
     </label>
+
+    @if (isEdit() && esReferido()) {
+      <div class="full referido-info">
+        <span class="badge badge--referido">Referido</span>
+        @if (referidoPorNombre()) {
+          <p>Referido por: <strong>{{ referidoPorNombre() }}</strong></p>
+        }
+      </div>
+    }
   </div>
 
   <div class="form-actions">

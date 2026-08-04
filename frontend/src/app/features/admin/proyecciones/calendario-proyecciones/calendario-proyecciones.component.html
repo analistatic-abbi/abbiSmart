@@ -49,6 +49,9 @@
                     <span class="proyeccion-card__empresa">{{ empresaLabel(p) }}</span>
                     <span class="material-symbols-outlined proyeccion-card__icon" [style.color]="style.text">open_in_new</span>
                   </div>
+                  @if (p.objeto) {
+                    <div class="proyeccion-card__objeto">{{ p.objeto }}</div>
+                  }
                   <div class="proyeccion-card__valor">{{ formatValor(p.valorVenta) }}</div>
                   <div class="proyeccion-card__estado" [style.color]="style.text">{{ style.label }}</div>
                 </button>

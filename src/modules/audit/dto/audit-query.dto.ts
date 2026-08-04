@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   Max,
   Min,
 } from 'class-validator';
@@ -28,6 +29,12 @@ export class AuditQueryDto {
   @IsInt()
   @Min(1)
   entidadId?: number;
+
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'fecha debe tener formato YYYY-MM-DD',
+  })
+  fecha?: string;
 
   @IsOptional()
   @IsDateString()

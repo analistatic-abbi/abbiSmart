@@ -70,7 +70,17 @@
                     <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
                   </div>
                   <div class="evento-card__titulo">{{ evento.titulo }}</div>
-                  @if (evento.subtitulo) {
+                  @if (evento.tipo === 'proyeccion') {
+                    @if (evento.empresa) {
+                      <div class="evento-card__sub">{{ evento.empresa }}</div>
+                    }
+                    @if (evento.objeto) {
+                      <div class="evento-card__objeto">{{ evento.objeto }}</div>
+                    }
+                    @if (evento.valor) {
+                      <div class="evento-card__valor">{{ formatValor(evento.valor) }}</div>
+                    }
+                  } @else if (evento.subtitulo) {
                     <div class="evento-card__sub">{{ evento.subtitulo }}</div>
                   }
                 </button>

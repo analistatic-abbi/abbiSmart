@@ -127,6 +127,23 @@
   grid-column: 1 / -1;
 }
 
+.form-grid.form-grid--stacked,
+.form-grid--stacked.form-grid {
+  grid-template-columns: 1fr;
+
+  > h2 {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 18px;
+    color: var(--color-emphasis);
+  }
+
+  .form-actions {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+}
+
 // Etiquetas y grupos de campo
 @include form-container-root {
   label {

@@ -1,0 +1,136 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Mi bandeja</h1>
+      <p>Elementos fijados organizados por urgencia según sus fechas clave.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="loading">Cargando...</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else {
+    @if (resumen(); as r) {
+      <div class="cards">
+        <article class="card card--highlight">
+          <span class="card__label">Total fijados</span>
+          <strong class="card__value">{{ r.totalFijados }}</strong>
+        </article>
+        <article class="card card--urgent">
+          <span class="card__label">Urgentes (≤ 7 días)</span>
+          <strong class="card__value">{{ r.urgentes }}</strong>
+        </article>
+        <article class="card card--overdue">
+          <span class="card__label">Vencidos</span>
+          <strong class="card__value">{{ r.vencidos }}</strong>
+        </article>
+        <article class="card">
+          <span class="card__label">Procesos</span>
+          <strong class="card__value">{{ r.totalProcesos }}</strong>
+        </article>
+        <article class="card">
+          <span class="card__label">Proyecciones</span>
+          <strong class="card__value">{{ r.totalProyecciones }}</strong>
+        </article>
+        <article class="card">
+          <span class="card__label">Relacionamientos</span>
+          <strong class="card__value">{{ r.totalRelacionamientos }}</strong>
+        </article>
+      </div>
+
+      @if (r.porUrgencia.length > 0) {
+        <section class="panel resumen-panel">
+          <h2>Por urgencia</h2>
+          <div class="segment-grid">
+            @for (item of r.porUrgencia; track item.clave) {
+              <div class="segment-item">
+                <span>{{ urgenciaLabel(item.clave) }}</span>
+                <strong>{{ item.total }}</strong>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (r.porEstadoProcesos.length > 0) {
+        <section class="panel resumen-panel">
+          <h2>Procesos fijados por estado</h2>
+          <div class="segment-grid">
+            @for (item of r.porEstadoProcesos; track item.clave) {
+              <div class="segment-item">
+                <span>{{ item.clave }}</span>
+                <strong>{{ item.total }}</strong>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    }
+
+    <div class="bandeja-grid">
+      @for (grupo of grupos(); track grupo.tipo) {
+        <section class="bandeja-grupo panel">
+          <header class="bandeja-grupo__header">
+            <h2>{{ grupo.titulo }}</h2>
+            <span class="badge">{{ grupo.items.length }}</span>
+          </header>
+
+          @if (grupo.items.length === 0) {
+            <p class="bandeja-grupo__empty">
+              Aún no has fijado {{ grupo.titulo | lowercase }}.
+              Abre un detalle y usa el botón «Fijar en mi bandeja».
+            </p>
+          } @else {
+            @for (subgrupo of grupo.subgrupos; track subgrupo.urgencia) {
+              <div class="bandeja-subgrupo bandeja-subgrupo--{{ subgrupo.urgencia }}">
+                <h3 class="bandeja-subgrupo__title">
+                  {{ subgrupo.label }}
+                  <span class="badge badge--sub">{{ subgrupo.items.length }}</span>
+                </h3>
+                <div class="bandeja-grupo__items">
+                  @for (item of subgrupo.items; track item.entidadTipo + '-' + item.id) {
+                    @let style = eventoStyle(item.entidadTipo, item.estado);
+                    <button
+                      type="button"
+                      class="evento-card evento-card--{{ item.entidadTipo }}"
+                      [style.background]="style.bg"
+                      [style.borderColor]="style.border"
+                      (click)="navigateTo(item)"
+                    >
+                      <div class="evento-card__top">
+                        <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
+                          {{ item.icono }}
+                        </span>
+                        <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
+                        <span class="urgencia-badge urgencia-badge--{{ item.urgencia }}">
+                          {{ urgenciaLabel(item.urgencia) }}
+                        </span>
+                      </div>
+                      <div class="evento-card__titulo">{{ item.titulo }}</div>
+                      @if (item.subtitulo) {
+                        <div class="evento-card__sub">{{ item.subtitulo }}</div>
+                      }
+                      @if (item.empresa) {
+                        <div class="evento-card__sub">{{ item.empresa }}</div>
+                      }
+                      @if (item.objeto) {
+                        <div class="evento-card__objeto">{{ item.objeto }}</div>
+                      }
+                      <div class="evento-card__meta">
+                        <span>{{ item.fechaRelevanteLabel }}: {{ formatFecha(item.fecha) }}</span>
+                        <span class="evento-card__dias" [class.evento-card__dias--vencido]="item.diasRestantes !== null && item.diasRestantes < 0">
+                          {{ diasRestantesLabel(item) }}
+                        </span>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </section>
+      }
+    </div>
+  }
+</section>

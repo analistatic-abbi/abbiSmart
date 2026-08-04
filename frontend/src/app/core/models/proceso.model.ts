@@ -99,6 +99,13 @@ export const TRANSICIONES_ESTADO: Record<EstadoProceso, EstadoProceso[]> = {
   [EstadoProceso.Cerrado]: [],
 };
 
+export enum ResultadoIndicador {
+  Aprobado = 'Aprobado',
+  CasiAprobado = 'Casi Aprobado',
+  CasiDesaprobado = 'Casi Desaprobado',
+  NoAprobado = 'No Aprobado',
+}
+
 export interface ProcesoIndicador {
   id?: number;
   indicadorCodigo: IndicadorCodigo;
@@ -116,6 +123,7 @@ export interface Proceso {
   ubicacionId: number;
   portalOrigen: string | null;
   link: string | null;
+  objeto: string | null;
   cuantia: string;
   moneda: string;
   segmento: SegmentoProceso;
@@ -131,6 +139,7 @@ export interface Proceso {
   motivoPerdidaUsuarioNombre?: string | null;
   fueAdjudicado?: boolean;
   estado: EstadoProceso;
+  anioParametros?: number;
   fechaApertura: string | null;
   fechaCierre: string | null;
   fechaManifestacionInteres?: string | null;
@@ -142,6 +151,10 @@ export interface Proceso {
   fechaLimitacionMypymes?: string | null;
   avancePorcentaje?: number | null;
   indicadores?: ProcesoIndicador[];
+  devueltoValidacion?: boolean;
+  comentarioDevolucionValidacion?: string | null;
+  validadorDevolucionNombre?: string | null;
+  fechaDevolucionValidacion?: string | null;
 }
 
 export interface ProcesoListItem {
@@ -152,6 +165,9 @@ export interface ProcesoListItem {
   segmento: SegmentoProceso;
   tipoProceso: TipoProceso;
   tipoInstrumento: TipoInstrumento;
+  devueltoValidacion?: boolean;
+  comentarioDevolucionValidacion?: string | null;
+  validadorDevolucionNombre?: string | null;
 }
 
 export interface ProcesoTarea {
@@ -173,6 +189,7 @@ export interface CreateProcesoPayload {
   ubicacionId: number;
   portalOrigen?: string;
   link?: string;
+  objeto?: string;
   cuantia: number;
   segmento: SegmentoProceso;
   tipoProceso: TipoProceso;
@@ -181,6 +198,7 @@ export interface CreateProcesoPayload {
   experiencia: boolean;
   observacion?: string;
   indicadores: Array<{ indicadorCodigo: IndicadorCodigo; valorRequerido: number | null }>;
+  anioParametros?: number;
   confirmarIndicadoresVacios?: boolean;
   fechaApertura: string;
   fechaCierre: string;

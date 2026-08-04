@@ -16,7 +16,7 @@ function formatScaledUnit(
         minimumFractionDigits: 0,
         maximumFractionDigits: decimals,
       });
-      return `${sign}$${formatted}${suffix}`;
+      return `${sign}$${formatted} ${suffix}`;
     }
   }
 
@@ -24,7 +24,39 @@ function formatScaledUnit(
     minimumFractionDigits: 0,
     maximumFractionDigits: 4,
   });
-  return `${sign}$${fallback}${suffix}`;
+  return `${sign}$${fallback} ${suffix}`;
+}
+
+export function formatCurrencyFull(
+  value: string | number | null | undefined,
+  maxDecimals = 4,
+): string {
+  if (value === null || value === undefined || value === '') {
+    return '—';
+  }
+
+  const n = Number(value);
+  if (!Number.isFinite(n)) {
+    return String(value);
+  }
+
+  const sign = n < 0 ? '-' : '';
+  return `${sign}$${Math.abs(n).toLocaleString('es-CO', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  })}`;
+}
+
+export function formatCuantiaConMoneda(
+  cuantia: string | number | null | undefined,
+  moneda: string | null | undefined,
+  maxDecimals = 2,
+): string {
+  const formatted = formatCurrencyFull(cuantia, maxDecimals);
+  if (formatted === '—') {
+    return formatted;
+  }
+  return moneda ? `${formatted} ${moneda}` : formatted;
 }
 
 export function formatCurrencyAbbreviated(value: string | number): string {
@@ -36,13 +68,13 @@ export function formatCurrencyAbbreviated(value: string | number): string {
   const amount = Math.abs(n);
 
   if (abs >= 1_000_000_000) {
-    return formatScaledUnit(amount, 1_000_000_000, 'B', sign);
+    return formatScaledUnit(amount, 1_000_000_000, 'mil mill.', sign);
   }
   if (abs >= 1_000_000) {
-    return formatScaledUnit(amount, 1_000_000, 'M', sign);
+    return formatScaledUnit(amount, 1_000_000, 'mill.', sign);
   }
   if (abs >= 1_000) {
-    return formatScaledUnit(amount, 1_000, 'K', sign);
+    return formatScaledUnit(amount, 1_000, 'mil', sign);
   }
 
   return `${sign}$${amount.toLocaleString('es-CO', { maximumFractionDigits: 2 })}`;

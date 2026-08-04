@@ -91,6 +91,35 @@ export class MailService {
     );
   }
 
+  async sendValidacionDevueltaEmail(
+    to: string,
+    nombre: string,
+    codigoProceso: string,
+    validadorNombre: string,
+    comentario: string | null,
+  ): Promise<void> {
+    const subject = 'Proceso devuelto de validación — Smart Licitaciones ABBI';
+    const comentarioTexto = comentario?.trim()
+      ? `\n\nComentario del validador:\n${comentario.trim()}`
+      : '';
+    const text = [
+      `Hola ${nombre},`,
+      '',
+      `El proceso ${codigoProceso} fue devuelto por ${validadorNombre} con veredicto «Requiere Corrección».`,
+      'Ingrese al sistema para revisar el comentario y realizar los ajustes necesarios.',
+      comentarioTexto,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    await this.sendOrWarn(
+      to,
+      subject,
+      text,
+      `validación devuelta para proceso ${codigoProceso}`,
+    );
+  }
+
   async sendSupportRequestEmail(input: SupportRequestEmailInput): Promise<void> {
     const supportTo = this.configService.get<string>('mail.supportTo');
     if (!supportTo) {

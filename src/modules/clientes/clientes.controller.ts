@@ -84,6 +84,20 @@ export class ClientesController {
     };
   }
 
+  @Get(':id/vista-360')
+  @ApiOperation({ summary: 'Vista consolidada del cliente (KPIs, procesos, proyecciones, relacionamientos)' })
+  async getVista360(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.clientesService.getVista360(id, user.paisSesionId!);
+
+    return {
+      message: 'Vista 360 del cliente obtenida correctamente',
+      data,
+    };
+  }
+
   @Get(':id/historial')
   @ApiOperation({ summary: 'Historial unificado del cliente (procesos + relacionamientos)' })
   async getHistorial(

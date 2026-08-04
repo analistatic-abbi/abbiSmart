@@ -21,6 +21,59 @@
   overflow-y: auto;
 }
 
+.app-sidebar__section {
+  &:not(:first-child) {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-outline-variant);
+  }
+
+  &--active .app-sidebar__section-title {
+    color: var(--color-primary);
+  }
+}
+
+.app-sidebar__section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+
+  &:hover {
+    background: var(--color-surface-container);
+  }
+}
+
+.app-sidebar__section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+}
+
+.app-sidebar__section-chevron {
+  font-size: 18px;
+  color: var(--color-on-surface-variant);
+  transition: transform 0.15s ease;
+}
+
+.app-sidebar__section--collapsed .app-sidebar__section-chevron {
+  transform: rotate(-90deg);
+}
+
+.app-sidebar__section-items {
+  display: flex;
+  flex-direction: column;
+}
+
 .app-sidebar__item {
   display: flex;
   align-items: center;

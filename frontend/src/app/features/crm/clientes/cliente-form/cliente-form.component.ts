@@ -9,6 +9,7 @@ import {
   DuplicadoAlertaComponent,
   DuplicadoSugerencia,
 } from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
+import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-cliente-form',
@@ -121,9 +122,16 @@ export class ClienteFormComponent implements OnInit {
   }
 
   protected guardar(): void {
+    this.error.set(null);
+
     const ubicacionId = this.ubicacionId();
     if (!this.empresa().trim() || !ubicacionId) {
       this.error.set('Complete empresa y ubicación.');
+      return;
+    }
+
+    if (this.segmento() === SegmentoCliente.Otro && !this.segmentoOtroValor().trim()) {
+      this.error.set('Indique el segmento cuando selecciona «Otro».');
       return;
     }
 
@@ -147,8 +155,8 @@ export class ClienteFormComponent implements OnInit {
       next: (r) => {
         void this.router.navigate(['/crm/clientes', r.cliente.id]);
       },
-      error: () => {
-        this.error.set('No fue posible guardar el cliente.');
+      error: (err) => {
+        this.error.set(mensajeErrorApi(err, 'No fue posible guardar el cliente.'));
         this.loading.set(false);
       },
     });

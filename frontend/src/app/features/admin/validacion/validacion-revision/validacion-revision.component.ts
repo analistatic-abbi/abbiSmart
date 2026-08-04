@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { Proceso, ProcesoTarea } from '../../../../core/models/proceso.model';
 import { Rol } from '../../../../core/models/rol.enum';
 import { labelTarea } from '../../../../core/constants/tarea-labels';
+import { formatCuantiaConMoneda } from '../../../../core/utils/currency.util';
 
 @Component({
   selector: 'app-validacion-revision',
@@ -34,6 +35,8 @@ export class ValidacionRevisionComponent implements OnInit {
   protected readonly puedeEmitirVeredicto = computed(
     () => this.auth.rol() === Rol.Validador,
   );
+
+  protected readonly formatCuantia = formatCuantiaConMoneda;
 
   protected readonly tareasConEvidencia = computed(() =>
     this.tareas().filter(

@@ -4,6 +4,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { EstadoProyeccion, MercadoProyeccion, Proyeccion } from '../../../../core/models/admin.model';
+import {
+  FILTRO_ELIMINADOS_OPCIONES,
+  FiltroEliminados,
+} from '../../../../core/models/filtro-eliminados.model';
 import { claseBadgeEstadoProyeccion } from '../../../../core/utils/proyeccion-ui.util';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
 
@@ -31,6 +35,9 @@ export class ProyeccionesListComponent implements OnInit {
 
   protected readonly puedeAsignarMercado = () => this.auth.puedeAsignarMercadoProyeccion();
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
+  protected readonly puedeVerEliminados = () => this.auth.puedeVerEliminados();
+  protected readonly filtrosEliminados = FILTRO_ELIMINADOS_OPCIONES;
+  protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProyeccion(estado);
 
   ngOnInit(): void {
@@ -70,6 +77,7 @@ export class ProyeccionesListComponent implements OnInit {
         estado: this.estado() || undefined,
         mercado: this.mercado() || undefined,
         anioProyectado: this.anio() ?? undefined,
+        filtroEliminados: this.filtroEliminados(),
         limit: 500,
       })
       .subscribe({

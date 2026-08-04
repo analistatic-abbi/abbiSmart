@@ -15,6 +15,7 @@ export class AuditService {
     usuarioId?: number;
     entidadTipo?: string;
     accion?: string;
+    fecha?: string;
     fechaDesde?: string;
     fechaHasta?: string;
   } = {}): Observable<{ data: AuditLog[]; total: number }> {
@@ -25,6 +26,7 @@ export class AuditService {
     if (params.usuarioId) query['usuarioId'] = params.usuarioId;
     if (params.entidadTipo) query['entidadTipo'] = params.entidadTipo;
     if (params.accion) query['accion'] = params.accion;
+    if (params.fecha) query['fecha'] = params.fecha;
     if (params.fechaDesde) query['fechaDesde'] = params.fechaDesde;
     if (params.fechaHasta) query['fechaHasta'] = params.fechaHasta;
 

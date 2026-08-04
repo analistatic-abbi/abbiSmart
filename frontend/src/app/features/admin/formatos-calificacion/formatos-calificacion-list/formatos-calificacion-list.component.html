@@ -1,0 +1,174 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Formatos de calificación</h1>
+      <p>Administre rúbricas por puntos para evaluar procesos contra el valor ABBI. No reemplazan el cumplimiento contra requisitos de licitación.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (feedback()) {
+    <p class="success">{{ feedback() }}</p>
+  }
+
+  <div class="panel nuevo-formato-panel">
+    <h2>Nuevo formato</h2>
+    <label>Nombre del formato
+      <input type="text" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" maxlength="200" />
+    </label>
+    <label>Puntaje mínimo para aprobar
+      <input type="number" min="0" [ngModel]="puntajeMinimo()" (ngModelChange)="puntajeMinimo.set($event)" />
+    </label>
+    <label>Archivo Excel/CSV
+      <input type="file" accept=".csv,.xlsx" (change)="onFileSelected($event)" />
+    </label>
+    <div class="form-actions">
+      <button type="button" class="btn-primary" [disabled]="uploadLoading() || !archivo()" (click)="subir()">
+        {{ uploadLoading() ? 'Importando...' : 'Importar formato' }}
+      </button>
+    </div>
+  </div>
+
+  <section class="panel guia-panel">
+    <h2>Guía de columnas del Excel</h2>
+    <p class="guia-intro">El archivo debe contener solo filas de rangos (sin metadatos del formato).</p>
+
+    <div class="guia-block">
+      <h3>Prompt para IA externa</h3>
+      <p class="guia-intro">Copie este texto y péguelo en ChatGPT, Claude u otra IA junto con la imagen/PDF de la tabla.</p>
+      <div class="prompt-box">
+        <pre>{{ promptIa }}</pre>
+        <button type="button" class="btn-secondary" (click)="copiarPrompt()">
+          {{ copiado() ? 'Copiado' : 'Copiar' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="guia-block">
+      <h3>Columnas requeridas</h3>
+      <div class="table-wrap">
+        <table class="guia-table">
+          <thead>
+            <tr><th>Columna</th><th>Descripción</th></tr>
+          </thead>
+          <tbody>
+            @for (col of columnas; track col.nombre) {
+              <tr>
+                <td><code>{{ col.nombre }}</code></td>
+                <td>{{ col.descripcion }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Formatos cargados</h2>
+    @if (loading()) {
+      <p>Cargando...</p>
+    } @else if (!formatos().length) {
+      <p>No hay formatos cargados para este país.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Puntaje mín.</th>
+              <th>Indicadores</th>
+              <th>Estado</th>
+              <th>Creado</th>
+              <th class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (formato of formatos(); track formato.id) {
+              <tr>
+                <td>{{ formato.nombre }}</td>
+                <td>{{ formato.puntajeMinimo }}</td>
+                <td>{{ formato.cantidadIndicadores }}</td>
+                <td>
+                  <span class="badge" [class.badge--aprobado]="formato.activo" [class.badge--no-aprobado]="!formato.activo">
+                    {{ formato.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>{{ formatFechaHora(formato.fechaCreacion) }}</td>
+                <td class="actions">
+                  <div class="actions-menu" [class.actions-menu--open]="menuAbierto(formato.id)">
+                    <button
+                      type="button"
+                      class="actions-menu__trigger"
+                      [attr.aria-expanded]="menuAbierto(formato.id)"
+                      aria-haspopup="menu"
+                      (click)="toggleMenu(formato.id, $event)"
+                    >
+                      Acciones
+                      <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </button>
+
+                    @if (menuAbierto(formato.id)) {
+                      <div class="actions-menu__panel" role="menu" (click)="$event.stopPropagation()">
+                        <button
+                          type="button"
+                          class="actions-menu__item"
+                          role="menuitem"
+                          (click)="verDetalle(formato.id)"
+                        >
+                          Ver rangos
+                        </button>
+                        <button
+                          type="button"
+                          class="actions-menu__item"
+                          [class.actions-menu__item--danger]="formato.activo"
+                          role="menuitem"
+                          [disabled]="actionLoading()"
+                          (click)="toggleActivo(formato)"
+                        >
+                          {{ formato.activo ? 'Desactivar' : 'Activar' }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  @if (detalle(); as d) {
+    <section class="panel detalle-panel">
+      <header class="detalle-panel__header">
+        <h2>{{ d.nombre }}</h2>
+        <button type="button" class="btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
+      </header>
+      <p>Puntaje mínimo: <strong>{{ d.puntajeMinimo }}</strong> · Indicadores: <strong>{{ d.cantidadIndicadores }}</strong></p>
+
+      @for (grupo of rangosPorIndicador(); track grupo.indicadorCodigo) {
+        <div class="indicador-grupo">
+          <h3>{{ grupo.indicadorCodigo }}</h3>
+          <table>
+            <thead>
+              <tr><th>Orden</th><th>Rango</th><th>Puntos</th></tr>
+            </thead>
+            <tbody>
+              @for (rango of grupo.rangos; track rango.id) {
+                <tr>
+                  <td>{{ rango.orden }}</td>
+                  <td>{{ formatoRangoLabel(grupo.indicadorCodigo, rango.rangoMin, rango.rangoMax) }}</td>
+                  <td>{{ rango.puntos }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</section>

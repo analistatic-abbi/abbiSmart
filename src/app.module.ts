@@ -25,7 +25,9 @@ import { NotificacionesModule } from './modules/notificaciones/notificaciones.mo
 import { JobsModule } from './modules/jobs/jobs.module';
 import { CalendarioModule } from './modules/calendario/calendario.module';
 import { UsersModule } from './modules/users/users.module';
+import { FormatosCalificacionModule } from './modules/formatos-calificacion/formatos-calificacion.module';
 import { SoporteModule } from './modules/soporte/soporte.module';
+import { BandejaPersonalModule } from './modules/bandeja-personal/bandeja-personal.module';
 
 @Module({
   imports: [
@@ -85,7 +87,9 @@ import { SoporteModule } from './modules/soporte/soporte.module';
     NotificacionesModule,
     JobsModule,
     CalendarioModule,
+    FormatosCalificacionModule,
     SoporteModule,
+    BandejaPersonalModule,
   ],
 })
 export class AppModule {}

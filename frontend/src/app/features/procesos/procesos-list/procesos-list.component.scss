@@ -81,6 +81,12 @@ th {
   color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
+
+  &--devuelto {
+    margin-left: 6px;
+    background: var(--color-error-container);
+    color: var(--color-on-error-container);
+  }
 }
 
 .error {

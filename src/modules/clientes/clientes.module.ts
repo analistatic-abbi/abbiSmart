@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cliente } from '../../database/entities/cliente.entity';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
+import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
 import { ClientesController } from './clientes.controller';
@@ -10,7 +11,14 @@ import { ClientesService } from './clientes.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Cliente, Contacto, Proceso, Relacionamiento, UbicacionGeografica]),
+    TypeOrmModule.forFeature([
+      Cliente,
+      Contacto,
+      Proceso,
+      Proyeccion,
+      Relacionamiento,
+      UbicacionGeografica,
+    ]),
   ],
   controllers: [ClientesController],
   providers: [ClientesService],

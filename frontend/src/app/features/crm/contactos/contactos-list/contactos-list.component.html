@@ -48,6 +48,7 @@
             <th>Cargo</th>
             <th>Teléfono</th>
             <th>Correo</th>
+            <th>Referido</th>
             <th>Genérico</th>
             @if (puedeEscribir()) {
               <th></th>
@@ -62,6 +63,16 @@
               <td>{{ contacto.cargo ?? '—' }}</td>
               <td>{{ contacto.telefono ?? '—' }}</td>
               <td>{{ contacto.correo ?? '—' }}</td>
+              <td>
+                @if (contacto.esReferido) {
+                  <span class="badge badge--referido">Referido</span>
+                  @if (contacto.referidoPorNombre) {
+                    <span class="referido-por">por {{ contacto.referidoPorNombre }}</span>
+                  }
+                } @else {
+                  —
+                }
+              </td>
               <td>{{ contacto.esGenerico ? 'Sí' : 'No' }}</td>
               @if (puedeEscribir()) {
                 <td><a [routerLink]="['/crm/contactos', contacto.id, 'editar']">Editar</a></td>
@@ -69,7 +80,7 @@
             </tr>
           } @empty {
             <tr>
-              <td [attr.colspan]="puedeEscribir() ? 7 : 6">
+              <td [attr.colspan]="puedeEscribir() ? 8 : 7">
                 @if (tieneFiltrosActivos()) {
                   No se encontraron contactos con los filtros seleccionados.
                 } @else {

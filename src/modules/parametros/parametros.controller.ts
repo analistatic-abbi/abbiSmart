@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -21,6 +22,7 @@ import {
   CreateParametroDto,
   ParametrosQueryDto,
   UpdateParametroDto,
+  UpsertParametrosPorAnioDto,
 } from './dto/parametro.dto';
 import { ParametrosService } from './parametros.service';
 
@@ -44,6 +46,45 @@ export class ParametrosController {
     return {
       message: 'Parámetros financieros obtenidos correctamente',
       ...result,
+    };
+  }
+
+  @Get('por-anio/:anio')
+  @ApiOperation({ summary: 'Obtener los 8 indicadores de un año (PAR-004)' })
+  async findPorAnio(
+    @Param('anio', ParseIntPipe) anio: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.parametrosService.findPorAnio(
+      anio,
+      user.paisSesionId!,
+    );
+
+    return {
+      message: 'Parámetros del año obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Put('por-anio/:anio')
+  @Roles(Rol.ADMINISTRADOR)
+  @RequireWriteAccess()
+  @ApiOperation({ summary: 'Crear o actualizar indicadores de un año (PAR-004, solo Admin)' })
+  async upsertPorAnio(
+    @Param('anio', ParseIntPipe) anio: number,
+    @Body() dto: UpsertParametrosPorAnioDto,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const data = await this.parametrosService.upsertPorAnio(
+      anio,
+      dto,
+      actor.userId,
+      actor.paisSesionId!,
+    );
+
+    return {
+      message: 'Parámetros del año guardados correctamente',
+      data,
     };
   }
 
@@ -90,7 +131,7 @@ export class ParametrosController {
     @Body() dto: CreateParametroDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const parametro = await this.parametrosService.create(
+    const result = await this.parametrosService.create(
       dto,
       actor.userId,
       actor.paisSesionId!,
@@ -98,7 +139,7 @@ export class ParametrosController {
 
     return {
       message: 'Parámetro financiero creado correctamente',
-      parametro,
+      ...result,
     };
   }
 
@@ -111,7 +152,7 @@ export class ParametrosController {
     @Body() dto: UpdateParametroDto,
     @CurrentUser() actor: AuthUserPayload,
   ) {
-    const parametro = await this.parametrosService.update(
+    const result = await this.parametrosService.update(
       id,
       dto,
       actor.userId,
@@ -120,7 +161,7 @@ export class ParametrosController {
 
     return {
       message: 'Parámetro financiero actualizado correctamente',
-      parametro,
+      ...result,
     };
   }
 

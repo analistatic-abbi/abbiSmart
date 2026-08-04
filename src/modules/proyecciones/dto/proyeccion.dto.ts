@@ -6,15 +6,20 @@ import {
   IsDateString,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { EstadoProyeccion } from '../../../common/enums/estado-proyeccion.enum';
+import { FiltroEliminados } from '../../../common/enums/filtro-eliminados.enum';
 import { MercadoProyeccion } from '../../../common/enums/mercado-proyeccion.enum';
+import { SegmentoProceso } from '../../../common/enums/segmento-proceso.enum';
 
 export class ProyeccionesQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: EstadoProyeccion })
@@ -44,7 +49,16 @@ export class ProyeccionesQueryDto extends PaginationQueryDto {
   @IsInt()
   procesoOrigenId?: number;
 
-  @ApiPropertyOptional({ description: 'Incluir registros eliminados (Admin/Supervisor)' })
+  @ApiPropertyOptional({
+    enum: FiltroEliminados,
+    default: FiltroEliminados.ACTIVOS,
+    description: 'activos | todos | solo_eliminados (Admin/Supervisor)',
+  })
+  @IsOptional()
+  @IsEnum(FiltroEliminados)
+  filtroEliminados?: FiltroEliminados;
+
+  @ApiPropertyOptional({ description: 'Deprecated: use filtroEliminados=todos' })
   @IsOptional()
   incluirEliminados?: boolean;
 }
@@ -77,6 +91,29 @@ export class CreateProyeccionDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   valorFacturacion: number;
+
+  @ApiPropertyOptional({ description: 'Obligatorio en proyección manual sin proceso origen' })
+  @ValidateIf((dto: CreateProyeccionDto) => !dto.procesoOrigenId && !dto.empresaOtro)
+  @Type(() => Number)
+  @IsInt()
+  empresaClienteId?: number;
+
+  @ApiPropertyOptional({ description: 'Obligatorio en proyección manual sin proceso origen' })
+  @ValidateIf((dto: CreateProyeccionDto) => !dto.procesoOrigenId && !dto.empresaClienteId)
+  @IsString()
+  @MaxLength(255)
+  empresaOtro?: string;
+
+  @ApiPropertyOptional({ enum: SegmentoProceso, description: 'Obligatorio en proyección manual' })
+  @ValidateIf((dto: CreateProyeccionDto) => !dto.procesoOrigenId)
+  @IsEnum(SegmentoProceso)
+  segmento?: SegmentoProceso;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  objeto?: string;
 }
 
 export class UpdateProyeccionDto {
@@ -102,6 +139,29 @@ export class UpdateProyeccionDto {
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   valorFacturacion?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  empresaClienteId?: number | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  empresaOtro?: string | null;
+
+  @ApiPropertyOptional({ enum: SegmentoProceso })
+  @IsOptional()
+  @IsEnum(SegmentoProceso)
+  segmento?: SegmentoProceso | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  objeto?: string | null;
 }
 
 export class VincularProcesoResultanteDto {
@@ -147,7 +207,10 @@ export class ProyeccionResponseDto {
   procesoResultanteCodigo?: string | null;
   proyeccionSiguienteId?: number | null;
   empresa?: string | null;
+  empresaClienteId?: number | null;
+  empresaOtro?: string | null;
   segmento?: string | null;
+  objeto?: string | null;
   anioProyectado: number;
   fechaEstimadaPublicacion: string;
   valorVenta: string;

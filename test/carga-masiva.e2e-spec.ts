@@ -190,12 +190,13 @@ describe('Carga masiva (e2e)', () => {
     expect(contactosRes.body.data.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('importa proyecciones desde CSV (PRY-014)', async () => {
+  it('importa proyecciones manuales desde CSV (PRY-014)', async () => {
     const token = await setupAdminToken();
     const anio = 2030 + (Date.now() % 50);
+    const empresaOtro = `Empresa Proyeccion Carga ${Date.now()}`;
     const csv = [
-      'anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,proceso_codigo,mercado',
-      `${anio},${anio}-06-15,150000.50,75000.25,,`,
+      'anio_proyectado,fecha_estimada_publicacion,valor_venta,valor_facturacion,segmento,empresa_otro,mercado',
+      `${anio},${anio}-06-15,150000.50,75000.25,Gas Natural,${empresaOtro},General`,
     ].join('\n');
 
     const res = await request(app.getHttpServer())

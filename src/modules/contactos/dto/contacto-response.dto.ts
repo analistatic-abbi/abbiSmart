@@ -28,6 +28,12 @@ export class ContactoResponseDto {
   @ApiPropertyOptional()
   referidoPorContactoId: number | null;
 
+  @ApiPropertyOptional()
+  referidoPorNombre: string | null;
+
+  @ApiProperty()
+  esReferido: boolean;
+
   @ApiProperty()
   fechaCreacion: Date;
 }

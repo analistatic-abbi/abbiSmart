@@ -60,6 +60,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'bandeja-personal',
+        loadComponent: () =>
+          import('./features/bandeja-personal/bandeja-personal.component').then(
+            (m) => m.BandejaPersonalComponent,
+          ),
+      },
+      {
+        path: 'notificaciones',
+        loadComponent: () =>
+          import('./features/notificaciones/notificaciones-list/notificaciones-list.component').then(
+            (m) => m.NotificacionesListComponent,
+          ),
+      },
+      {
         path: 'procesos',
         loadComponent: () =>
           import('./features/procesos/procesos-list/procesos-list.component').then(
@@ -261,6 +275,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/parametros/parametros-list/parametros-list.component').then(
             (m) => m.ParametrosListComponent,
+          ),
+      },
+      {
+        path: 'admin/formatos-calificacion',
+        canActivate: [roleGuard([Rol.Administrador])],
+        loadComponent: () =>
+          import('./features/admin/formatos-calificacion/formatos-calificacion-list/formatos-calificacion-list.component').then(
+            (m) => m.FormatosCalificacionListComponent,
           ),
       },
       {

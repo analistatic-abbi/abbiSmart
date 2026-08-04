@@ -6,8 +6,10 @@ import { ProcesoComentario } from '../../database/entities/proceso-comentario.en
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ProcesoTarea } from '../../database/entities/proceso-tarea.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
+import { ValidacionProceso } from '../../database/entities/validacion-proceso.entity';
 import { AuditModule } from '../audit/audit.module';
 import { ClientesModule } from '../clientes/clientes.module';
+import { ConfiguracionModule } from '../configuracion/configuracion.module';
 import { ParametrosModule } from '../parametros/parametros.module';
 import { ProyeccionesModule } from '../proyecciones/proyecciones.module';
 import { NotificacionesModule } from '../notificaciones/notificaciones.module';
@@ -22,9 +24,11 @@ import { ProcesosService } from './procesos.service';
       ProcesoTarea,
       ProcesoComentario,
       Pais,
+      ValidacionProceso,
     ]),
     AuditModule,
     ClientesModule,
+    ConfiguracionModule,
     ParametrosModule,
     AuthorizationModule,
     forwardRef(() => ProyeccionesModule),

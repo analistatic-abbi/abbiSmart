@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificacionesService, Notificacion } from '../../../core/services/notificaciones.service';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -7,18 +7,21 @@ import { LOGO_ABBI } from '../../../core/constants/branding';
 import { etiquetaTipoNotificacion } from '../../../core/utils/proyeccion-ui.util';
 import { countryFlagUrl, countryIsoCode } from '../../../core/utils/country.util';
 import { formatFechaHora, formatTiempoRelativo } from '../../../core/utils/date.util';
+import { resolverRutaNotificacion } from '../../../core/utils/notificacion-navigation.util';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.scss',
 })
-export class AppHeaderComponent implements OnInit {
+export class AppHeaderComponent implements OnInit, OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly router = inject(Router);
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
 
   protected readonly logoUrl = LOGO_ABBI;
   protected readonly notifs = signal<Notificacion[]>([]);
@@ -39,6 +42,13 @@ export class AppHeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarNotificaciones();
+    this.refreshTimer = setInterval(() => this.cargarNotificaciones(), 60_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+    }
   }
 
   protected toggleNotifs(): void {
@@ -65,21 +75,15 @@ export class AppHeaderComponent implements OnInit {
   }
 
   protected abrirNotificacion(n: Notificacion): void {
-    this.marcarLeida(n.id);
-    if (n.entidadTipo === 'proyeccion' && n.entidadId) {
-      this.showNotifs.set(false);
-      void this.router.navigate(['/proyecciones', n.entidadId]);
+    const ruta = resolverRutaNotificacion(n);
+    this.marcarLeida(Number(n.id));
+
+    if (!ruta) {
       return;
     }
-    if (n.entidadTipo === 'proceso' && n.entidadId) {
-      this.showNotifs.set(false);
-      void this.router.navigate(['/procesos', n.entidadId]);
-      return;
-    }
-    if (n.entidadTipo === 'dashboard' || n.tipo === 'reporte_mensual_disponible') {
-      this.showNotifs.set(false);
-      void this.router.navigate(['/dashboard']);
-    }
+
+    this.showNotifs.set(false);
+    void this.router.navigate(ruta);
   }
 
   protected marcarLeida(id: number): void {

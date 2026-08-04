@@ -23,6 +23,10 @@ export interface Proyeccion {
   procesoResultanteCodigo?: string | null;
   proyeccionSiguienteId?: number | null;
   empresa?: string | null;
+  empresaClienteId?: number | null;
+  empresaOtro?: string | null;
+  segmento?: string | null;
+  objeto?: string | null;
   anioProyectado: number;
   fechaEstimadaPublicacion: string;
   valorVenta: string;
@@ -38,6 +42,10 @@ export interface CreateProyeccionPayload {
   fechaEstimadaPublicacion: string;
   valorVenta: number;
   valorFacturacion: number;
+  empresaClienteId?: number;
+  empresaOtro?: string;
+  segmento?: string;
+  objeto?: string;
 }
 
 export interface Usuario {

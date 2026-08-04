@@ -1,10 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
+import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
 import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
@@ -12,10 +13,15 @@ import { ParametroFinanciero } from '../../database/entities/parametro-financier
 import { AuditService } from '../audit/audit.service';
 import {
   CreateParametroDto,
+  ParametroPorAnioResponseItemDto,
+  ParametrosPorAnioResponseDto,
   ParametroResponseDto,
   ParametrosQueryDto,
+  ParametrosPropagacionDto,
   UpdateParametroDto,
+  UpsertParametrosPorAnioDto,
 } from './dto/parametro.dto';
+import { ParametrosDependientesService } from './parametros-dependientes.service';
 
 export interface ParametrosPage {
   data: ParametroResponseDto[];
@@ -30,6 +36,8 @@ export class ParametrosService {
     @InjectRepository(ParametroFinanciero)
     private readonly parametroRepository: Repository<ParametroFinanciero>,
     private readonly auditService: AuditService,
+    private readonly dataSource: DataSource,
+    private readonly dependientesService: ParametrosDependientesService,
   ) {}
 
   async findAll(
@@ -92,11 +100,128 @@ export class ParametrosService {
       .getOne();
   }
 
+  async findPorIndicadorYAnio(
+    paisSesionId: number,
+    indicadorCodigo: ParametroFinanciero['indicadorCodigo'],
+    anio: number,
+  ): Promise<ParametroFinanciero | null> {
+    return this.parametroRepository.findOne({
+      where: {
+        paisId: paisSesionId,
+        indicadorCodigo,
+        anio,
+      },
+    });
+  }
+
+  async findPorAnio(
+    anio: number,
+    paisSesionId: number,
+  ): Promise<ParametrosPorAnioResponseDto> {
+    const existentes = await this.parametroRepository.find({
+      where: { paisId: paisSesionId, anio },
+    });
+
+    const porCodigo = new Map(
+      existentes.map((parametro) => [parametro.indicadorCodigo, parametro]),
+    );
+
+    return {
+      anio,
+      indicadores: INDICADORES_FINANCIEROS.map((indicadorCodigo) => {
+        const parametro = porCodigo.get(indicadorCodigo);
+        return this.toPorAnioItem(indicadorCodigo, parametro);
+      }),
+    };
+  }
+
+  async upsertPorAnio(
+    anio: number,
+    dto: UpsertParametrosPorAnioDto,
+    actorId: number,
+    paisSesionId: number,
+  ): Promise<ParametrosPorAnioResponseDto> {
+    const codigos = dto.indicadores.map((item) => item.indicadorCodigo);
+    const duplicados = codigos.filter(
+      (codigo, index) => codigos.indexOf(codigo) !== index,
+    );
+
+    if (duplicados.length > 0) {
+      throw new BusinessException(
+        ErrorCode.PARAMETRO_DUPLICADO,
+        'No puede repetir el mismo indicador en la carga por año',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(ParametroFinanciero);
+
+      for (const item of dto.indicadores) {
+        const existente = await repo.findOne({
+          where: {
+            paisId: paisSesionId,
+            indicadorCodigo: item.indicadorCodigo,
+            anio,
+          },
+        });
+
+        if (existente) {
+          const valorAnterior = JSON.stringify(this.toResponse(existente));
+          existente.valor = item.valor.toString();
+          existente.reglaCumplimiento = item.reglaCumplimiento as ReglaCumplimiento;
+          existente.usuarioModificoId = actorId;
+          const saved = await repo.save(existente);
+
+          await this.auditService.log({
+            usuarioId: actorId,
+            accion: AuditAccion.PARAMETRO_EDITAR,
+            entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
+            entidadId: saved.id,
+            valorAnterior,
+            valorNuevo: JSON.stringify(this.toResponse(saved)),
+          });
+          continue;
+        }
+
+        const parametro = repo.create({
+          paisId: paisSesionId,
+          indicadorCodigo: item.indicadorCodigo,
+          anio,
+          valor: item.valor.toString(),
+          reglaCumplimiento: item.reglaCumplimiento as ReglaCumplimiento,
+          usuarioModificoId: actorId,
+        });
+        const saved = await repo.save(parametro);
+
+        await this.auditService.log({
+          usuarioId: actorId,
+          accion: AuditAccion.PARAMETRO_CREAR,
+          entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
+          entidadId: saved.id,
+          valorNuevo: JSON.stringify(this.toResponse(saved)),
+        });
+      }
+    });
+
+    const indicadoresAfectados = dto.indicadores.map((item) => item.indicadorCodigo);
+    const propagacion = await this.dependientesService.propagarCambios(
+      paisSesionId,
+      anio,
+      actorId,
+      indicadoresAfectados,
+    );
+
+    const response = await this.findPorAnio(anio, paisSesionId);
+    response.propagacion = this.toPropagacionDto(propagacion);
+    return response;
+  }
+
   async create(
     dto: CreateParametroDto,
     actorId: number,
     paisSesionId: number,
-  ): Promise<ParametroResponseDto> {
+  ): Promise<{ parametro: ParametroResponseDto; propagacion: ParametrosPropagacionDto }> {
     const exists = await this.parametroRepository.findOne({
       where: {
         paisId: paisSesionId,
@@ -132,7 +257,17 @@ export class ParametrosService {
       valorNuevo: JSON.stringify(this.toResponse(saved)),
     });
 
-    return this.toResponse(saved);
+    const propagacion = await this.dependientesService.propagarCambios(
+      paisSesionId,
+      dto.anio,
+      actorId,
+      [dto.indicadorCodigo],
+    );
+
+    return {
+      parametro: this.toResponse(saved),
+      propagacion: this.toPropagacionDto(propagacion),
+    };
   }
 
   async update(
@@ -140,7 +275,7 @@ export class ParametrosService {
     dto: UpdateParametroDto,
     actorId: number,
     paisSesionId: number,
-  ): Promise<ParametroResponseDto> {
+  ): Promise<{ parametro: ParametroResponseDto; propagacion: ParametrosPropagacionDto }> {
     const parametro = await this.getParametroOrFail(id, paisSesionId);
     const valorAnterior = JSON.stringify(this.toResponse(parametro));
 
@@ -164,7 +299,17 @@ export class ParametrosService {
       valorNuevo: JSON.stringify(this.toResponse(saved)),
     });
 
-    return this.toResponse(saved);
+    const propagacion = await this.dependientesService.propagarCambios(
+      paisSesionId,
+      saved.anio,
+      actorId,
+      [saved.indicadorCodigo],
+    );
+
+    return {
+      parametro: this.toResponse(saved),
+      propagacion: this.toPropagacionDto(propagacion),
+    };
   }
 
   async remove(id: number, actorId: number, paisSesionId: number): Promise<void> {
@@ -218,6 +363,43 @@ export class ParametrosService {
       reglaCumplimiento: parametro.reglaCumplimiento,
       usuarioModificoId: parametro.usuarioModificoId,
       fechaModificacion: parametro.fechaModificacion,
+    };
+  }
+
+  private toPorAnioItem(
+    indicadorCodigo: ParametroFinanciero['indicadorCodigo'],
+    parametro?: ParametroFinanciero,
+  ): ParametroPorAnioResponseItemDto {
+    if (!parametro) {
+      return {
+        indicadorCodigo,
+        id: null,
+        valor: null,
+        reglaCumplimiento: null,
+        fechaModificacion: null,
+      };
+    }
+
+    return {
+      indicadorCodigo,
+      id: parametro.id,
+      valor: parametro.valor,
+      reglaCumplimiento: parametro.reglaCumplimiento,
+      fechaModificacion: parametro.fechaModificacion,
+    };
+  }
+
+  private toPropagacionDto(
+    result: {
+      indicadoresActualizados: number;
+      calificacionesActualizadas: number;
+      calificacionesOmitidas: number;
+    },
+  ): ParametrosPropagacionDto {
+    return {
+      indicadoresActualizados: result.indicadoresActualizados,
+      calificacionesActualizadas: result.calificacionesActualizadas,
+      calificacionesOmitidas: result.calificacionesOmitidas,
     };
   }
 }

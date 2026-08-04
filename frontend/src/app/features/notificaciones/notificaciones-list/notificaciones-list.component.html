@@ -1,0 +1,53 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Notificaciones</h1>
+      <p>Centro de alertas y avisos del sistema.</p>
+    </div>
+    <button type="button" class="btn-secondary" (click)="marcarTodas()">Marcar todas como leídas</button>
+  </header>
+
+  <div class="filters">
+    <label class="checkbox">
+      <input
+        type="checkbox"
+        [checked]="soloNoLeidas()"
+        (change)="soloNoLeidas.set($any($event.target).checked); onFilterChange()"
+      />
+      Solo no leídas
+    </label>
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Cargando notificaciones...</p>
+  } @else {
+    <div class="notif-list">
+      @for (n of items(); track n.id) {
+        <button
+          type="button"
+          class="notif-card"
+          [class.notif-card--unread]="!n.leida"
+          (click)="abrir(n)"
+        >
+          <div class="notif-card__head">
+            <span class="notif-card__tipo">{{ tipoLabel(n.tipo) }}</span>
+            <time
+              class="notif-card__time"
+              [attr.datetime]="n.fechaCreacion"
+              [attr.title]="fechaCompleta(n.fechaCreacion)"
+            >
+              {{ tiempoRelativo(n.fechaCreacion) }}
+            </time>
+          </div>
+          <p class="notif-card__msg">{{ n.mensaje }}</p>
+        </button>
+      } @empty {
+        <p class="empty">Sin notificaciones.</p>
+      }
+    </div>
+  }
+</section>

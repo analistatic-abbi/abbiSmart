@@ -181,12 +181,30 @@ export class ValidacionService {
       );
     }
 
+    const validadorIds = new Set(dto.validadorIds);
+
+    await this.validacionRepository
+      .createQueryBuilder()
+      .delete()
+      .from(ValidacionProceso)
+      .where('proceso_id = :procesoId', { procesoId })
+      .andWhere('validador_id NOT IN (:...validadorIds)', {
+        validadorIds: [...validadorIds],
+      })
+      .execute();
+
     for (const validador of validadores) {
       const exists = await this.validacionRepository.findOne({
         where: { procesoId, validadorId: validador.id },
       });
 
-      if (!exists) {
+      if (exists) {
+        exists.veredicto = VeredictoValidacion.PENDIENTE;
+        exists.comentario = null;
+        exists.fechaVeredicto = null;
+        exists.fechaAsignacion = new Date();
+        await this.validacionRepository.save(exists);
+      } else {
         await this.validacionRepository.save(
           this.validacionRepository.create({
             procesoId,
@@ -204,6 +222,7 @@ export class ValidacionService {
     }
 
     proceso.estado = EstadoProceso.EN_VALIDACION;
+    proceso.validadoresAsignadoPorId = actorId;
     await this.procesoRepository.save(proceso);
 
     await this.auditService.log({
@@ -287,6 +306,7 @@ export class ValidacionService {
       )
     ) {
       proceso.estado = EstadoProceso.PRESENTADO;
+      await this.limpiarComentariosDevolucionValidacion(proceso.id);
     }
 
     await this.procesoRepository.save(proceso);
@@ -296,7 +316,30 @@ export class ValidacionService {
       estadoAntes === EstadoProceso.EN_VALIDACION &&
       proceso.estado === EstadoProceso.EN_PROCESO
     ) {
-      await this.notificarProcesoDevueltoValidacion(proceso, validacion.comentario);
+      const validador = await this.usuarioRepository.findOne({
+        where: { id: validacion.validadorId },
+      });
+      await this.notificarProcesoDevueltoValidacion(
+        proceso,
+        validacion.comentario,
+        validador?.nombre ?? null,
+      );
+
+      if (proceso.validadoresAsignadoPorId) {
+        const asignador = await this.usuarioRepository.findOne({
+          where: { id: proceso.validadoresAsignadoPorId },
+        });
+
+        if (asignador) {
+          await this.mailService.sendValidacionDevueltaEmail(
+            asignador.correo,
+            asignador.nombre,
+            proceso.codigo ?? proceso.idDigitado,
+            validador?.nombre ?? 'Validador',
+            validacion.comentario,
+          );
+        }
+      }
     }
 
     await this.auditService.log({
@@ -346,12 +389,14 @@ export class ValidacionService {
 
     const validaciones = await this.validacionRepository.find({
       where: { procesoId },
+      relations: { validador: true },
       order: { fechaAsignacion: 'ASC' },
     });
 
     return validaciones.map((item) => ({
       id: item.id,
       validadorId: item.validadorId,
+      validadorNombre: item.validador?.nombre ?? null,
       veredicto: item.veredicto,
       comentario: item.comentario,
       fechaAsignacion: item.fechaAsignacion,
@@ -359,15 +404,26 @@ export class ValidacionService {
     }));
   }
 
+  private async limpiarComentariosDevolucionValidacion(
+    procesoId: number,
+  ): Promise<void> {
+    await this.validacionRepository.update(
+      { procesoId },
+      { comentario: null },
+    );
+  }
+
   private async notificarProcesoDevueltoValidacion(
     proceso: Proceso,
     comentario: string | null,
+    validadorNombre: string | null,
   ): Promise<void> {
     const procesoLabel = proceso.codigo ?? proceso.idDigitado ?? `ID ${proceso.id}`;
+    const validadorResumen = validadorNombre ? ` Validador: ${validadorNombre}.` : '';
     const comentarioResumen = comentario?.trim()
       ? ` Comentario: ${comentario.trim().slice(0, 200)}`
       : '';
-    const mensaje = `El proceso ${procesoLabel} fue devuelto de validación y requiere correcciones.${comentarioResumen}`;
+    const mensaje = `El proceso ${procesoLabel} fue devuelto de validación y requiere correcciones.${validadorResumen}${comentarioResumen}`;
 
     const destinatarios = await this.resolverDestinatariosCorreccionProceso(
       proceso.paisId,

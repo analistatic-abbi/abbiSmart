@@ -34,6 +34,7 @@ export enum AuditAccion {
   PROCESO_CAMBIAR_ESTADO = 'proceso_cambiar_estado',
   PROCESO_ELIMINAR = 'proceso_eliminar',
   TAREA_COMPLETAR = 'tarea_completar',
+  TAREA_EDITAR = 'tarea_editar',
   VALIDACION_ASIGNAR = 'validacion_asignar',
   VALIDACION_VEREDICTO = 'validacion_veredicto',
   SOLICITUD_ELIMINACION_CREAR = 'solicitud_eliminacion_crear',

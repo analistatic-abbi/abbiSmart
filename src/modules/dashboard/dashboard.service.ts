@@ -17,6 +17,7 @@ import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { ReporteGenerado } from '../../database/entities/reporte-generado.entity';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { DashboardExportQueryDto, DashboardProcesosQueryDto } from './dto/dashboard-query.dto';
 
 export const EXPORT_MAX_ROWS = 10_000;
 
@@ -122,14 +123,43 @@ export class DashboardService {
 
   async getProcesos(
     paisSesionId: number,
-    search?: string,
+    query: DashboardProcesosQueryDto,
   ): Promise<DashboardProcesoDto[]> {
-    const term = search?.trim();
+    const term = query.search?.trim();
     if (!term) {
       return [];
     }
 
+    if (
+      query.fechaCierreDesde &&
+      query.fechaCierreHasta &&
+      query.fechaCierreDesde > query.fechaCierreHasta
+    ) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'La fecha de cierre desde no puede ser posterior a la fecha hasta',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const pattern = `%${term}%`;
+    const dateConditions: string[] = [];
+    const dateParams: unknown[] = [];
+
+    if (query.fechaCierreDesde) {
+      dateConditions.push('p.fecha_cierre >= ?');
+      dateParams.push(query.fechaCierreDesde);
+    }
+
+    if (query.fechaCierreHasta) {
+      dateConditions.push('p.fecha_cierre <= ?');
+      dateParams.push(query.fechaCierreHasta);
+    }
+
+    const dateClause = dateConditions.length
+      ? ` AND ${dateConditions.join(' AND ')}`
+      : '';
+
     const rows = await this.procesoRepository.query(
       `SELECT
          vc.id,
@@ -153,13 +183,9 @@ export class DashboardService {
          AND p.eliminado = FALSE
          AND ${RFI_FILTER}
          AND p.estado NOT IN ('Cerrado', 'Descartado')
-         AND (
-           vc.codigo LIKE ?
-           OR vc.empresa_mostrar LIKE ?
-           OR p.id_digitado LIKE ?
-         )
+         AND p.id_digitado LIKE ?${dateClause}
        ORDER BY vc.dias_restantes_cierre ASC`,
-      [paisSesionId, pattern, pattern, pattern],
+      [paisSesionId, pattern, ...dateParams],
     );
 
     return rows as DashboardProcesoDto[];
@@ -254,12 +280,11 @@ export class DashboardService {
 
   async exportarXlsx(
     paisSesionId: number,
-    search?: string,
-    anio?: number,
+    query: DashboardExportQueryDto = {},
   ): Promise<{ buffer: Buffer; filename: string }> {
     const resumen = await this.getResumen(paisSesionId);
-    const procesos = await this.getProcesosParaExport(paisSesionId, search);
-    const proyecciones = await this.getProyecciones(paisSesionId, anio);
+    const procesos = await this.getProcesosParaExport(paisSesionId, query);
+    const proyecciones = await this.getProyecciones(paisSesionId, query.anio);
     const fecha = new Date().toISOString().slice(0, 10);
 
     const sheets: SpreadsheetSheet[] = [
@@ -426,20 +451,26 @@ export class DashboardService {
 
   private async getProcesosParaExport(
     paisSesionId: number,
-    search?: string,
+    query: DashboardProcesosQueryDto,
   ): Promise<DashboardProcesoDto[]> {
-    const term = search?.trim();
+    const term = query.search?.trim();
     const params: unknown[] = [paisSesionId];
     let filtroBusqueda = '';
 
     if (term) {
       const pattern = `%${term}%`;
-      filtroBusqueda = ` AND (
-           vc.codigo LIKE ?
-           OR vc.empresa_mostrar LIKE ?
-           OR p.id_digitado LIKE ?
-         )`;
-      params.push(pattern, pattern, pattern);
+      filtroBusqueda = ' AND p.id_digitado LIKE ?';
+      params.push(pattern);
+    }
+
+    if (query.fechaCierreDesde) {
+      filtroBusqueda += ' AND p.fecha_cierre >= ?';
+      params.push(query.fechaCierreDesde);
+    }
+
+    if (query.fechaCierreHasta) {
+      filtroBusqueda += ' AND p.fecha_cierre <= ?';
+      params.push(query.fechaCierreHasta);
     }
 
     const rows = await this.procesoRepository.query(
@@ -484,7 +515,7 @@ export class DashboardService {
   }> {
     const [anioStr] = periodo.split('-');
     const anio = Number(anioStr);
-    const { buffer } = await this.exportarXlsx(paisId, undefined, anio);
+    const { buffer } = await this.exportarXlsx(paisId, { anio });
     const nombreArchivo = `dashboard-mensual-${periodo}-pais-${paisId}.xlsx`;
     const dirRelativo = path.join('uploads', 'reportes');
     const dirAbsoluto = path.join(process.cwd(), dirRelativo);

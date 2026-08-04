@@ -13,6 +13,32 @@ export interface ParametroFinanciero {
   fechaModificacion: string;
 }
 
+export interface ParametroPorAnioItem {
+  indicadorCodigo: IndicadorCodigo;
+  valor: number;
+  reglaCumplimiento: string;
+}
+
+export interface ParametroPorAnioResponseItem {
+  indicadorCodigo: IndicadorCodigo;
+  id: number | null;
+  valor: string | null;
+  reglaCumplimiento: string | null;
+  fechaModificacion: string | null;
+}
+
+export interface ParametrosPropagacion {
+  indicadoresActualizados: number;
+  calificacionesActualizadas: number;
+  calificacionesOmitidas: number;
+}
+
+export interface ParametrosPorAnioResponse {
+  anio: number;
+  indicadores: ParametroPorAnioResponseItem[];
+  propagacion?: ParametrosPropagacion;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ParametrosService {
   private readonly http = inject(HttpClient);
@@ -34,6 +60,19 @@ export class ParametrosService {
     if (params.anio) query['anio'] = params.anio;
 
     return this.http.get<{ data: ParametroFinanciero[]; total: number }>(this.base, { params: query });
+  }
+
+  getPorAnio(anio: number): Observable<{ data: ParametrosPorAnioResponse }> {
+    return this.http.get<{ data: ParametrosPorAnioResponse }>(`${this.base}/por-anio/${anio}`);
+  }
+
+  upsertPorAnio(
+    anio: number,
+    indicadores: ParametroPorAnioItem[],
+  ): Observable<{ data: ParametrosPorAnioResponse }> {
+    return this.http.put<{ data: ParametrosPorAnioResponse }>(`${this.base}/por-anio/${anio}`, {
+      indicadores,
+    });
   }
 
   create(payload: {

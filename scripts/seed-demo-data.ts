@@ -751,19 +751,22 @@ async function insertRelacionamientos(
   const haceQuinceDias = new Date();
   haceQuinceDias.setDate(haceQuinceDias.getDate() - 15);
   const fechaVencida = haceQuinceDias.toISOString().slice(0, 10);
+  const fechaAlertaVencida = new Date();
+  fechaAlertaVencida.setDate(fechaAlertaVencida.getDate() - 1);
+  const fechaAlertaVencidaStr = fechaAlertaVencida.toISOString().slice(0, 10);
 
   await conn.query(
     `INSERT INTO relacionamientos
-       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, dias_espera_respuesta, respuesta, fecha_respuesta, resultado, fecha_reunion, eliminado)
-     VALUES (?, ?, 'Correo', 'Seguimiento demo con respuesta recibida.', '2026-02-01', 7, 'Cliente interesado en reunión.', '2026-02-05', 'Reunión programada', '2026-02-12', FALSE)`,
+       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, fecha_alerta_respuesta, respuesta, fecha_respuesta, resultado, fecha_reunion, eliminado)
+     VALUES (?, ?, 'Correo', 'Seguimiento demo con respuesta recibida.', '2026-02-01', '2026-02-08', 'Cliente interesado en reunión.', '2026-02-05', 'Reunión programada', '2026-02-12', FALSE)`,
     [contactos.ecopetrolNominal, operadorCoId],
   );
 
   await conn.query(
     `INSERT INTO relacionamientos
-       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, dias_espera_respuesta, resultado, eliminado)
-     VALUES (?, ?, 'Llamada', 'Seguimiento demo sin respuesta (vencido).', ?, 7, 'Ninguno', FALSE)`,
-    [contactos.luzDelSurNominal, operadorCoId, fechaVencida],
+       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, fecha_alerta_respuesta, resultado, eliminado)
+     VALUES (?, ?, 'Llamada', 'Seguimiento demo sin respuesta (vencido).', ?, ?, 'Ninguno', FALSE)`,
+    [contactos.luzDelSurNominal, operadorCoId, fechaVencida, fechaAlertaVencidaStr],
   );
 
   console.log('✓ Relacionamientos demo (2, 1 vencido)');

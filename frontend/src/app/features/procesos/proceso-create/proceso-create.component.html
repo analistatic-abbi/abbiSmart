@@ -56,7 +56,19 @@
         </select>
       </label>
 
-      <label>Cuantía <input type="number" [ngModel]="store.paso1().cuantia" (ngModelChange)="updatePaso1('cuantia', $event ? +$event : null)" /></label>
+      <label>
+        Cuantía
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [ngModel]="store.paso1().cuantia"
+          (ngModelChange)="updatePaso1('cuantia', $event ? +$event : null)"
+        />
+        <small class="field-hint">Máximo 16 dígitos enteros (ej. 2.870.613.000)</small>
+      </label>
+
+      <label class="full">Objeto <textarea rows="2" [ngModel]="store.paso1().objeto" (ngModelChange)="updatePaso1('objeto', $event)" placeholder="Descripción del objeto contractual"></textarea></label>
 
       <label>
         Segmento
@@ -94,13 +106,46 @@
 
   @if (store.step() === 2) {
     <div class="panel">
+      <div class="indicadores-toolbar">
+        <label>
+          Año de parámetros de referencia
+          <input
+            type="number"
+            [ngModel]="store.paso2().anioParametros"
+            (ngModelChange)="onAnioParametrosChange($event)"
+            [min]="2000"
+            [max]="anioActual + 1"
+          />
+        </label>
+        @if (referenciasLoading()) {
+          <span class="muted">Cargando referencias...</span>
+        }
+      </div>
+
       <table class="indicadores">
-        <thead><tr><th>Indicador</th><th>Valor requerido</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Indicador</th>
+            <th>Referencia</th>
+            <th>Valor requerido</th>
+          </tr>
+        </thead>
         <tbody>
-          @for (item of store.paso2(); track item.indicadorCodigo; let i = $index) {
+          @for (item of store.paso2().indicadores; track item.indicadorCodigo; let i = $index) {
             <tr>
-              <td>{{ item.indicadorCodigo }}</td>
-              <td><input type="number" step="0.0001" [value]="item.valorRequerido ?? ''" (input)="updateIndicador(i, $any($event.target).value)" /></td>
+              <td>
+                <strong>{{ item.indicadorCodigo }}</strong>
+                <span class="hint">{{ valorHint(item.indicadorCodigo) }}</span>
+              </td>
+              <td class="referencia">{{ referenciaPara(item.indicadorCodigo) }}</td>
+              <td>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  [value]="indicadorDisplayValue(item.valorRequerido)"
+                  (input)="updateIndicador(i, $any($event.target).value)"
+                />
+              </td>
             </tr>
           }
         </tbody>

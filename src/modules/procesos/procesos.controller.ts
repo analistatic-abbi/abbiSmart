@@ -342,7 +342,10 @@ export class ProcesosController {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  @ApiOperation({ summary: 'Completar tarea con evidencia escrita y/o archivo (SEG-002)' })
+  @ApiOperation({
+    summary:
+      'Completar o editar tarea con evidencia escrita y/o archivo (SEG-002)',
+  })
   async completarTarea(
     @Param('id', ParseIntPipe) id: number,
     @Param('tareaId', ParseIntPipe) tareaId: number,

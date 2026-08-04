@@ -6,9 +6,9 @@ import { RelacionamientosService } from '../../../../core/services/relacionamien
 import {
   CanalRelacionamiento,
   Contacto,
-  ResultadoRelacionamiento,
 } from '../../../../core/models/crm.model';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
+import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-relacionamiento-form',
@@ -23,9 +23,6 @@ export class RelacionamientoFormComponent implements OnInit {
   private readonly contactos = inject(ContactosService);
 
   protected readonly canales = Object.values(CanalRelacionamiento);
-  protected readonly resultados = Object.values(ResultadoRelacionamiento);
-  protected readonly resultadoReunion = ResultadoRelacionamiento.ReunionProgramada;
-  protected readonly resultadoReferido = ResultadoRelacionamiento.ReferidoTercero;
 
   protected readonly contactosList = signal<Contacto[]>([]);
   protected readonly contactoOptions = computed(() =>
@@ -38,14 +35,7 @@ export class RelacionamientoFormComponent implements OnInit {
   protected readonly canal = signal<CanalRelacionamiento>(CanalRelacionamiento.Correo);
   protected readonly mensaje = signal('');
   protected readonly fechaMensaje = signal('');
-  protected readonly diasEsperaRespuesta = signal(7);
-  protected readonly resultado = signal<ResultadoRelacionamiento>(ResultadoRelacionamiento.Ninguno);
-  protected readonly fechaReunion = signal('');
-
-  protected readonly refNombre = signal('');
-  protected readonly refCargo = signal('');
-  protected readonly refTelefono = signal('');
-  protected readonly refCorreo = signal('');
+  protected readonly fechaAlertaRespuesta = signal('');
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -55,9 +45,16 @@ export class RelacionamientoFormComponent implements OnInit {
   }
 
   protected guardar(): void {
+    this.error.set(null);
+
     const contactoId = this.contactoId();
-    if (!contactoId || !this.mensaje().trim() || !this.fechaMensaje()) {
-      this.error.set('Complete contacto, mensaje y fecha.');
+    if (!contactoId || !this.mensaje().trim() || !this.fechaMensaje() || !this.fechaAlertaRespuesta()) {
+      this.error.set('Complete contacto, mensaje, fecha del mensaje y fecha de alerta.');
+      return;
+    }
+
+    if (this.fechaAlertaRespuesta() < this.fechaMensaje()) {
+      this.error.set('La fecha de alerta no puede ser anterior a la fecha del mensaje.');
       return;
     }
 
@@ -66,28 +63,14 @@ export class RelacionamientoFormComponent implements OnInit {
       canal: this.canal(),
       mensaje: this.mensaje().trim(),
       fechaMensaje: this.fechaMensaje(),
-      diasEsperaRespuesta: this.diasEsperaRespuesta(),
-      resultado: this.resultado(),
-      ...(this.resultado() === ResultadoRelacionamiento.ReunionProgramada
-        ? { fechaReunion: this.fechaReunion() }
-        : {}),
-      ...(this.resultado() === ResultadoRelacionamiento.ReferidoTercero
-        ? {
-            contactoReferido: {
-              nombre: this.refNombre().trim(),
-              cargo: this.refCargo().trim() || undefined,
-              telefono: this.refTelefono().trim() || undefined,
-              correo: this.refCorreo().trim() || undefined,
-            },
-          }
-        : {}),
+      fechaAlertaRespuesta: this.fechaAlertaRespuesta(),
     };
 
     this.loading.set(true);
     this.relacionamientos.create(payload).subscribe({
       next: (r) => void this.router.navigate(['/crm/relacionamientos', r.relacionamiento.id]),
-      error: () => {
-        this.error.set('No fue posible registrar el relacionamiento.');
+      error: (err) => {
+        this.error.set(mensajeErrorApi(err, 'No fue posible registrar el relacionamiento.'));
         this.loading.set(false);
       },
     });

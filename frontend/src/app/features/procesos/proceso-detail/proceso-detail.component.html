@@ -20,11 +20,17 @@
 
         <h1>{{ p.codigo ?? p.idDigitado }}</h1>
 
-        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · <span class="badge">{{ p.estado }}</span></p>
+        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · <span class="badge">{{ p.estado }}</span>
+          @if (mostrarDevolucionValidacion()) {
+            <span class="badge badge--devuelto">Devuelto</span>
+          }
+        </p>
 
       </div>
 
       <div class="detail__actions">
+
+        <app-fijar-entidad-button entidadTipo="proceso" [entidadId]="p.id" />
 
         @if (puedeEscribir()) {
 
@@ -61,6 +67,19 @@
       </div>
 
     </header>
+
+    @if (mostrarDevolucionValidacion()) {
+      <div class="guide guide--warning">
+        <strong>Devuelto por validación</strong>
+        @if (proceso()?.validadorDevolucionNombre) {
+          <span> — {{ proceso()?.validadorDevolucionNombre }}</span>
+        }
+        @if (proceso()?.comentarioDevolucionValidacion) {
+          <p class="devolucion-comentario">{{ proceso()?.comentarioDevolucionValidacion }}</p>
+        }
+        <p class="devolucion-accion">Corrija lo indicado y vuelva a enviar con «Asignar validadores».</p>
+      </div>
+    }
 
     @if (guiaSiguientePaso(); as guia) {
       <div class="guide">{{ guia }}</div>
@@ -102,13 +121,21 @@
 
         <div><span>Segmento</span><strong>{{ p.segmento }}</strong></div>
 
+        @if (p.objeto) {
+          <div class="full"><span>Objeto</span><strong>{{ p.objeto }}</strong></div>
+        }
+
         <div><span>Tipo proceso</span><strong>{{ p.tipoProceso }}</strong></div>
 
         <div><span>Instrumento</span><strong>{{ p.tipoInstrumento }}</strong></div>
 
-        <div><span>Cuantía</span><strong>{{ p.cuantia }} {{ p.moneda }}</strong></div>
+        <div><span>Cuantía</span><strong [title]="formatCuantiaTitle(p.cuantia)">{{ formatCuantia(p.cuantia, p.moneda) }}</strong></div>
 
         <div><span>Plazo</span><strong>{{ p.plazoEjecucionMeses }} meses</strong></div>
+
+        @if (p.anioParametros) {
+          <div><span>Año parámetros ABBI</span><strong>{{ p.anioParametros }}</strong></div>
+        }
 
         <div>
           <span>Avance</span>
@@ -157,7 +184,7 @@
 
           <table>
 
-            <thead><tr><th>Código</th><th>Valor</th><th>Cumple</th></tr></thead>
+            <thead><tr><th>Código</th><th>Valor</th><th>Resultado</th></tr></thead>
 
             <tbody>
 
@@ -167,9 +194,17 @@
 
                   <td>{{ ind.indicadorCodigo }}</td>
 
-                  <td>{{ ind.valorRequerido ?? '—' }}</td>
+                  <td [title]="formatoValorAbbiTitle(ind.indicadorCodigo, ind.valorRequerido)">
+                    {{ formatoValorAbbi(ind.indicadorCodigo, ind.valorRequerido) }}
+                  </td>
 
-                  <td>{{ ind.cumple ?? '—' }}</td>
+                  <td>
+                    @if (ind.cumple) {
+                      <span class="badge" [class]="resultadoBadgeClass(ind.cumple)">{{ ind.cumple }}</span>
+                    } @else {
+                      —
+                    }
+                  </td>
 
                 </tr>
 
@@ -182,6 +217,144 @@
         </div>
 
       }
+
+      <div class="panel panel--calificacion">
+        <h3>Calificación por puntos</h3>
+        <p class="panel-hint">
+          Evaluación alternativa por rúbrica de puntos. No reemplaza el cumplimiento contra requisitos de la licitación mostrado arriba.
+        </p>
+
+        @if (calificacionesLoading()) {
+          <p>Cargando calificaciones...</p>
+        } @else {
+          @if (calificaciones().length) {
+            <div class="calificaciones-list">
+              @for (cal of calificaciones(); track cal.id) {
+                <article class="calificacion-card">
+                  <header>
+                    <strong>{{ cal.formatoNombre }}</strong>
+                    <span class="badge" [class]="calificacionBadgeClass(cal.resultado)">{{ cal.resultado }}</span>
+                  </header>
+
+                  <div class="calificacion-resumen">
+                    <div class="calificacion-resumen__item">
+                      <span>Total obtenido</span>
+                      <strong>{{ cal.puntajeTotal }} pts</strong>
+                    </div>
+                    <div class="calificacion-resumen__item">
+                      <span>Mínimo del formato</span>
+                      <strong>{{ cal.puntajeMinimo }} pts</strong>
+                    </div>
+                    <div class="calificacion-resumen__item calificacion-resumen__item--veredicto">
+                      <span>Veredicto</span>
+                      <span class="badge" [class]="calificacionBadgeClass(cal.resultado)">
+                        {{ calificacionVeredicto(cal) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="calificacion-meta">
+                    Parámetros ABBI del año {{ cal.anioParametros }}
+                    · {{ formatFechaHora(cal.fechaEvaluacion) }}
+                  </p>
+
+                  @if (cal.detalle.length) {
+                    <table>
+                      <thead>
+                        <tr><th>Indicador</th><th>Valor ABBI</th><th>Rango</th><th>Puntos</th></tr>
+                      </thead>
+                      <tbody>
+                        @for (item of cal.detalle; track item.indicadorCodigo) {
+                          <tr>
+                            <td>{{ item.indicadorCodigo }}</td>
+                            <td [title]="formatoValorAbbiTitle(item.indicadorCodigo, valorAbbiVivo(cal.anioParametros, item.indicadorCodigo, item.valorAbbi))">{{ formatoValorAbbi(item.indicadorCodigo, valorAbbiVivo(cal.anioParametros, item.indicadorCodigo, item.valorAbbi)) }}</td>
+                            <td>{{ formatoRangoLabel(item.indicadorCodigo, item.rangoMin, item.rangoMax) }}</td>
+                            <td>{{ item.puntosObtenidos }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colspan="3"><strong>Suma de puntos</strong></td>
+                          <td><strong>{{ sumaPuntosDetalle(cal) }}</strong></td>
+                        </tr>
+                        <tr>
+                          <td colspan="3">Comparación con mínimo ({{ cal.puntajeMinimo }})</td>
+                          <td>
+                            <span class="badge badge--sm" [class]="calificacionBadgeClass(cal.resultado)">
+                              {{ cal.resultado }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="panel-hint">Aún no hay evaluaciones por puntos para este proceso.</p>
+          }
+
+          @if (puedeEscribir()) {
+            <div class="calificacion-evaluar">
+              <h4>Evaluar contra formatos</h4>
+              <p class="panel-hint">
+                Elija el año de los parámetros financieros ABBI con los que se comparará cada indicador y se calcularán los puntos.
+                La suma de puntos de todos los indicadores del formato se contrasta con el puntaje mínimo del formato para determinar Aprobado o No Aprobado.
+              </p>
+
+              <label class="field-label">
+                <span>Año de parámetros ABBI</span>
+                <input
+                  type="number"
+                  class="field-input field-input--year"
+                  [ngModel]="anioParametrosCalificacion()"
+                  (ngModelChange)="anioParametrosCalificacion.set($event)"
+                  [min]="2000"
+                  [max]="anioActual + 1"
+                />
+              </label>
+
+              @if (calificacionError()) {
+                <p class="error">{{ calificacionError() }}</p>
+              }
+              @if (calificacionExito()) {
+                <p class="success">{{ calificacionExito() }}</p>
+              }
+              @if (formatosActivos().length) {
+                <label class="field-label field-label--wide">
+                  <span>Formato de calificación</span>
+                  <select
+                    class="field-select"
+                    [ngModel]="formatoSeleccionadoId()"
+                    (ngModelChange)="formatoSeleccionadoId.set($event)"
+                  >
+                    <option [ngValue]="null">Seleccione un formato...</option>
+                    @for (formato of formatosActivos(); track formato.id) {
+                      <option [ngValue]="formato.id">
+                        {{ formato.nombre }} (mín. {{ formato.puntajeMinimo }} pts)
+                      </option>
+                    }
+                  </select>
+                </label>
+                <div class="calificacion-evaluar__actions">
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    [disabled]="calificacionEvaluando() || !formatoSeleccionadoId()"
+                    (click)="evaluarCalificaciones()"
+                  >
+                    {{ calificacionEvaluando() ? 'Evaluando...' : 'Evaluar' }}
+                  </button>
+                </div>
+              } @else {
+                <p class="panel-hint">No hay formatos activos en este país.</p>
+              }
+            </div>
+          }
+        }
+      </div>
 
     }
 
@@ -345,17 +518,25 @@
                   }
                 </td>
 
-                @if (puedeEscribir()) {
+                @if (puedeGestionarTareas()) {
                 <td>
 
                   @if (!t.completada && t.aplica) {
 
-                    <button type="button" class="link" (click)="tareaSeleccionada.set(t)">Completar</button>
+                    <button type="button" class="link" (click)="abrirModalCompletarTarea(t)">Completar</button>
+
+                  } @else if (t.completada && t.aplica) {
+
+                    <button type="button" class="link" (click)="abrirModalEditarTarea(t)">Editar</button>
 
                   } @else if (!t.aplica) {
                     <span class="muted">—</span>
                   }
 
+                </td>
+                } @else if (puedeEscribir()) {
+                <td>
+                  <span class="muted">—</span>
                 </td>
                 }
 
@@ -496,6 +677,10 @@
 
         <p class="modal__hint">Seleccione uno o más validadores para enviar el proceso a validación.</p>
 
+        @if (validadoresError()) {
+          <p class="error">{{ validadoresError() }}</p>
+        }
+
         <div class="validadores-list">
 
           @for (v of validadores(); track v.id) {
@@ -530,7 +715,7 @@
 
             class="btn-primary"
 
-            [disabled]="actionLoading() || validadoresSeleccionados().length === 0"
+            [disabled]="actionLoading()"
 
             (click)="confirmarValidadores()"
 
@@ -676,10 +861,24 @@
 
       <div class="modal">
 
-        <h3>Completar tarea: {{ labelTarea(tarea.tareaCodigo) }}</h3>
+        <h3>
+          @if (editandoTarea()) {
+            Editar tarea: {{ labelTarea(tarea.tareaCodigo) }}
+          } @else {
+            Completar tarea: {{ labelTarea(tarea.tareaCodigo) }}
+          }
+        </h3>
+
+        @if (editandoTarea() && tarea.evidenciaArchivoNombre) {
+          <p class="muted">Archivo actual: {{ tarea.evidenciaArchivoNombre }}</p>
+        }
 
         <label class="file-field">
-          Adjuntar evidencia (archivo)
+          @if (editandoTarea()) {
+            Reemplazar evidencia (archivo)
+          } @else {
+            Adjuntar evidencia (archivo)
+          }
           <input type="file" (change)="onArchivoSeleccionado($event)" />
         </label>
         @if (archivoEvidencia(); as file) {
@@ -692,9 +891,11 @@
 
         <div class="modal__actions">
 
-          <button type="button" class="btn-secondary" (click)="tareaSeleccionada.set(null); archivoEvidencia.set(null)">Cancelar</button>
+          <button type="button" class="btn-secondary" (click)="cerrarModalTarea()">Cancelar</button>
 
-          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="completarTarea(tarea)">Confirmar</button>
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="guardarTarea(tarea)">
+            @if (editandoTarea()) { Guardar } @else { Confirmar }
+          </button>
 
         </div>
 

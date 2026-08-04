@@ -7,6 +7,14 @@
   </header>
 
   <div class="filters">
+    <label>
+      Día
+      <input
+        type="date"
+        [ngModel]="fecha()"
+        (ngModelChange)="fecha.set($event); onFilter()"
+      />
+    </label>
     <input
       type="text"
       placeholder="Tipo de entidad (ej. proceso)"

@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { ProcesosService } from '../../../core/services/procesos.service';
+import { ProcesosService, ProcesoComentario } from '../../../core/services/procesos.service';
 import { ProyeccionesService } from '../../../core/services/proyecciones.service';
 import { SolicitudesEliminacionService } from '../../../core/services/solicitudes-eliminacion.service';
 import { ValidacionService, ValidadorOption } from '../../../core/services/validacion.service';
@@ -13,6 +13,7 @@ import {
   MOTIVOS_PERDIDA,
   Proceso,
   ProcesoTarea,
+  ResultadoIndicador,
   requiereMotivoBackfill,
   requiereMotivoPerdida,
   TipoProceso,
@@ -21,7 +22,16 @@ import {
 import { labelTarea } from '../../../core/constants/tarea-labels';
 import { mensajeErrorApi } from '../../../core/utils/api-error.util';
 import { formatFechaHora } from '../../../core/utils/date.util';
-import { ProcesoComentario } from '../../../core/services/procesos.service';
+import { FormatosCalificacionService } from '../../../core/services/formatos-calificacion.service';
+import { ParametrosService } from '../../../core/services/parametros.service';
+import {
+  FormatoCalificacionListItem,
+  ProcesoCalificacion,
+} from '../../../core/models/formato-calificacion.model';
+import { IndicadorCodigo } from '../../../core/models/proceso.model';
+import { formatCuantiaConMoneda, formatCurrencyFull } from '../../../core/utils/currency.util';
+import { formatParametroValor, formatRangoIndicador, parametroValorTitle } from '../../../core/utils/parametro.util';
+import { FijarEntidadButtonComponent } from '../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
 
 type Tab = 'info' | 'fechas' | 'tareas' | 'comentarios';
 
@@ -54,7 +64,7 @@ interface DependenciaItem {
 @Component({
   selector: 'app-proceso-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, FijarEntidadButtonComponent],
   templateUrl: './proceso-detail.component.html',
   styleUrl: './proceso-detail.component.scss',
 })
@@ -66,6 +76,8 @@ export class ProcesoDetailComponent implements OnInit {
   private readonly validacion = inject(ValidacionService);
   private readonly solicitudes = inject(SolicitudesEliminacionService);
   private readonly auth = inject(AuthService);
+  private readonly formatosCalificacion = inject(FormatosCalificacionService);
+  private readonly parametrosService = inject(ParametrosService);
 
   protected readonly proceso = signal<Proceso | null>(null);
   protected readonly tareas = signal<ProcesoTarea[]>([]);
@@ -85,6 +97,7 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly evidencia = signal('');
   protected readonly archivoEvidencia = signal<File | null>(null);
   protected readonly tareaSeleccionada = signal<ProcesoTarea | null>(null);
+  protected readonly editandoTarea = signal(false);
 
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
@@ -96,11 +109,116 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly comentarioLoading = signal(false);
   protected readonly comentarioError = signal<string | null>(null);
 
+  protected readonly calificaciones = signal<ProcesoCalificacion[]>([]);
+  protected readonly calificacionesLoading = signal(false);
+  protected readonly calificacionEvaluando = signal(false);
+  protected readonly calificacionError = signal<string | null>(null);
+  protected readonly calificacionExito = signal<string | null>(null);
+  protected readonly formatosActivos = signal<FormatoCalificacionListItem[]>([]);
+  protected readonly formatoSeleccionadoId = signal<number | null>(null);
+  protected readonly anioParametrosCalificacion = signal(new Date().getFullYear() - 1);
+  protected readonly anioActual = new Date().getFullYear();
+  protected readonly parametrosAbbiVivos = signal<
+    Record<number, Partial<Record<IndicadorCodigo, string>>>
+  >({});
+
   protected readonly formatFechaHora = formatFechaHora;
+  protected readonly formatCuantia = formatCuantiaConMoneda;
+  protected readonly formatCuantiaTitle = (value: string | number | null | undefined) =>
+    formatCurrencyFull(value, 2);
+
+  protected resultadoBadgeClass(resultado: string | null): string {
+    switch (resultado) {
+      case ResultadoIndicador.Aprobado:
+        return 'badge--aprobado';
+      case ResultadoIndicador.CasiAprobado:
+        return 'badge--casi-aprobado';
+      case ResultadoIndicador.CasiDesaprobado:
+        return 'badge--casi-desaprobado';
+      case ResultadoIndicador.NoAprobado:
+        return 'badge--no-aprobado';
+      default:
+        return '';
+    }
+  }
+
+  protected calificacionBadgeClass(resultado: string): string {
+    return resultado === 'Aprobado' ? 'badge--aprobado' : 'badge--no-aprobado';
+  }
+
+  protected calificacionVeredicto(cal: ProcesoCalificacion): string {
+    if (cal.puntajeTotal >= cal.puntajeMinimo) {
+      return `Aprobado (${cal.puntajeTotal} ≥ ${cal.puntajeMinimo})`;
+    }
+    return `No Aprobado (${cal.puntajeTotal} < ${cal.puntajeMinimo})`;
+  }
+
+  protected sumaPuntosDetalle(cal: ProcesoCalificacion): number {
+    return cal.detalle.reduce((sum, item) => sum + item.puntosObtenidos, 0);
+  }
+
+  protected formatoValorAbbi(indicadorCodigo: string, valor: string | null): string {
+    return formatParametroValor(indicadorCodigo as IndicadorCodigo, valor);
+  }
+
+  protected formatoValorAbbiTitle(indicadorCodigo: string, valor: string | null): string {
+    return parametroValorTitle(indicadorCodigo as IndicadorCodigo, valor);
+  }
+
+  protected valorAbbiVivo(
+    anioParametros: number,
+    indicadorCodigo: string,
+    fallback: string | null,
+  ): string | null {
+    const vivo =
+      this.parametrosAbbiVivos()[anioParametros]?.[indicadorCodigo as IndicadorCodigo];
+    return vivo ?? fallback;
+  }
+
+  protected formatoRangoLabel(
+    indicadorCodigo: string,
+    min: string | null,
+    max: string | null,
+  ): string {
+    return formatRangoIndicador(indicadorCodigo as IndicadorCodigo, min, max);
+  }
+
+  protected evaluarCalificaciones(): void {
+    const formatoId = this.formatoSeleccionadoId();
+    if (!formatoId) {
+      return;
+    }
+
+    this.calificacionEvaluando.set(true);
+    this.calificacionError.set(null);
+    this.calificacionExito.set(null);
+
+    this.formatosCalificacion
+      .evaluarProceso(this.procesoId, {
+        formatoIds: [formatoId],
+        anioParametros: this.anioParametrosCalificacion(),
+      })
+      .subscribe({
+        next: (res) => {
+          this.calificaciones.set(res.data);
+          this.cargarParametrosAbbiVivos(res.data.map((cal) => cal.anioParametros));
+          this.formatoSeleccionadoId.set(null);
+          this.calificacionExito.set(res.message);
+          this.calificacionEvaluando.set(false);
+        },
+        error: (err) => {
+          this.calificacionError.set(
+            mensajeErrorApi(err, 'No fue posible evaluar el proceso.'),
+          );
+          this.calificacionEvaluando.set(false);
+        },
+      });
+  }
 
   protected readonly showValidadoresModal = signal(false);
   protected readonly validadores = signal<ValidadorOption[]>([]);
   protected readonly validadoresSeleccionados = signal<number[]>([]);
+  protected readonly validadoresError = signal<string | null>(null);
 
   protected readonly showEliminarModal = signal(false);
   protected readonly dependencias = signal<DependenciaItem[]>([]);
@@ -110,6 +228,19 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly rol = computed(() => this.auth.rol());
 
   protected readonly puedeEscribir = computed(() => this.auth.puedeEscribir());
+
+  protected readonly puedeGestionarTareas = computed(() => {
+    if (!this.puedeEscribir()) return false;
+    const estado = this.proceso()?.estado;
+    return estado === EstadoProceso.EnProceso || estado === EstadoProceso.PorValidar;
+  });
+
+  protected readonly mostrarDevolucionValidacion = computed(() => {
+    const proceso = this.proceso();
+    return Boolean(
+      proceso?.devueltoValidacion && proceso.estado === EstadoProceso.EnProceso,
+    );
+  });
 
   protected readonly puedeEditarFechas = computed(() => {
     const rol = this.rol();
@@ -185,6 +316,9 @@ export class ProcesoDetailComponent implements OnInit {
     }
 
     if (p.estado === EstadoProceso.EnProceso) {
+      if (p.devueltoValidacion && p.estado === EstadoProceso.EnProceso) {
+        return 'El validador devolvió este proceso. Revise el comentario, corrija y vuelva a asignar validadores.';
+      }
       if (this.avancePorcentaje() < 100) {
         const pendientes = this.tareasPendientes().length;
         const total = this.tareasAplicables().length;
@@ -214,10 +348,16 @@ export class ProcesoDetailComponent implements OnInit {
     this.procesoId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadProceso();
     this.loadTareas();
+    this.loadCalificaciones();
+    this.loadFormatosActivos();
   }
 
   protected setTab(tab: Tab): void {
     this.tab.set(tab);
+
+    if (tab === 'info') {
+      this.refrescarResultadosParametros();
+    }
 
     if (tab === 'tareas') {
       this.loadTareas();
@@ -446,16 +586,19 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected abrirValidadores(): void {
     this.validadoresSeleccionados.set([]);
+    this.validadoresError.set(null);
     this.validacion.listValidadores().subscribe({
       next: (r) => {
         this.validadores.set(r.data);
         this.showValidadoresModal.set(true);
       },
-      error: () => this.error.set('No fue posible cargar los validadores.'),
+      error: (err) =>
+        this.error.set(mensajeErrorApi(err, 'No fue posible cargar los validadores.')),
     });
   }
 
   protected toggleValidador(id: number, checked: boolean): void {
+    this.validadoresError.set(null);
     this.validadoresSeleccionados.update((current) => {
       if (checked) {
         return current.includes(id) ? current : [...current, id];
@@ -470,8 +613,12 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected confirmarValidadores(): void {
     const ids = this.validadoresSeleccionados();
-    if (ids.length === 0) return;
+    if (ids.length === 0) {
+      this.validadoresError.set('Seleccione al menos un validador.');
+      return;
+    }
 
+    this.validadoresError.set(null);
     this.actionLoading.set(true);
     this.validacion.asignarValidadores(this.procesoId, ids).subscribe({
       next: () => {
@@ -479,8 +626,10 @@ export class ProcesoDetailComponent implements OnInit {
         this.actionLoading.set(false);
         this.loadProceso();
       },
-      error: () => {
-        this.error.set('No fue posible asignar validadores.');
+      error: (err) => {
+        this.validadoresError.set(
+          mensajeErrorApi(err, 'No fue posible asignar validadores.'),
+        );
         this.actionLoading.set(false);
       },
     });
@@ -542,10 +691,37 @@ export class ProcesoDetailComponent implements OnInit {
     this.archivoEvidencia.set(input.files?.[0] ?? null);
   }
 
-  protected completarTarea(tarea: ProcesoTarea): void {
+  protected abrirModalCompletarTarea(tarea: ProcesoTarea): void {
+    this.editandoTarea.set(false);
+    this.evidencia.set('');
+    this.archivoEvidencia.set(null);
+    this.tareaSeleccionada.set(tarea);
+  }
+
+  protected abrirModalEditarTarea(tarea: ProcesoTarea): void {
+    this.editandoTarea.set(true);
+    this.evidencia.set(tarea.evidencia?.trim() ?? '');
+    this.archivoEvidencia.set(null);
+    this.tareaSeleccionada.set(tarea);
+  }
+
+  protected cerrarModalTarea(): void {
+    this.tareaSeleccionada.set(null);
+    this.editandoTarea.set(false);
+    this.evidencia.set('');
+    this.archivoEvidencia.set(null);
+  }
+
+  protected guardarTarea(tarea: ProcesoTarea): void {
     const evidencia = this.evidencia().trim();
     const archivo = this.archivoEvidencia();
-    if (!evidencia && !archivo) {
+    const conservaEvidenciaExistente =
+      this.editandoTarea() &&
+      !evidencia &&
+      !archivo &&
+      Boolean(tarea.evidenciaArchivoNombre || tarea.evidencia?.trim());
+
+    if (!evidencia && !archivo && !conservaEvidenciaExistente) {
       this.error.set('Debe adjuntar un archivo o escribir una evidencia.');
       return;
     }
@@ -554,9 +730,7 @@ export class ProcesoDetailComponent implements OnInit {
     this.error.set(null);
     this.procesos.completarTarea(this.procesoId, tarea.id, evidencia, archivo).subscribe({
       next: (r) => {
-        this.evidencia.set('');
-        this.archivoEvidencia.set(null);
-        this.tareaSeleccionada.set(null);
+        this.cerrarModalTarea();
         this.actionLoading.set(false);
         this.tareas.update((list) =>
           list.map((item) => (item.id === tarea.id ? { ...item, ...r.tarea } : item)),
@@ -570,7 +744,11 @@ export class ProcesoDetailComponent implements OnInit {
         this.loadProceso();
       },
       error: () => {
-        this.error.set('No fue posible completar la tarea.');
+        this.error.set(
+          this.editandoTarea()
+            ? 'No fue posible actualizar la tarea.'
+            : 'No fue posible completar la tarea.',
+        );
         this.actionLoading.set(false);
       },
     });
@@ -585,10 +763,59 @@ export class ProcesoDetailComponent implements OnInit {
     );
   }
 
+  private loadCalificaciones(): void {
+    this.calificacionesLoading.set(true);
+    this.formatosCalificacion.getCalificacionesProceso(this.procesoId).subscribe({
+      next: (res) => {
+        this.calificaciones.set(res.data);
+        this.cargarParametrosAbbiVivos(res.data.map((cal) => cal.anioParametros));
+        this.calificacionesLoading.set(false);
+      },
+      error: () => {
+        this.calificaciones.set([]);
+        this.calificacionesLoading.set(false);
+      },
+    });
+  }
+
+  private refrescarResultadosParametros(): void {
+    this.loadCalificaciones();
+    this.procesos.getById(this.procesoId).subscribe({
+      next: (r) => this.proceso.set(r.proceso),
+    });
+  }
+
+  private cargarParametrosAbbiVivos(anios: number[]): void {
+    const unicos = [...new Set(anios.filter((anio) => Number.isFinite(anio)))];
+    for (const anio of unicos) {
+      this.parametrosService.getPorAnio(anio).subscribe({
+        next: (res) => {
+          const mapa: Partial<Record<IndicadorCodigo, string>> = {};
+          for (const item of res.data.indicadores) {
+            if (item.valor !== null) {
+              mapa[item.indicadorCodigo] = item.valor;
+            }
+          }
+          this.parametrosAbbiVivos.update((actual) => ({ ...actual, [anio]: mapa }));
+        },
+      });
+    }
+  }
+
+  private loadFormatosActivos(): void {
+    this.formatosCalificacion.list(true).subscribe({
+      next: (res) => this.formatosActivos.set(res.data),
+      error: () => this.formatosActivos.set([]),
+    });
+  }
+
   private loadProceso(): void {
     this.procesos.getById(this.procesoId).subscribe({
       next: (r) => {
         this.proceso.set(r.proceso);
+        if (r.proceso.anioParametros) {
+          this.anioParametrosCalificacion.set(r.proceso.anioParametros);
+        }
         this.loading.set(false);
         if (
           r.proceso.estado === EstadoProceso.Adjudicado &&

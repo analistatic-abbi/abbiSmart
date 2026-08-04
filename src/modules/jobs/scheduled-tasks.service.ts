@@ -109,7 +109,7 @@ export class ScheduledTasksService {
       await this.notificacionesService.crear({
         usuarioId: row.emisorUsuarioId,
         tipo: 'relacionamiento_vencido',
-        mensaje: `El relacionamiento #${row.id} superó el plazo de respuesta`,
+        mensaje: `El relacionamiento #${row.id} no tiene una respuesta registrada`,
         entidadTipo: 'relacionamiento',
         entidadId: row.id,
       });

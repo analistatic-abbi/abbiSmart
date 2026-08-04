@@ -8,7 +8,7 @@ export interface Notificacion {
   tipo: string;
   mensaje: string;
   entidadTipo: string | null;
-  entidadId: number | null;
+  entidadId: number | string | null;
   leida: boolean;
   fechaCreacion: string;
 }

@@ -1,4 +1,6 @@
 export enum CumpleIndicador {
-  CUMPLE = 'Cumple',
-  NO_CUMPLE = 'No Cumple',
+  APROBADO = 'Aprobado',
+  CASI_APROBADO = 'Casi Aprobado',
+  CASI_DESAPROBADO = 'Casi Desaprobado',
+  NO_APROBADO = 'No Aprobado',
 }

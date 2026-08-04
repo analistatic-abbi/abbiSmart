@@ -1,12 +1,22 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class DashboardProcesosQueryDto {
-  @ApiPropertyOptional({ description: 'Búsqueda por código, ID digitado o empresa' })
+  @ApiPropertyOptional({ description: 'Búsqueda por ID digitado' })
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Filtro fecha cierre desde (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaCierreDesde?: string;
+
+  @ApiPropertyOptional({ description: 'Filtro fecha cierre hasta (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaCierreHasta?: string;
 }
 
 export class DashboardProyeccionesQueryDto {
@@ -17,12 +27,7 @@ export class DashboardProyeccionesQueryDto {
   anio?: number;
 }
 
-export class DashboardExportQueryDto {
-  @ApiPropertyOptional({ description: 'Búsqueda por código, ID digitado o empresa' })
-  @IsOptional()
-  @IsString()
-  search?: string;
-
+export class DashboardExportQueryDto extends DashboardProcesosQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @Type(() => Number)

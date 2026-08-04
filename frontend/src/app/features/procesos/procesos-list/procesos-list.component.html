@@ -12,7 +12,7 @@
   <div class="filters">
     <input
       type="search"
-      placeholder="Buscar por código, ID digitado o empresa..."
+      placeholder="Buscar por ID digitado"
       [ngModel]="search()"
       (ngModelChange)="search.set($event)"
       (keyup.enter)="onFilter()"
@@ -41,15 +41,23 @@
         <option [value]="i">{{ i }}</option>
       }
     </select>
+    <label>
+      Cierre desde
+      <input type="date" [ngModel]="fechaCierreDesde()" (ngModelChange)="fechaCierreDesde.set($event)" />
+    </label>
+    <label>
+      Cierre hasta
+      <input type="date" [ngModel]="fechaCierreHasta()" (ngModelChange)="fechaCierreHasta.set($event)" />
+    </label>
     @if (puedeVerEliminados()) {
-      <label class="filters__checkbox">
-        <input
-          type="checkbox"
-          [ngModel]="incluirEliminados()"
-          (ngModelChange)="incluirEliminados.set($event); onFilter()"
-        />
-        Incluir eliminados
-      </label>
+      <select
+        [ngModel]="filtroEliminados()"
+        (ngModelChange)="filtroEliminados.set($event); onFilter()"
+      >
+        @for (opt of filtrosEliminados; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
     }
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
     @if (tieneFiltrosActivos()) {
@@ -85,7 +93,12 @@
             <tr>
               <td>{{ proceso.codigo ?? '—' }}</td>
               <td>{{ proceso.empresaMostrar }}</td>
-              <td><span class="badge">{{ proceso.estado }}</span></td>
+              <td>
+                <span class="badge">{{ proceso.estado }}</span>
+                @if (mostrarDevolucionValidacion(proceso)) {
+                  <span class="badge badge--devuelto">Devuelto</span>
+                }
+              </td>
               <td>{{ proceso.segmento }}</td>
               <td>{{ proceso.tipoProceso }}</td>
               <td>{{ proceso.tipoInstrumento }}</td>

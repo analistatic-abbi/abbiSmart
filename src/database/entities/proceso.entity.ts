@@ -49,6 +49,9 @@ export class Proceso {
   @Column({ type: 'varchar', length: 500, nullable: true })
   link: string | null;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  objeto: string | null;
+
   @Column({ type: 'decimal', precision: 18, scale: 2 })
   cuantia: string;
 
@@ -106,6 +109,17 @@ export class Proceso {
 
   @Column({ name: 'usuario_creador_id', type: 'bigint', unsigned: true })
   usuarioCreadorId: number;
+
+  @Column({
+    name: 'validadores_asignado_por_id',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+  })
+  validadoresAsignadoPorId: number | null;
+
+  @Column({ name: 'anio_parametros', type: 'smallint', unsigned: true })
+  anioParametros: number;
 
   @Column({
     name: 'fecha_creacion',
@@ -181,6 +195,10 @@ export class Proceso {
   @ManyToOne(() => Usuario, { nullable: false })
   @JoinColumn({ name: 'usuario_creador_id' })
   usuarioCreador: Usuario;
+
+  @ManyToOne(() => Usuario, { nullable: true })
+  @JoinColumn({ name: 'validadores_asignado_por_id' })
+  validadoresAsignadoPor: Usuario | null;
 
   @ManyToOne(() => Usuario, { nullable: true })
   @JoinColumn({ name: 'eliminado_por_id' })

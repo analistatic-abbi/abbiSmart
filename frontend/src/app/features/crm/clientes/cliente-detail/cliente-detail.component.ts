@@ -5,10 +5,16 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { ContactosService } from '../../../../core/services/contactos.service';
 import { SolicitudesEliminacionService } from '../../../../core/services/solicitudes-eliminacion.service';
-import { Cliente, Contacto } from '../../../../core/models/crm.model';
+import {
+  ClienteVista360,
+  Contacto,
+} from '../../../../core/models/crm.model';
 import { Rol } from '../../../../core/models/rol.enum';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ClienteHistorialComponent } from '../cliente-historial/cliente-historial.component';
+import { formatCurrencyFull, formatCuantiaConMoneda } from '../../../../core/utils/currency.util';
+
+type ClienteTab = 'resumen' | 'procesos' | 'proyecciones' | 'relacionamientos' | 'contactos' | 'historial';
 
 @Component({
   selector: 'app-cliente-detail',
@@ -25,10 +31,11 @@ export class ClienteDetailComponent implements OnInit {
   private readonly solicitudes = inject(SolicitudesEliminacionService);
   private readonly auth = inject(AuthService);
 
-  protected readonly cliente = signal<Cliente | null>(null);
+  protected readonly vista360 = signal<ClienteVista360 | null>(null);
   protected readonly contactosList = signal<Contacto[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly tab = signal<ClienteTab>('resumen');
 
   protected readonly showEliminarModal = signal(false);
   protected readonly dependencias = signal<Array<{ descripcion: string }>>([]);
@@ -53,11 +60,37 @@ export class ClienteDetailComponent implements OnInit {
     return rol === Rol.Operador || rol === Rol.SupervisorSistema;
   });
 
+  protected readonly cliente = computed(() => this.vista360()?.cliente ?? null);
+  protected readonly ubicacionLabel = computed(() => this.vista360()?.ubicacionLabel ?? null);
+  protected readonly resumen = computed(() => this.vista360()?.resumen ?? null);
+  protected readonly procesos = computed(() => this.vista360()?.procesos ?? []);
+  protected readonly proyecciones = computed(() => this.vista360()?.proyecciones ?? []);
+  protected readonly relacionamientos = computed(() => this.vista360()?.relacionamientos ?? []);
+
+  protected readonly formatCuantia = formatCuantiaConMoneda;
+  protected readonly formatCurrency = formatCurrencyFull;
+
+  protected readonly cuantiaResumenLabel = computed(() => {
+    const resumen = this.resumen();
+    const procesosActivos = this.procesos().filter(
+      (p) => p.estado !== 'Cerrado' && p.estado !== 'Descartado',
+    );
+    if (!resumen || procesosActivos.length === 0) {
+      return '—';
+    }
+    const moneda = procesosActivos[0]?.moneda;
+    return formatCuantiaConMoneda(resumen.cuantiaTotal, moneda);
+  });
+
   private clienteId = 0;
 
   ngOnInit(): void {
     this.clienteId = Number(this.route.snapshot.paramMap.get('id'));
     this.load();
+  }
+
+  protected setTab(next: ClienteTab): void {
+    this.tab.set(next);
   }
 
   protected abrirEliminar(): void {
@@ -117,9 +150,9 @@ export class ClienteDetailComponent implements OnInit {
   }
 
   private load(): void {
-    this.clientes.getById(this.clienteId).subscribe({
+    this.clientes.getVista360(this.clienteId).subscribe({
       next: (r) => {
-        this.cliente.set(r.cliente);
+        this.vista360.set(r.data);
         this.loading.set(false);
       },
       error: () => {

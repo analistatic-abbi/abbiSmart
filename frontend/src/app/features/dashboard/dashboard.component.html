@@ -62,15 +62,23 @@
       <div class="panel__header-row">
         <h2>Procesos</h2>
       </div>
-      <p class="panel__hint">Busque por código, ID digitado o empresa para ver procesos activos.</p>
+      <p class="panel__hint">Busque por ID digitado para ver procesos activos.</p>
       <div class="filters">
         <input
           type="search"
-          placeholder="Buscar proceso..."
+          placeholder="Buscar por ID digitado"
           [ngModel]="searchProcesos()"
           (ngModelChange)="searchProcesos.set($event)"
           (keyup.enter)="buscarProcesos()"
         />
+        <label>
+          Cierre desde
+          <input type="date" [ngModel]="fechaCierreDesde()" (ngModelChange)="fechaCierreDesde.set($event)" />
+        </label>
+        <label>
+          Cierre hasta
+          <input type="date" [ngModel]="fechaCierreHasta()" (ngModelChange)="fechaCierreHasta.set($event)" />
+        </label>
         <button type="button" class="btn-secondary" [disabled]="buscandoProcesos()" (click)="buscarProcesos()">
           {{ buscandoProcesos() ? 'Buscando...' : 'Buscar' }}
         </button>

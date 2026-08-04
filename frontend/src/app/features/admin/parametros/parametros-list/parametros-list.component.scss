@@ -1,4 +1,65 @@
 @use '../../shared/admin-page';
+@use '../../../../../styles/forms' as forms;
+
+.parametros-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-prime);
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 112px;
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+}
+
+.field-input {
+  @include forms.abbi-text-field($full-width: false);
+
+  &--year {
+    width: 112px;
+    min-width: 112px;
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  &--valor {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.field-select {
+  @include forms.abbi-select($full-width: true);
+  min-height: 40px;
+  padding: 8px 36px 8px 12px;
+  font-size: 13px;
+}
 
 .parametros-table {
   min-width: 760px;
@@ -16,32 +77,25 @@
   }
 
   .col-indicador {
-    width: 10%;
+    width: 18%;
     font-weight: 600;
     color: var(--color-primary);
-  }
 
-  .col-anio {
-    width: 8%;
-    text-align: center;
+    .hint {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--color-on-surface-variant);
+    }
   }
 
   .col-valor {
-    width: 12%;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
+    width: 18%;
   }
 
   .col-regla {
-    width: 28%;
-  }
-
-  .col-fecha {
-    width: 18%;
-    white-space: nowrap;
-    color: var(--color-on-surface-variant);
-    font-size: 13px;
+    width: 32%;
   }
 
   .col-actions {
@@ -51,25 +105,40 @@
   }
 }
 
-.row-actions {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 10px;
-  justify-content: flex-end;
+.valor-readonly {
+  display: block;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--color-emphasis);
 }
 
-.link {
-  border: none;
-  background: none;
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-prime);
+  background: var(--color-surface);
   color: var(--color-primary);
-  cursor: pointer;
   font-weight: 600;
   font-size: 13px;
-  padding: 0;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
-  &.danger {
-    color: #b3261e;
+  &:hover {
+    background: var(--color-surface-container-low);
+    border-color: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
   }
 }
 
@@ -92,4 +161,14 @@
 
 .historial-table {
   min-width: 100%;
+}
+
+.muted {
+  color: var(--color-on-surface-variant);
+  font-size: 12px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

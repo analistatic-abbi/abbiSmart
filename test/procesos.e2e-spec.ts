@@ -246,6 +246,16 @@ describe('Procesos Fase D (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ evidencia: 'Evidencia test', confirmar: true })
       .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/procesos/${procesoId}/tareas/${tareaAplicable.id}/completar`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ evidencia: 'Evidencia actualizada', confirmar: true })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.tarea.evidencia).toBe('Evidencia actualizada');
+        expect(res.body.tarea.completada).toBe(true);
+      });
   });
 
   it('bloquea cambio directo a En Validación (REV-002)', async () => {

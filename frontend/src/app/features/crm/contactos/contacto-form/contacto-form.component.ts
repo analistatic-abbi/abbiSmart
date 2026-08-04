@@ -10,6 +10,7 @@ import {
   DuplicadoAlertaComponent,
   DuplicadoSugerencia,
 } from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
+import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-contacto-form',
@@ -46,6 +47,8 @@ export class ContactoFormComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly isEdit = signal(false);
+  protected readonly referidoPorNombre = signal<string | null>(null);
+  protected readonly esReferido = signal(false);
   protected readonly duplicados = signal<DuplicadoSugerencia[]>([]);
   protected readonly mostrarDuplicados = signal(true);
 
@@ -117,6 +120,8 @@ export class ContactoFormComponent implements OnInit {
           this.correo.set(c.correo ?? '');
           this.clienteId.set(c.clienteId);
           this.ubicacionId.set(c.ubicacionId);
+          this.esReferido.set(c.esReferido);
+          this.referidoPorNombre.set(c.referidoPorNombre);
         },
         error: () => this.error.set('No fue posible cargar el contacto.'),
       });
@@ -138,6 +143,8 @@ export class ContactoFormComponent implements OnInit {
   }
 
   protected guardar(): void {
+    this.error.set(null);
+
     const clienteId = this.clienteId();
     const ubicacionId = this.ubicacionId();
     if (!this.nombre().trim() || !clienteId || !ubicacionId) {
@@ -162,8 +169,8 @@ export class ContactoFormComponent implements OnInit {
 
     req.subscribe({
       next: () => void this.router.navigate(['/crm/contactos']),
-      error: () => {
-        this.error.set('No fue posible guardar el contacto.');
+      error: (err) => {
+        this.error.set(mensajeErrorApi(err, 'No fue posible guardar el contacto.'));
         this.loading.set(false);
       },
     });

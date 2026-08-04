@@ -92,4 +92,18 @@ describe('AuditService', () => {
     expect(result.total).toBe(1);
     expect(result.data[0].accion).toBe(AuditAccion.LOGIN);
   });
+
+  it('should filter audit logs by specific day', async () => {
+    logRepository.findAndCount.mockResolvedValue([[], 0]);
+
+    await service.findAll({ fecha: '2026-07-27', page: 1, limit: 10 });
+
+    const call = logRepository.findAndCount.mock.calls[0][0] as {
+      where: { fechaHora: { _value: [Date, Date] } };
+    };
+    const [desde, hasta] = call.where.fechaHora._value;
+
+    expect(desde).toEqual(new Date('2026-07-27T00:00:00'));
+    expect(hasta).toEqual(new Date('2026-07-27T23:59:59'));
+  });
 });

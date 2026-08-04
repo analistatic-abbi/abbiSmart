@@ -5,9 +5,12 @@ import {
   IsOptional,
   IsString,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { CanalRelacionamiento } from '../../../common/enums/canal-relacionamiento.enum';
 import { ResultadoRelacionamiento } from '../../../common/enums/resultado-relacionamiento.enum';
+import { ContactoReferidoDto } from './create-relacionamiento.dto';
 
 export class UpdateRelacionamientoDto {
   @ApiPropertyOptional({ enum: CanalRelacionamiento })
@@ -47,4 +50,12 @@ export class UpdateRelacionamientoDto {
   )
   @IsDateString()
   fechaReunion?: string;
+
+  @ApiPropertyOptional({
+    description: 'Datos del tercero referido (obligatorio si aún no hay contacto vinculado)',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ContactoReferidoDto)
+  contactoReferido?: ContactoReferidoDto;
 }

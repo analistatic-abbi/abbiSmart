@@ -137,7 +137,7 @@ export class CargaMasivaController {
   })
   @ApiOperation({
     summary:
-      'Importar proyecciones desde CSV o Excel (.xlsx). Columnas: anio_proyectado, fecha_estimada_publicacion, valor_venta, valor_facturacion, proceso_codigo (opcional) (PRY-014)',
+      'Importar proyecciones manuales desde CSV o Excel (.xlsx). Columnas: anio_proyectado, fecha_estimada_publicacion, valor_venta, valor_facturacion, segmento, empresa o empresa_otro, mercado (opcional) (PRY-014)',
   })
   async importProyecciones(
     @UploadedFile() file: Express.Multer.File | undefined,

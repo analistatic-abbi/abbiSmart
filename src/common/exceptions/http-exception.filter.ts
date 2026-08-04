@@ -7,6 +7,8 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { QueryFailedError } from 'typeorm';
+import { CUANTIA_MAX_MENSAJE } from '../constants/cuantia.constants';
 import { ErrorCode } from './error-codes.enum';
 
 interface ErrorResponseBody {
@@ -54,6 +56,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     errorCode: string;
     message: string;
   } {
+    if (exception instanceof QueryFailedError) {
+      const driverMessage = String(exception.driverError ?? exception.message);
+      if (driverMessage.includes("column 'cuantia'")) {
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          errorCode: ErrorCode.VALIDATION_ERROR,
+          message: CUANTIA_MAX_MENSAJE,
+        };
+      }
+    }
+
     if (exception instanceof HttpException) {
       const statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse();

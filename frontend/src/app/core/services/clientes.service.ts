@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Cliente, CreateClientePayload, SegmentoCliente } from '../models/crm.model';
+import { Cliente, ClienteVista360, CreateClientePayload, SegmentoCliente } from '../models/crm.model';
+import { FiltroEliminados } from '../models/filtro-eliminados.model';
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
@@ -14,6 +15,7 @@ export class ClientesService {
     limit?: number;
     search?: string;
     segmento?: SegmentoCliente;
+    filtroEliminados?: FiltroEliminados;
     incluirEliminados?: boolean;
   } = {}): Observable<{ data: Cliente[]; total: number }> {
     const query: Record<string, string | number> = {
@@ -22,7 +24,11 @@ export class ClientesService {
     };
     if (params.search) query['search'] = params.search;
     if (params.segmento) query['segmento'] = params.segmento;
-    if (params.incluirEliminados) query['incluirEliminados'] = 'true';
+    if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
+      query['filtroEliminados'] = params.filtroEliminados;
+    } else if (params.incluirEliminados) {
+      query['filtroEliminados'] = 'todos';
+    }
 
     return this.http.get<{ data: Cliente[]; total: number }>(this.base, { params: query });
   }
@@ -82,6 +88,12 @@ export class ClientesService {
       page: number;
       limit: number;
     }>(`${this.base}/${id}/historial`, { params: { page, limit } });
+  }
+
+  getVista360(id: number): Observable<{
+    data: ClienteVista360;
+  }> {
+    return this.http.get<{ data: ClienteVista360 }>(`${this.base}/${id}/vista-360`);
   }
 
   getDependencias(id: number): Observable<{

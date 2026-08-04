@@ -4,6 +4,7 @@
   <header class="page__header">
     <div>
       <h1>Nuevo relacionamiento</h1>
+      <p>Registre la interacción; el resultado oficial se define al editar cuando se conozca el desenlace.</p>
     </div>
   </header>
 
@@ -30,33 +31,15 @@
 
     <label class="full">Mensaje <textarea [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea></label>
     <label>Fecha mensaje <input type="date" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" /></label>
-    <label>Días de espera para alerta
+    <label>Fecha de alerta sin respuesta
       <input
-        type="number"
-        min="1"
-        max="365"
-        [ngModel]="diasEsperaRespuesta()"
-        (ngModelChange)="diasEsperaRespuesta.set(+$event)"
+        type="date"
+        [min]="fechaMensaje() || null"
+        [ngModel]="fechaAlertaRespuesta()"
+        (ngModelChange)="fechaAlertaRespuesta.set($event)"
       />
     </label>
-    <p class="field-hint full">Si no hay respuesta en este plazo, se notificará al emisor del relacionamiento.</p>
-
-    <label>Resultado
-      <select [ngModel]="resultado()" (ngModelChange)="resultado.set($event)">
-        @for (r of resultados; track r) { <option [value]="r">{{ r }}</option> }
-      </select>
-    </label>
-
-    @if (resultado() === resultadoReunion) {
-      <label>Fecha reunión <input type="date" [ngModel]="fechaReunion()" (ngModelChange)="fechaReunion.set($event)" /></label>
-    }
-
-    @if (resultado() === resultadoReferido) {
-      <label class="full">Nombre referido <input type="text" [ngModel]="refNombre()" (ngModelChange)="refNombre.set($event)" /></label>
-      <label>Cargo <input type="text" [ngModel]="refCargo()" (ngModelChange)="refCargo.set($event)" /></label>
-      <label>Teléfono <input type="text" [ngModel]="refTelefono()" (ngModelChange)="refTelefono.set($event)" /></label>
-      <label>Correo <input type="email" [ngModel]="refCorreo()" (ngModelChange)="refCorreo.set($event)" /></label>
-    }
+    <p class="field-hint full">En esta fecha se notificará al emisor si aún no hay respuesta registrada.</p>
   </div>
 
   <div class="form-actions">

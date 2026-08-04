@@ -41,6 +41,9 @@ export class CalendarioEventoDto {
   fecha: string;
   titulo: string;
   subtitulo?: string | null;
+  empresa?: string | null;
+  objeto?: string | null;
+  valor?: string | null;
   estado: string;
   icono: string;
 }
