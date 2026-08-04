@@ -46,9 +46,9 @@ describe('ConfiguracionService', () => {
     const fechaModificacion = new Date();
     configRepository.find.mockResolvedValue([
       {
-        clave: 'dias_espera_respuesta_crm',
-        valor: '7',
-        descripcion: 'Días de espera',
+        clave: 'carga_masiva_habilitada',
+        valor: 'true',
+        descripcion: 'Carga masiva',
         usuarioModificoId: null,
         fechaModificacion,
       } as ConfiguracionSistema,
@@ -57,7 +57,7 @@ describe('ConfiguracionService', () => {
     const result = await service.findAll();
 
     expect(result).toHaveLength(1);
-    expect(result[0].clave).toBe('dias_espera_respuesta_crm');
+    expect(result[0].clave).toBe('carga_masiva_habilitada');
   });
 
   it('should reject invalid boolean configuration value', async () => {
@@ -85,9 +85,9 @@ describe('ConfiguracionService', () => {
 
   it('should update configuration and audit the change', async () => {
     const item = {
-      clave: 'dias_espera_respuesta_crm',
-      valor: '7',
-      descripcion: 'Días de espera',
+      clave: 'carga_masiva_habilitada',
+      valor: 'true',
+      descripcion: 'Carga masiva',
       usuarioModificoId: null,
       fechaModificacion: new Date(),
     } as ConfiguracionSistema;
@@ -96,19 +96,19 @@ describe('ConfiguracionService', () => {
     configRepository.save.mockImplementation(async (entity) => entity as ConfiguracionSistema);
 
     const result = await service.updateValor(
-      'dias_espera_respuesta_crm',
-      { valor: '10' },
+      'carga_masiva_habilitada',
+      { valor: 'false' },
       5,
     );
 
-    expect(result.valor).toBe('10');
+    expect(result.valor).toBe('false');
     expect(auditService.log).toHaveBeenCalledWith(
       expect.objectContaining({
         accion: AuditAccion.CONFIGURACION_EDITAR,
         entidadTipo: AuditEntidadTipo.CONFIGURACION_SISTEMA,
-        campo: 'dias_espera_respuesta_crm',
-        valorAnterior: '7',
-        valorNuevo: '10',
+        campo: 'carga_masiva_habilitada',
+        valorAnterior: 'true',
+        valorNuevo: 'false',
       }),
     );
   });

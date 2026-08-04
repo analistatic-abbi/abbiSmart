@@ -62,6 +62,9 @@ export class CalendarioService {
               v.fecha_estimada_publicacion AS fecha,
               COALESCE(v.empresa, v.proceso_codigo, CONCAT('Proyección #', v.id)) AS titulo,
               v.proceso_codigo AS procesoCodigo,
+              v.empresa,
+              v.objeto,
+              v.valor_venta AS valorVenta,
               v.estado
        FROM vista_proyecciones_listado v
        INNER JOIN proyecciones py ON py.id = v.id
@@ -79,6 +82,9 @@ export class CalendarioService {
       fecha: normalizarFechaDesdeBd(row.fecha as string | Date).fecha,
       titulo: String(row.titulo),
       subtitulo: row.procesoCodigo ? `Proceso ${row.procesoCodigo}` : 'Manual',
+      empresa: row.empresa ? String(row.empresa) : null,
+      objeto: row.objeto ? String(row.objeto) : null,
+      valor: row.valorVenta ? String(row.valorVenta) : null,
       estado: String(row.estado),
       icono: 'monitoring',
     }));

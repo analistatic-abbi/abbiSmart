@@ -11,6 +11,9 @@
       <div>
         <h1>{{ c.empresa }}</h1>
         <p>{{ c.segmentoOtro ?? c.segmento }}</p>
+        @if (ubicacionLabel()) {
+          <p class="subtitle">{{ ubicacionLabel() }}</p>
+        }
       </div>
       <div class="actions">
         @if (puedeEscribir()) {
@@ -28,48 +31,179 @@
       </div>
     </header>
 
-    <div class="panel grid">
-      <div><span>Segmento</span><strong>{{ c.segmentoOtro ?? c.segmento }}</strong></div>
-      <div><span>Ubicación ID</span><strong>{{ c.ubicacionId }}</strong></div>
-      <div><span>Fecha creación</span><strong>{{ c.fechaCreacion }}</strong></div>
-    </div>
+    @if (resumen(); as r) {
+      <div class="kpi-grid">
+        <article class="kpi-card">
+          <span>Procesos activos</span>
+          <strong>{{ r.procesosActivos }}</strong>
+        </article>
+        <article class="kpi-card">
+          <span>Cuantía activa</span>
+          <strong>{{ cuantiaResumenLabel() }}</strong>
+        </article>
+        <article class="kpi-card">
+          <span>Proyecciones abiertas</span>
+          <strong>{{ r.proyeccionesAbiertas }}</strong>
+        </article>
+        <article class="kpi-card" [class.kpi-card--alert]="r.relacionamientosVencidos > 0">
+          <span>Relacionamientos vencidos</span>
+          <strong>{{ r.relacionamientosVencidos }}</strong>
+        </article>
+        <article class="kpi-card">
+          <span>Contactos</span>
+          <strong>{{ r.totalContactos }}</strong>
+        </article>
+      </div>
+    }
 
-    <h2>Historial</h2>
-    <app-cliente-historial [clienteId]="c.id" />
+    <nav class="tabs">
+      <button type="button" [class.active]="tab() === 'resumen'" (click)="setTab('resumen')">Resumen</button>
+      <button type="button" [class.active]="tab() === 'procesos'" (click)="setTab('procesos')">Procesos</button>
+      <button type="button" [class.active]="tab() === 'proyecciones'" (click)="setTab('proyecciones')">Proyecciones</button>
+      <button type="button" [class.active]="tab() === 'relacionamientos'" (click)="setTab('relacionamientos')">Relacionamientos</button>
+      <button type="button" [class.active]="tab() === 'contactos'" (click)="setTab('contactos')">Contactos</button>
+      <button type="button" [class.active]="tab() === 'historial'" (click)="setTab('historial')">Historial</button>
+    </nav>
 
-    <h2>Contactos</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Cargo</th>
-            <th>Teléfono</th>
-            <th>Correo</th>
-            <th>Genérico</th>
-            @if (puedeEscribir()) {
-              <th></th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (contacto of contactosList(); track contacto.id) {
+    @if (tab() === 'resumen') {
+      <div class="panel grid">
+        <div><span>Segmento</span><strong>{{ c.segmentoOtro ?? c.segmento }}</strong></div>
+        <div><span>Ubicación</span><strong>{{ ubicacionLabel() ?? '—' }}</strong></div>
+        <div><span>Fecha creación</span><strong>{{ c.fechaCreacion }}</strong></div>
+      </div>
+    }
+
+    @if (tab() === 'procesos') {
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-              <td>{{ contacto.nombre }}</td>
-              <td>{{ contacto.cargo ?? '—' }}</td>
-              <td>{{ contacto.telefono ?? '—' }}</td>
-              <td>{{ contacto.correo ?? '—' }}</td>
-              <td>{{ contacto.esGenerico ? 'Sí' : 'No' }}</td>
+              <th>Código</th>
+              <th>Estado</th>
+              <th>Cuantía</th>
+              <th>Cierre</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (proceso of procesos(); track proceso.id) {
+              <tr>
+                <td>{{ proceso.codigo ?? proceso.idDigitado }}</td>
+                <td>{{ proceso.estado }}</td>
+                <td>{{ formatCuantia(proceso.cuantia, proceso.moneda) }}</td>
+                <td>{{ proceso.fechaCierre ?? '—' }}</td>
+                <td><a [routerLink]="['/procesos', proceso.id]">Ver</a></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5">Sin procesos registrados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (tab() === 'proyecciones') {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Año</th>
+              <th>Estado</th>
+              <th>Mercado</th>
+              <th>Venta</th>
+              <th>Facturación</th>
+              <th>Publicación est.</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (proyeccion of proyecciones(); track proyeccion.id) {
+              <tr>
+                <td>{{ proyeccion.anioProyectado }}</td>
+                <td>{{ proyeccion.estado }}</td>
+                <td>{{ proyeccion.mercado ?? '—' }}</td>
+                <td>{{ formatCurrency(proyeccion.valorVenta) }}</td>
+                <td>{{ formatCurrency(proyeccion.valorFacturacion) }}</td>
+                <td>{{ proyeccion.fechaEstimadaPublicacion }}</td>
+                <td><a [routerLink]="['/proyecciones', proyeccion.id]">Ver</a></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7">Sin proyecciones registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (tab() === 'relacionamientos') {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Contacto</th>
+              <th>Canal</th>
+              <th>Fecha</th>
+              <th>Resultado</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rel of relacionamientos(); track rel.id) {
+              <tr [class.row--alert]="rel.vencido">
+                <td>{{ rel.contactoNombre }}</td>
+                <td>{{ rel.canal }}</td>
+                <td>{{ rel.fechaMensaje }}</td>
+                <td>{{ rel.resultado ?? '—' }}</td>
+                <td>{{ rel.vencido ? 'Vencido' : 'Al día' }}</td>
+                <td><a [routerLink]="['/crm/relacionamientos', rel.id]">Ver</a></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6">Sin relacionamientos registrados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (tab() === 'contactos') {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cargo</th>
+              <th>Teléfono</th>
+              <th>Correo</th>
+              <th>Genérico</th>
               @if (puedeEscribir()) {
-                <td><a [routerLink]="['/crm/contactos', contacto.id, 'editar']">Editar</a></td>
+                <th></th>
               }
             </tr>
-          } @empty {
-            <tr><td colspan="6">Sin contactos registrados.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (contacto of contactosList(); track contacto.id) {
+              <tr>
+                <td>{{ contacto.nombre }}</td>
+                <td>{{ contacto.cargo ?? '—' }}</td>
+                <td>{{ contacto.telefono ?? '—' }}</td>
+                <td>{{ contacto.correo ?? '—' }}</td>
+                <td>{{ contacto.esGenerico ? 'Sí' : 'No' }}</td>
+                @if (puedeEscribir()) {
+                  <td><a [routerLink]="['/crm/contactos', contacto.id, 'editar']">Editar</a></td>
+                }
+              </tr>
+            } @empty {
+              <tr><td colspan="6">Sin contactos registrados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (tab() === 'historial') {
+      <app-cliente-historial [clienteId]="c.id" />
+    }
   </section>
 
   @if (showEliminarModal()) {

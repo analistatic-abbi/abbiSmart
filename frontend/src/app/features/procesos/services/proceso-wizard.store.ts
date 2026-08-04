@@ -21,6 +21,7 @@ export class ProcesoWizardStore {
     ubicacionId: null as number | null,
     portalOrigen: '',
     link: '',
+    objeto: '',
     cuantia: null as number | null,
     segmento: SegmentoProceso.GasNatural,
     tipoProceso: TipoProceso.Periodico,
@@ -30,12 +31,13 @@ export class ProcesoWizardStore {
     observacion: '',
   });
 
-  readonly paso2 = signal(
-    INDICADORES_ORDEN.map((codigo) => ({
+  readonly paso2 = signal({
+    anioParametros: new Date().getFullYear() - 1,
+    indicadores: INDICADORES_ORDEN.map((codigo) => ({
       indicadorCodigo: codigo,
       valorRequerido: null as number | null,
     })),
-  );
+  });
 
   readonly paso3 = signal({
     fechaApertura: '',
@@ -65,16 +67,18 @@ export class ProcesoWizardStore {
       tipoInstrumento: p1.tipoInstrumento,
       plazoEjecucionMeses: Number(p1.plazoEjecucionMeses),
       experiencia: p1.experiencia,
-      indicadores: this.paso2().map((i) => ({
+      indicadores: this.paso2().indicadores.map((i) => ({
         indicadorCodigo: i.indicadorCodigo as IndicadorCodigo,
         valorRequerido: i.valorRequerido,
       })),
+      anioParametros: this.paso2().anioParametros,
       fechaApertura: p3.fechaApertura,
       fechaCierre: p3.fechaCierre,
     };
 
     if (p1.portalOrigen) payload.portalOrigen = p1.portalOrigen;
     if (p1.link) payload.link = p1.link;
+    if (p1.objeto?.trim()) payload.objeto = p1.objeto.trim();
     if (p1.experiencia && p1.observacion) payload.observacion = p1.observacion;
 
     if (p1.usarOtro) {
@@ -91,7 +95,9 @@ export class ProcesoWizardStore {
   }
 
   hasIndicadoresVacios(): boolean {
-    return this.paso2().some((i) => i.valorRequerido === null || i.valorRequerido === undefined);
+    return this.paso2().indicadores.some(
+      (i) => i.valorRequerido === null || i.valorRequerido === undefined,
+    );
   }
 
   reset(): void {
@@ -106,6 +112,7 @@ export class ProcesoWizardStore {
       ubicacionId: null,
       portalOrigen: '',
       link: '',
+      objeto: '',
       cuantia: null,
       segmento: SegmentoProceso.GasNatural,
       tipoProceso: TipoProceso.Periodico,
@@ -114,12 +121,13 @@ export class ProcesoWizardStore {
       experiencia: false,
       observacion: '',
     });
-    this.paso2.set(
-      INDICADORES_ORDEN.map((codigo) => ({
+    this.paso2.set({
+      anioParametros: new Date().getFullYear() - 1,
+      indicadores: INDICADORES_ORDEN.map((codigo) => ({
         indicadorCodigo: codigo,
         valorRequerido: null,
       })),
-    );
+    });
     this.paso3.set({ fechaApertura: '', fechaCierre: '' });
   }
 }

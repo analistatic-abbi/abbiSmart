@@ -19,6 +19,16 @@
         <option [value]="s">{{ s }}</option>
       }
     </select>
+    @if (puedeVerEliminados()) {
+      <select
+        [ngModel]="filtroEliminados()"
+        (ngModelChange)="filtroEliminados.set($event); onFilter()"
+      >
+        @for (opt of filtrosEliminados; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    }
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
   </div>
 

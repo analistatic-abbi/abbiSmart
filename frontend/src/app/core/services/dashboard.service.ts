@@ -55,9 +55,14 @@ export class DashboardService {
     return this.http.get<{ resumen: DashboardResumen }>(`${this.base}/resumen`);
   }
 
-  getProcesos(search: string): Observable<{ data: DashboardProceso[] }> {
-    const term = search.trim();
-    const params = new HttpParams().set('search', term);
+  getProcesos(
+    search: string,
+    fechaCierreDesde?: string,
+    fechaCierreHasta?: string,
+  ): Observable<{ data: DashboardProceso[] }> {
+    let params = new HttpParams().set('search', search.trim());
+    if (fechaCierreDesde) params = params.set('fechaCierreDesde', fechaCierreDesde);
+    if (fechaCierreHasta) params = params.set('fechaCierreHasta', fechaCierreHasta);
     return this.http.get<{ data: DashboardProceso[] }>(`${this.base}/procesos`, { params });
   }
 
@@ -70,6 +75,8 @@ export class DashboardService {
   exportar(
     search?: string,
     anio?: number,
+    fechaCierreDesde?: string,
+    fechaCierreHasta?: string,
     onError?: (message: string) => void,
   ): void {
     let params = new HttpParams();
@@ -78,6 +85,12 @@ export class DashboardService {
     }
     if (anio) {
       params = params.set('anio', anio);
+    }
+    if (fechaCierreDesde) {
+      params = params.set('fechaCierreDesde', fechaCierreDesde);
+    }
+    if (fechaCierreHasta) {
+      params = params.set('fechaCierreHasta', fechaCierreHasta);
     }
 
     this.http

@@ -18,7 +18,7 @@
 
     <div class="panel grid">
       <div><span>Segmento</span><strong>{{ p.segmento }}</strong></div>
-      <div><span>Cuantía</span><strong>{{ p.cuantia }} {{ p.moneda }}</strong></div>
+      <div><span>Cuantía</span><strong>{{ formatCuantia(p.cuantia, p.moneda) }}</strong></div>
       <div><span>Avance</span><strong>{{ p.avancePorcentaje ?? 0 }}%</strong></div>
     </div>
 

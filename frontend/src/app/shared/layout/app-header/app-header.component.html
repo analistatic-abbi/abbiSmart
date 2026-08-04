@@ -58,10 +58,13 @@
         <div class="notif-panel">
           <div class="notif-panel__header">
             <strong>Notificaciones</strong>
-            <button type="button" class="link" (click)="marcarTodas()">Marcar todas</button>
+            <div class="notif-panel__actions">
+              <a routerLink="/notificaciones" class="link" (click)="showNotifs.set(false)">Ver todas</a>
+              <button type="button" class="link" (click)="marcarTodas()">Marcar todas</button>
+            </div>
           </div>
           @for (n of notifs(); track n.id) {
-            <button type="button" class="notif-item" [class.notif-item--unread]="!n.leida" (click)="abrirNotificacion(n)">
+            <button type="button" class="notif-item" [class.notif-item--unread]="!n.leida" (click)="abrirNotificacion(n); $event.stopPropagation()">
               <div class="notif-item__head">
                 <span class="notif-item__tipo">{{ tipoLabel(n.tipo) }}</span>
                 <time

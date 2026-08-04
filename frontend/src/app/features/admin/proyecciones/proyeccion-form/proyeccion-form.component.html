@@ -10,6 +10,39 @@
     <label>Fecha est. publicación <input type="date" [ngModel]="fechaEstimadaPublicacion()" (ngModelChange)="fechaEstimadaPublicacion.set($event)" /></label>
     <label>Valor venta <input type="number" step="0.01" [ngModel]="valorVenta()" (ngModelChange)="valorVenta.set(+$event)" /></label>
     <label>Valor facturación <input type="number" step="0.01" [ngModel]="valorFacturacion()" (ngModelChange)="valorFacturacion.set(+$event)" /></label>
+
+    @if (!procesoOrigenId()) {
+      <label class="full">
+        <input type="checkbox" [ngModel]="usarEmpresaOtro()" (ngModelChange)="usarEmpresaOtro.set($event)" />
+        Empresa "Otro"
+      </label>
+
+      @if (usarEmpresaOtro()) {
+        <label>Empresa otro <input [ngModel]="empresaOtro()" (ngModelChange)="empresaOtro.set($event)" /></label>
+      } @else {
+        <label>
+          Cliente
+          <app-searchable-select
+            [options]="clienteOptions()"
+            [ngModel]="empresaClienteId()"
+            (ngModelChange)="empresaClienteId.set($event)"
+            placeholder="Seleccione"
+            searchPlaceholder="Buscar cliente..."
+          />
+        </label>
+      }
+
+      <label>
+        Segmento
+        <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event)">
+          @for (s of segmentos; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <label class="full">Objeto <textarea rows="2" [ngModel]="objeto()" (ngModelChange)="objeto.set($event)" placeholder="Descripción del objeto contractual"></textarea></label>
   </div>
 
   <div class="form-actions">

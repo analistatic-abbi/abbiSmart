@@ -33,6 +33,7 @@ export function createE2eMailServiceMock(
       handlers.onSupportAck?.(to);
     }),
     sendValidacionAsignadaEmail: jest.fn(async () => undefined),
+    sendValidacionDevueltaEmail: jest.fn(async () => undefined),
   };
 }
 

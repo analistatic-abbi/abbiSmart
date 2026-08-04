@@ -151,12 +151,12 @@ describe('CRM Fase C (e2e)', () => {
         canal: 'Correo',
         mensaje: 'Seguimiento inicial',
         fechaMensaje: '2020-01-01',
-        diasEsperaRespuesta: 3,
+        fechaAlertaRespuesta: '2020-01-04',
         resultado: ResultadoRelacionamiento.NINGUNO,
       })
       .expect(201);
 
-    expect(relacionRes.body.relacionamiento.diasEsperaRespuesta).toBe(3);
+    expect(relacionRes.body.relacionamiento.fechaAlertaRespuesta).toBe('2020-01-04');
 
     const relacionamientoId = relacionRes.body.relacionamiento.id as number;
 
@@ -257,6 +257,7 @@ describe('CRM Fase C (e2e)', () => {
         canal: 'Correo',
         mensaje: 'Derivación a tercero',
         fechaMensaje: '2026-01-01',
+        fechaAlertaRespuesta: '2026-01-08',
         resultado: ResultadoRelacionamiento.REFERIDO_TERCERO,
         contactoReferido: {
           nombre: 'Referido Externo',
@@ -277,5 +278,83 @@ describe('CRM Fase C (e2e)', () => {
 
     expect(referido).toBeDefined();
     expect(referido.referidoPorContactoId).toBe(contactoId);
+    expect(referido.esReferido).toBe(true);
+  });
+
+  it('crea contacto referido al editar relacionamiento con Referido a tercero (REL-005)', async () => {
+    const token = await setupAdminToken();
+    ubicacionId = await resolveUbicacionId(token);
+
+    const clienteRes = await request(app.getHttpServer())
+      .post('/api/v1/clientes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        empresa: `Empresa Referido Edit ${Date.now()}`,
+        ubicacionId,
+        segmento: SegmentoCliente.MINERIA,
+      })
+      .expect(201);
+
+    const clienteId = clienteRes.body.cliente.id as number;
+
+    const contactoRes = await request(app.getHttpServer())
+      .post(`/api/v1/clientes/${clienteId}/contactos`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nombre: 'Contacto Origen Edit',
+        ubicacionId,
+        correo: 'origen-edit@crm.test',
+      })
+      .expect(201);
+
+    const contactoId = contactoRes.body.contacto.id as number;
+
+    const relacionRes = await request(app.getHttpServer())
+      .post('/api/v1/relacionamientos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        contactoId,
+        canal: 'Correo',
+        mensaje: 'Seguimiento pendiente de resultado',
+        fechaMensaje: '2026-02-01',
+        fechaAlertaRespuesta: '2026-02-10',
+      })
+      .expect(201);
+
+    expect(relacionRes.body.relacionamiento.resultado).toBe(
+      ResultadoRelacionamiento.NINGUNO,
+    );
+
+    const relacionamientoId = relacionRes.body.relacionamiento.id as number;
+
+    const updateRes = await request(app.getHttpServer())
+      .patch(`/api/v1/relacionamientos/${relacionamientoId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        resultado: ResultadoRelacionamiento.REFERIDO_TERCERO,
+        contactoReferido: {
+          nombre: 'Referido Por Edición',
+          correo: 'referido-edit@crm.test',
+          ubicacionId,
+        },
+      })
+      .expect(200);
+
+    expect(updateRes.body.relacionamiento.contactoReferidoNombre).toBe(
+      'Referido Por Edición',
+    );
+
+    const contactosRes = await request(app.getHttpServer())
+      .get(`/api/v1/clientes/${clienteId}/contactos`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const referido = contactosRes.body.data.find(
+      (item: { nombre: string }) => item.nombre === 'Referido Por Edición',
+    );
+
+    expect(referido).toBeDefined();
+    expect(referido.referidoPorContactoId).toBe(contactoId);
+    expect(referido.referidoPorNombre).toBe('Contacto Origen Edit');
   });
 });

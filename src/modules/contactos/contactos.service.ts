@@ -47,6 +47,7 @@ export class ContactosService {
     const qb = this.contactoRepository
       .createQueryBuilder('co')
       .innerJoin('co.cliente', 'cl')
+      .leftJoinAndSelect('co.referidoPorContacto', 'rpc')
       .where('co.eliminado = false')
       .andWhere('cl.pais_id = :paisSesionId', { paisSesionId });
 
@@ -89,6 +90,7 @@ export class ContactosService {
 
     const contactos = await this.contactoRepository.find({
       where: { clienteId, eliminado: false },
+      relations: { referidoPorContacto: true },
       order: { esGenerico: 'DESC', nombre: 'ASC' },
     });
 
@@ -96,7 +98,19 @@ export class ContactosService {
   }
 
   async findById(id: number, paisSesionId: number): Promise<ContactoResponseDto> {
-    const contacto = await this.getContactoActivoOrFail(id, paisSesionId);
+    const contacto = await this.contactoRepository.findOne({
+      where: { id, eliminado: false },
+      relations: { cliente: true, referidoPorContacto: true },
+    });
+
+    if (!contacto || Number(contacto.cliente.paisId) !== Number(paisSesionId)) {
+      throw new BusinessException(
+        ErrorCode.CONTACTO_NO_ENCONTRADO,
+        'Contacto no encontrado',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     return this.toResponse(contacto);
   }
 
@@ -162,8 +176,9 @@ export class ContactosService {
   ): Promise<number> {
     await this.clientesService.getClienteActivoOrFail(clienteId, paisSesionId);
 
+    const nombreNormalizado = normalizeEntityName(nombre);
     const contacto = await this.contactoRepository.findOne({
-      where: { clienteId, nombre, eliminado: false },
+      where: { clienteId, nombreNormalizado, eliminado: false },
     });
 
     if (!contacto) {
@@ -374,6 +389,8 @@ export class ContactosService {
       ubicacionId: contacto.ubicacionId,
       esGenerico: contacto.esGenerico,
       referidoPorContactoId: contacto.referidoPorContactoId,
+      referidoPorNombre: contacto.referidoPorContacto?.nombre ?? null,
+      esReferido: contacto.referidoPorContactoId !== null,
       fechaCreacion: contacto.fechaCreacion,
     };
   }

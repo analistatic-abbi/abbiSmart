@@ -36,6 +36,7 @@ const ACCION_LABELS: Record<string, string> = {
   [AuditAccion.PROCESO_CAMBIAR_ESTADO]: 'Cambio de estado de proceso',
   [AuditAccion.PROCESO_ELIMINAR]: 'Eliminación de proceso',
   [AuditAccion.TAREA_COMPLETAR]: 'Tarea completada',
+  [AuditAccion.TAREA_EDITAR]: 'Tarea editada',
   [AuditAccion.VALIDACION_ASIGNAR]: 'Asignación de validador',
   [AuditAccion.VALIDACION_VEREDICTO]: 'Veredicto de validación',
   [AuditAccion.SOLICITUD_ELIMINACION_CREAR]: 'Solicitud de eliminación',

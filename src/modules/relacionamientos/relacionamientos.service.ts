@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
@@ -9,10 +9,14 @@ import { ResultadoRelacionamiento } from '../../common/enums/resultado-relaciona
 import { Rol } from '../../common/enums/rol.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { Contacto } from '../../database/entities/contacto.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { AuditService } from '../audit/audit.service';
 import { ContactosService } from '../contactos/contactos.service';
-import { CreateRelacionamientoDto } from './dto/create-relacionamiento.dto';
+import {
+  ContactoReferidoDto,
+  CreateRelacionamientoDto,
+} from './dto/create-relacionamiento.dto';
 import {
   RelacionamientoResponseDto,
   RelacionamientoVencidoResponseDto,
@@ -47,6 +51,7 @@ export class RelacionamientosService {
       .createQueryBuilder('r')
       .innerJoin('r.contacto', 'co')
       .innerJoin('co.cliente', 'cl')
+      .leftJoinAndSelect('r.contactoReferido', 'cref')
       .where('r.eliminado = false')
       .andWhere('cl.pais_id = :paisSesionId', { paisSesionId });
 
@@ -100,7 +105,8 @@ export class RelacionamientosService {
          r.fecha_respuesta AS fechaRespuesta,
          r.resultado,
          r.fecha_reunion AS fechaReunion,
-         r.dias_espera_respuesta AS diasEsperaRespuesta,
+         r.fecha_alerta_respuesta AS fechaAlertaRespuesta,
+         r.contacto_referido_id AS contactoReferidoId,
          v.fecha_limite_respuesta AS fechaLimiteRespuesta
        FROM vista_relacionamientos_vencidos v
        INNER JOIN relacionamientos r ON r.id = v.id
@@ -127,21 +133,11 @@ export class RelacionamientosService {
     actorId: number,
     paisSesionId: number,
   ): Promise<RelacionamientoResponseDto> {
-    this.validateFechaReunion(dto.resultado, dto.fechaReunion);
-    const diasEsperaRespuesta = this.resolveDiasEsperaRespuesta(
-      dto.diasEsperaRespuesta,
-    );
+    const resultado = dto.resultado ?? ResultadoRelacionamiento.NINGUNO;
 
-    if (
-      dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
-      !dto.contactoReferido
-    ) {
-      throw new BusinessException(
-        ErrorCode.RELACIONAMIENTO_REFERIDO_REQUERIDO,
-        'Debe indicar los datos del contacto referido',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    this.validateFechaReunion(resultado, dto.fechaReunion);
+    this.validateFechaAlertaRespuesta(dto.fechaMensaje, dto.fechaAlertaRespuesta);
+    this.validateContactoReferido(resultado, dto.contactoReferido);
 
     const contactoOrigen = await this.contactosService.getContactoActivoOrFail(
       dto.contactoId,
@@ -150,45 +146,38 @@ export class RelacionamientosService {
 
     const saved = await this.relacionamientoRepository.manager.transaction(
       async (manager) => {
-        const relacionamiento = manager.create(Relacionamiento, {
-          contactoId: dto.contactoId,
-          emisorUsuarioId: actorId,
-          canal: dto.canal,
-          mensaje: dto.mensaje,
-          fechaMensaje: dto.fechaMensaje,
-          diasEsperaRespuesta,
-          resultado: dto.resultado,
-          fechaReunion:
-            dto.resultado === ResultadoRelacionamiento.REUNION_PROGRAMADA
-              ? dto.fechaReunion ?? null
-              : null,
-          eliminado: false,
-        });
-
-        const relacionamientoGuardado = await manager.save(relacionamiento);
+        let contactoReferidoId: number | null = null;
 
         if (
-          dto.resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
+          resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
           dto.contactoReferido
         ) {
-          await this.contactosService.createForCliente(
-            contactoOrigen.clienteId,
-            {
-              nombre: dto.contactoReferido.nombre,
-              cargo: dto.contactoReferido.cargo,
-              telefono: dto.contactoReferido.telefono,
-              correo: dto.contactoReferido.correo,
-              ubicacionId:
-                dto.contactoReferido.ubicacionId ?? contactoOrigen.ubicacionId,
-              referidoPorContactoId: dto.contactoId,
-            },
+          contactoReferidoId = await this.crearContactoReferido(
+            contactoOrigen,
+            dto.contactoReferido,
             actorId,
             paisSesionId,
             manager,
           );
         }
 
-        return relacionamientoGuardado;
+        const relacionamiento = manager.create(Relacionamiento, {
+          contactoId: dto.contactoId,
+          emisorUsuarioId: actorId,
+          canal: dto.canal,
+          mensaje: dto.mensaje,
+          fechaMensaje: dto.fechaMensaje,
+          fechaAlertaRespuesta: dto.fechaAlertaRespuesta,
+          resultado,
+          fechaReunion:
+            resultado === ResultadoRelacionamiento.REUNION_PROGRAMADA
+              ? dto.fechaReunion ?? null
+              : null,
+          contactoReferidoId,
+          eliminado: false,
+        });
+
+        return manager.save(relacionamiento);
       },
     );
 
@@ -197,10 +186,12 @@ export class RelacionamientosService {
       accion: AuditAccion.RELACIONAMIENTO_CREAR,
       entidadTipo: AuditEntidadTipo.RELACIONAMIENTO,
       entidadId: saved.id,
-      valorNuevo: JSON.stringify(this.toResponse(saved)),
+      valorNuevo: JSON.stringify(
+        this.toResponse(await this.getActivoOrFail(saved.id, paisSesionId)),
+      ),
     });
 
-    return this.toResponse(saved);
+    return this.findById(saved.id, paisSesionId);
   }
 
   async update(
@@ -220,6 +211,13 @@ export class RelacionamientosService {
 
     this.validateFechaReunion(resultado, fechaReunion ?? undefined);
 
+    if (
+      resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
+      !relacionamiento.contactoReferidoId
+    ) {
+      this.validateContactoReferido(resultado, dto.contactoReferido);
+    }
+
     if (dto.canal !== undefined) relacionamiento.canal = dto.canal;
     if (dto.mensaje !== undefined) relacionamiento.mensaje = dto.mensaje;
     if (dto.fechaMensaje !== undefined) {
@@ -236,18 +234,33 @@ export class RelacionamientosService {
         ? fechaReunion ?? null
         : null;
 
-    const saved = await this.relacionamientoRepository.save(relacionamiento);
+    if (
+      resultado === ResultadoRelacionamiento.REFERIDO_TERCERO &&
+      !relacionamiento.contactoReferidoId &&
+      dto.contactoReferido
+    ) {
+      relacionamiento.contactoReferidoId = await this.crearContactoReferido(
+        relacionamiento.contacto,
+        dto.contactoReferido,
+        actorId,
+        paisSesionId,
+      );
+    }
+
+    await this.relacionamientoRepository.save(relacionamiento);
 
     await this.auditService.log({
       usuarioId: actorId,
       accion: AuditAccion.RELACIONAMIENTO_EDITAR,
       entidadTipo: AuditEntidadTipo.RELACIONAMIENTO,
-      entidadId: saved.id,
+      entidadId: relacionamiento.id,
       valorAnterior,
-      valorNuevo: JSON.stringify(this.toResponse(saved)),
+      valorNuevo: JSON.stringify(
+        this.toResponse(await this.getActivoOrFail(id, paisSesionId)),
+      ),
     });
 
-    return this.toResponse(saved);
+    return this.findById(id, paisSesionId);
   }
 
   async softDelete(
@@ -287,6 +300,7 @@ export class RelacionamientosService {
     const relacionamiento = await this.relacionamientoRepository
       .createQueryBuilder('r')
       .innerJoinAndSelect('r.contacto', 'co')
+      .leftJoinAndSelect('r.contactoReferido', 'cref')
       .innerJoin('co.cliente', 'cl')
       .where('r.id = :id', { id })
       .andWhere('r.eliminado = false')
@@ -304,18 +318,60 @@ export class RelacionamientosService {
     return relacionamiento;
   }
 
-  private resolveDiasEsperaRespuesta(dias?: number): number {
-    const valor = dias ?? 7;
+  private validateContactoReferido(
+    resultado: ResultadoRelacionamiento,
+    contactoReferido?: ContactoReferidoDto,
+  ): void {
+    if (resultado !== ResultadoRelacionamiento.REFERIDO_TERCERO) {
+      return;
+    }
 
-    if (!Number.isInteger(valor) || valor < 1 || valor > 365) {
+    if (!contactoReferido?.nombre?.trim()) {
       throw new BusinessException(
-        ErrorCode.VALIDATION_ERROR,
-        'Los días de espera deben ser un entero entre 1 y 365',
+        ErrorCode.RELACIONAMIENTO_REFERIDO_REQUERIDO,
+        'Debe indicar los datos del contacto referido',
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
 
-    return valor;
+  private async crearContactoReferido(
+    contactoOrigen: Contacto,
+    contactoReferido: ContactoReferidoDto,
+    actorId: number,
+    paisSesionId: number,
+    manager?: EntityManager,
+  ): Promise<number> {
+    const creado = await this.contactosService.createForCliente(
+      contactoOrigen.clienteId,
+      {
+        nombre: contactoReferido.nombre.trim(),
+        cargo: contactoReferido.cargo,
+        telefono: contactoReferido.telefono,
+        correo: contactoReferido.correo,
+        ubicacionId:
+          contactoReferido.ubicacionId ?? contactoOrigen.ubicacionId,
+        referidoPorContactoId: contactoOrigen.id,
+      },
+      actorId,
+      paisSesionId,
+      manager,
+    );
+
+    return creado.id;
+  }
+
+  private validateFechaAlertaRespuesta(
+    fechaMensaje: string,
+    fechaAlertaRespuesta: string,
+  ): void {
+    if (fechaAlertaRespuesta < fechaMensaje) {
+      throw new BusinessException(
+        ErrorCode.RELACIONAMIENTO_FECHA_ALERTA_INVALIDA,
+        'La fecha de alerta no puede ser anterior a la fecha del mensaje',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   private validateFechaReunion(
@@ -352,11 +408,13 @@ export class RelacionamientosService {
       canal: relacionamiento.canal,
       mensaje: relacionamiento.mensaje,
       fechaMensaje: relacionamiento.fechaMensaje,
-      diasEsperaRespuesta: relacionamiento.diasEsperaRespuesta,
+      fechaAlertaRespuesta: relacionamiento.fechaAlertaRespuesta,
       respuesta: relacionamiento.respuesta,
       fechaRespuesta: relacionamiento.fechaRespuesta,
       resultado: relacionamiento.resultado,
       fechaReunion: relacionamiento.fechaReunion,
+      contactoReferidoId: relacionamiento.contactoReferidoId,
+      contactoReferidoNombre: relacionamiento.contactoReferido?.nombre ?? null,
     };
   }
 }

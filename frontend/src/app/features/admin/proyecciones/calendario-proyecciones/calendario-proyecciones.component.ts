@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Proyeccion } from '../../../../core/models/admin.model';
-import { formatCurrencyAbbreviated } from '../../../../core/utils/currency.util';
+import { formatCurrencyFull } from '../../../../core/utils/currency.util';
 import { parseIsoDateLocal } from '../../../../core/utils/date.util';
 import { getEstadoCalendarioStyle } from './estado-calendario.styles';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
@@ -61,7 +61,7 @@ export class CalendarioProyeccionesComponent implements OnInit {
   protected readonly puedeAsignarMercado = () => this.auth.puedeAsignarMercadoProyeccion();
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
 
-  protected readonly formatValor = formatCurrencyAbbreviated;
+  protected readonly formatValor = formatCurrencyFull;
   protected estadoStyle(estado: string) {
     this.themeService.theme();
     return getEstadoCalendarioStyle(estado);

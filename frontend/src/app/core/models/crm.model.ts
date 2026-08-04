@@ -36,6 +36,52 @@ export interface Cliente {
   fechaCreacion: string;
 }
 
+export interface ClienteVista360Resumen {
+  procesosActivos: number;
+  cuantiaTotal: string;
+  proyeccionesAbiertas: number;
+  relacionamientosVencidos: number;
+  totalContactos: number;
+}
+
+export interface ClienteVista360Proceso {
+  id: number;
+  codigo: string | null;
+  idDigitado: string;
+  estado: string;
+  cuantia: string;
+  moneda: string;
+  fechaCierre: string | null;
+}
+
+export interface ClienteVista360Proyeccion {
+  id: number;
+  anioProyectado: number;
+  estado: string;
+  mercado: string | null;
+  valorVenta: string;
+  valorFacturacion: string;
+  fechaEstimadaPublicacion: string;
+}
+
+export interface ClienteVista360Relacionamiento {
+  id: number;
+  contactoNombre: string;
+  canal: string;
+  fechaMensaje: string;
+  resultado: string | null;
+  vencido: boolean;
+}
+
+export interface ClienteVista360 {
+  cliente: Cliente;
+  ubicacionLabel: string | null;
+  resumen: ClienteVista360Resumen;
+  procesos: ClienteVista360Proceso[];
+  proyecciones: ClienteVista360Proyeccion[];
+  relacionamientos: ClienteVista360Relacionamiento[];
+}
+
 export interface ClienteListItem {
   id: number;
   empresa: string;
@@ -60,6 +106,8 @@ export interface Contacto {
   ubicacionId: number;
   esGenerico: boolean;
   referidoPorContactoId: number | null;
+  referidoPorNombre: string | null;
+  esReferido: boolean;
   fechaCreacion: string;
 }
 
@@ -79,11 +127,13 @@ export interface Relacionamiento {
   canal: CanalRelacionamiento;
   mensaje: string;
   fechaMensaje: string;
-  diasEsperaRespuesta: number;
+  fechaAlertaRespuesta: string;
   respuesta: string | null;
   fechaRespuesta: string | null;
   resultado: ResultadoRelacionamiento;
   fechaReunion: string | null;
+  contactoReferidoId: number | null;
+  contactoReferidoNombre: string | null;
 }
 
 export interface RelacionamientoVencido extends Relacionamiento {
@@ -103,8 +153,19 @@ export interface CreateRelacionamientoPayload {
   canal: CanalRelacionamiento;
   mensaje: string;
   fechaMensaje: string;
-  diasEsperaRespuesta?: number;
-  resultado: ResultadoRelacionamiento;
+  fechaAlertaRespuesta: string;
+  resultado?: ResultadoRelacionamiento;
+  fechaReunion?: string;
+  contactoReferido?: ContactoReferidoPayload;
+}
+
+export interface UpdateRelacionamientoPayload {
+  canal?: CanalRelacionamiento;
+  mensaje?: string;
+  fechaMensaje?: string;
+  respuesta?: string;
+  fechaRespuesta?: string;
+  resultado?: ResultadoRelacionamiento;
   fechaReunion?: string;
   contactoReferido?: ContactoReferidoPayload;
 }

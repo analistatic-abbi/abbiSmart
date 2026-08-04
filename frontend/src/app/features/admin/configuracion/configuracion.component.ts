@@ -18,12 +18,6 @@ const CONFIG_META: Record<string, ConfigMeta> = {
     descripcion: 'Activa o desactiva la carga masiva de proyecciones, clientes y contactos.',
     tipo: 'boolean',
   },
-  dias_espera_respuesta_crm: {
-    titulo: 'Días de espera de respuesta CRM',
-    descripcion:
-      'Días de espera por defecto para recibir respuesta a un relacionamiento antes de generar alerta.',
-    tipo: 'number',
-  },
 };
 
 @Component({

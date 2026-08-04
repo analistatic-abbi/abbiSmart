@@ -22,6 +22,7 @@ export class AuditoriaListComponent implements OnInit {
   protected readonly total = signal(0);
   protected readonly entidadTipo = signal('');
   protected readonly accion = signal('');
+  protected readonly fecha = signal('');
   protected readonly formatFechaHora = formatFechaHora;
 
   ngOnInit(): void {
@@ -45,6 +46,7 @@ export class AuditoriaListComponent implements OnInit {
       .list({
         entidadTipo: this.entidadTipo() || undefined,
         accion: this.accion() || undefined,
+        fecha: this.fecha() || undefined,
         limit: 50,
       })
       .subscribe({

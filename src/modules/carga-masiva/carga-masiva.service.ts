@@ -19,6 +19,7 @@ import { CreateClienteDto } from '../clientes/dto/create-cliente.dto';
 import { CreateContactoDto } from '../contactos/dto/create-contacto.dto';
 import { CreateProyeccionDto } from '../proyecciones/dto/proyeccion.dto';
 import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
+import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
 import { readSpreadsheet } from '../../common/utils/spreadsheet-reader';
 
 export interface CargaMasivaResult {
@@ -206,11 +207,34 @@ export class CargaMasivaService {
   ): Promise<CargaMasivaResult> {
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
+
+    if (
+      !this.hasHeader(headers, 'segmento', 'segmento_proceso', 'segmento_proyeccion') &&
+      this.hasHeader(
+        headers,
+        'proceso_codigo',
+        'proceso_origen_id',
+        'codigo_proceso',
+        'id_digitado',
+        'proceso_origen',
+      )
+    ) {
+      throw new BusinessException(
+        ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
+        'La plantilla está desactualizada: agregue la columna segmento y use empresa o empresa_otro. La carga masiva solo admite proyecciones manuales (sin proceso_codigo).',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     this.assertRequiredHeaders(headers, [
-      'anio_proyectado',
-      'fecha_estimada_publicacion',
-      'valor_venta',
-      'valor_facturacion',
+      { name: 'anio_proyectado', aliases: ['anio', 'ano_proyectado'] },
+      {
+        name: 'fecha_estimada_publicacion',
+        aliases: ['fecha_publicacion', 'fecha_estimada'],
+      },
+      { name: 'valor_venta', aliases: ['valor_estimado_venta'] },
+      { name: 'valor_facturacion', aliases: ['valor_estimado_facturacion'] },
+      { name: 'segmento', aliases: ['segmento_proceso', 'segmento_proyeccion'] },
     ]);
 
     const detalleErrores: Array<{ fila: number; error: string }> = [];
@@ -236,12 +260,16 @@ export class CargaMasivaService {
           'proceso_origen',
         );
 
-        const procesoOrigenId = procesoRef
-          ? await this.proyeccionesService.resolveProcesoOrigenIdForCarga(
-              procesoRef,
-              paisSesionId,
-            )
-          : undefined;
+        if (procesoRef) {
+          throw new BusinessException(
+            ErrorCode.VALIDATION_ERROR,
+            'La carga masiva de proyecciones es solo para proyecciones manuales; las vinculadas a un proceso se generan desde el proceso',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        const { empresaClienteId, empresaOtro } =
+          await this.resolveEmpresaProyeccion(headers, row, paisSesionId);
 
         const dto: CreateProyeccionDto = {
           anioProyectado: Number.parseInt(
@@ -269,7 +297,16 @@ export class CargaMasivaService {
               'valor_estimado_facturacion',
             ),
           ),
-          procesoOrigenId,
+          empresaClienteId,
+          empresaOtro,
+          segmento: this.getCell(
+            headers,
+            row,
+            'segmento',
+            'segmento_proceso',
+            'segmento_proyeccion',
+          ) as SegmentoProceso,
+          objeto: this.getCell(headers, row, 'objeto') || undefined,
         };
 
         const created = await this.proyeccionesService.create(
@@ -333,6 +370,41 @@ export class CargaMasivaService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private async resolveEmpresaProyeccion(
+    headers: Map<string, number>,
+    row: string[],
+    paisSesionId: number,
+  ): Promise<{ empresaClienteId?: number; empresaOtro?: string }> {
+    const empresa = this.getCell(headers, row, 'empresa', 'empresa_cliente');
+    const empresaOtro = this.getCell(headers, row, 'empresa_otro', 'empresa_otra');
+
+    if (empresa && empresaOtro) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_EMPRESA_INVALIDA,
+        'Indique empresa (cliente registrado) o empresa_otro, pero no ambos',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (empresa) {
+      const empresaClienteId = await this.clientesService.findClienteIdByEmpresa(
+        empresa,
+        paisSesionId,
+      );
+      return { empresaClienteId };
+    }
+
+    if (empresaOtro) {
+      return { empresaOtro };
+    }
+
+    throw new BusinessException(
+      ErrorCode.PROCESO_EMPRESA_INVALIDA,
+      'Debe indicar empresa (cliente registrado) o empresa_otro',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 
   private async resolveReferidoPorContactoId(
@@ -414,24 +486,48 @@ export class CargaMasivaService {
 
     const map = new Map<string, number>();
     row.forEach((header, index) => {
-      map.set(header.trim().toLowerCase(), index);
+      const key = header
+        .replace(/^\uFEFF/, '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '_');
+      if (key) {
+        map.set(key, index);
+      }
     });
     return map;
   }
 
   private assertRequiredHeaders(
     headers: Map<string, number>,
-    required: string[],
+    required: Array<string | { name: string; aliases?: string[] }>,
   ): void {
-    const missing = required.filter((column) => !headers.has(column));
+    const missing: string[] = [];
+
+    for (const item of required) {
+      const label = typeof item === 'string' ? item : item.name;
+      const keys =
+        typeof item === 'string' ? [item] : [item.name, ...(item.aliases ?? [])];
+
+      if (!keys.some((key) => headers.has(key))) {
+        missing.push(label);
+      }
+    }
 
     if (missing.length) {
+      const found = [...headers.keys()].join(', ') || '(ninguno)';
       throw new BusinessException(
         ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
-        `Faltan columnas obligatorias: ${missing.join(', ')}`,
+        `Faltan columnas obligatorias: ${missing.join(', ')}. Encabezados encontrados: ${found}`,
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private hasHeader(headers: Map<string, number>, ...names: string[]): boolean {
+    return names.some((name) => headers.has(name));
   }
 
   private getCell(

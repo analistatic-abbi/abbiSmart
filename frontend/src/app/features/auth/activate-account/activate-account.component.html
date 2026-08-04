@@ -3,6 +3,7 @@
     <img class="auth-card__logo" [src]="logoUrl" alt="abbi" />
     <h1>Activar cuenta</h1>
     <p>Defina su contraseña para activar el acceso.</p>
+    <p class="hint">La contraseña debe tener mínimo 8 caracteres, 1 mayúscula y 1 número</p>
 
     @if (message()) {
       <p class="success">{{ message() }}</p>

@@ -1,15 +1,39 @@
 <nav class="app-sidebar">
   <div class="app-sidebar__main">
-    @for (item of items(); track item.route) {
-      <a
-        class="app-sidebar__item"
-        [routerLink]="item.route"
-        routerLinkActive="app-sidebar__item--active"
-        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+    @for (section of sections(); track section.title) {
+      <div
+        class="app-sidebar__section"
+        [class.app-sidebar__section--collapsed]="isSectionCollapsed(section.title)"
+        [class.app-sidebar__section--active]="sectionHasActiveRoute(section)"
       >
-        <span class="material-symbols-outlined">{{ item.icon }}</span>
-        <span>{{ item.label }}</span>
-      </a>
+        <button
+          type="button"
+          class="app-sidebar__section-toggle"
+          (click)="toggleSection(section.title)"
+          [attr.aria-expanded]="!isSectionCollapsed(section.title)"
+        >
+          <span class="app-sidebar__section-title">{{ section.title }}</span>
+          <span class="material-symbols-outlined app-sidebar__section-chevron">
+            expand_more
+          </span>
+        </button>
+
+        @if (!isSectionCollapsed(section.title)) {
+          <div class="app-sidebar__section-items">
+            @for (item of section.items; track item.route) {
+              <a
+                class="app-sidebar__item"
+                [routerLink]="item.route"
+                routerLinkActive="app-sidebar__item--active"
+                [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+              >
+                <span class="material-symbols-outlined">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
     }
   </div>
 

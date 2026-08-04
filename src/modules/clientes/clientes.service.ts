@@ -5,6 +5,8 @@ import {
   AuditAccion,
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
+import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
+import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { SegmentoCliente } from '../../common/enums/segmento-cliente.enum';
 import { Rol } from '../../common/enums/rol.enum';
 import { ClientesQueryDto } from '../../common/dto/pagination-query.dto';
@@ -16,9 +18,14 @@ import {
   normalizeEntityName,
   rankBySimilarity,
 } from '../../common/utils/text-similarity.util';
+import {
+  applyFiltroEliminadosQb,
+  resolveFiltroEliminados,
+} from '../../common/utils/filtro-eliminados.util';
 import { Cliente } from '../../database/entities/cliente.entity';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
+import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
 import { AuditService } from '../audit/audit.service';
@@ -30,6 +37,7 @@ import {
   ClienteHistorialItemDto,
   ClienteHistorialQueryDto,
 } from './dto/cliente-historial.dto';
+import { ClienteVista360Dto } from './dto/cliente-vista-360.dto';
 
 export interface ClientesPage {
   data: ClienteResponseDto[];
@@ -47,6 +55,8 @@ export class ClientesService {
     private readonly contactoRepository: Repository<Contacto>,
     @InjectRepository(Proceso)
     private readonly procesoRepository: Repository<Proceso>,
+    @InjectRepository(Proyeccion)
+    private readonly proyeccionRepository: Repository<Proyeccion>,
     @InjectRepository(Relacionamiento)
     private readonly relacionamientoRepository: Repository<Relacionamiento>,
     @InjectRepository(UbicacionGeografica)
@@ -64,17 +74,18 @@ export class ClientesService {
   ): Promise<ClientesPage> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const incluirEliminados =
-      query.incluirEliminados === true &&
-      this.permisosService.puedeVerEliminados(rol);
+    const filtroEliminados = resolveFiltroEliminados(
+      query.filtroEliminados,
+      query.incluirEliminados,
+      rol,
+      this.permisosService,
+    );
 
     const qb = this.clienteRepository
       .createQueryBuilder('c')
       .where('c.pais_id = :paisSesionId', { paisSesionId });
 
-    if (!incluirEliminados) {
-      qb.andWhere('c.eliminado = false');
-    }
+    applyFiltroEliminadosQb(qb, 'c', filtroEliminados);
 
     if (query.search) {
       qb.andWhere('c.empresa LIKE :search', {
@@ -411,8 +422,13 @@ export class ClientesService {
     empresa: string,
     paisSesionId: number,
   ): Promise<number> {
+    const empresaNormalizada = normalizeEntityName(empresa);
     const cliente = await this.clienteRepository.findOne({
-      where: { empresa, paisId: paisSesionId, eliminado: false },
+      where: {
+        empresaNormalizada,
+        paisId: paisSesionId,
+        eliminado: false,
+      },
     });
 
     if (!cliente) {
@@ -456,6 +472,128 @@ export class ClientesService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async getVista360(
+    clienteId: number,
+    paisSesionId: number,
+  ): Promise<ClienteVista360Dto> {
+    const cliente = await this.getClienteActivoOrFail(clienteId, paisSesionId);
+
+    const ubicacion = cliente.ubicacionId
+      ? await this.ubicacionRepository.findOne({
+          where: { id: cliente.ubicacionId },
+        })
+      : null;
+    const ubicacionLabel = ubicacion
+      ? `${ubicacion.municipioProvincia}, ${ubicacion.departamento}`
+      : null;
+
+    const estadosProcesoCerrados = [EstadoProceso.CERRADO, EstadoProceso.DESCARTADO];
+    const estadosProyeccionCerrados = [
+      EstadoProyeccion.PUBLICADO,
+      EstadoProyeccion.CERRADO,
+    ];
+
+    const procesos = await this.procesoRepository.find({
+      where: { empresaClienteId: clienteId, eliminado: false },
+      order: { fechaCreacion: 'DESC' },
+      take: 50,
+    });
+
+    const procesosActivos = procesos.filter(
+      (proceso) => !estadosProcesoCerrados.includes(proceso.estado),
+    );
+
+    const cuantiaTotal = procesosActivos.reduce(
+      (sum, proceso) => sum + Number(proceso.cuantia),
+      0,
+    );
+
+    const proyecciones = await this.proyeccionRepository.find({
+      where: { empresaClienteId: clienteId, eliminado: false },
+      order: { fechaEstimadaPublicacion: 'ASC' },
+      take: 50,
+    });
+
+    const proyeccionesAbiertas = proyecciones.filter(
+      (proyeccion) => !estadosProyeccionCerrados.includes(proyeccion.estado),
+    );
+
+    const totalContactos = await this.contactoRepository.count({
+      where: { clienteId, eliminado: false },
+    });
+
+    const vencidosRows: Array<{ total: string | number }> =
+      await this.relacionamientoRepository.query(
+        `SELECT COUNT(*) AS total
+         FROM vista_relacionamientos_vencidos v
+         INNER JOIN relacionamientos r ON r.id = v.id
+         INNER JOIN contactos co ON co.id = r.contacto_id
+         WHERE co.cliente_id = ?`,
+        [clienteId],
+      );
+    const relacionamientosVencidos = Number(vencidosRows[0]?.total ?? 0);
+
+    const vencidoIds = new Set(
+      (
+        (await this.relacionamientoRepository.query(
+          `SELECT v.id
+           FROM vista_relacionamientos_vencidos v
+           INNER JOIN relacionamientos r ON r.id = v.id
+           INNER JOIN contactos co ON co.id = r.contacto_id
+           WHERE co.cliente_id = ?`,
+          [clienteId],
+        )) as Array<{ id: number | string }>
+      ).map((row) => Number(row.id)),
+    );
+
+    const relacionamientos = await this.relacionamientoRepository
+      .createQueryBuilder('r')
+      .innerJoinAndSelect('r.contacto', 'co')
+      .where('co.cliente_id = :clienteId', { clienteId })
+      .andWhere('r.eliminado = false')
+      .orderBy('r.fecha_mensaje', 'DESC')
+      .take(50)
+      .getMany();
+
+    return {
+      cliente: this.toResponse(cliente),
+      ubicacionLabel,
+      resumen: {
+        procesosActivos: procesosActivos.length,
+        cuantiaTotal: cuantiaTotal.toFixed(2),
+        proyeccionesAbiertas: proyeccionesAbiertas.length,
+        relacionamientosVencidos,
+        totalContactos,
+      },
+      procesos: procesos.map((proceso) => ({
+        id: Number(proceso.id),
+        codigo: proceso.codigo,
+        idDigitado: proceso.idDigitado,
+        estado: proceso.estado,
+        cuantia: proceso.cuantia,
+        moneda: proceso.moneda,
+        fechaCierre: proceso.fechaCierre ?? null,
+      })),
+      proyecciones: proyecciones.map((proyeccion) => ({
+        id: Number(proyeccion.id),
+        anioProyectado: proyeccion.anioProyectado,
+        estado: proyeccion.estado,
+        mercado: proyeccion.mercado,
+        valorVenta: proyeccion.valorVenta,
+        valorFacturacion: proyeccion.valorFacturacion,
+        fechaEstimadaPublicacion: proyeccion.fechaEstimadaPublicacion,
+      })),
+      relacionamientos: relacionamientos.map((rel) => ({
+        id: Number(rel.id),
+        contactoNombre: rel.contacto.nombre,
+        canal: rel.canal,
+        fechaMensaje: rel.fechaMensaje,
+        resultado: rel.resultado,
+        vencido: vencidoIds.has(Number(rel.id)),
+      })),
+    };
   }
 
   toResponse(cliente: Cliente): ClienteResponseDto {

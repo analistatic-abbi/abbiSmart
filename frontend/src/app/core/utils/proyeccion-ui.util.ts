@@ -17,7 +17,7 @@ export function etiquetaTipoNotificacion(tipo: string): string {
     proyeccion_creada_auto: 'Nueva proyección',
     proyeccion_proxima: 'Proyección próxima',
     proyeccion_sale_este_mes: 'Proyección sale este mes',
-    proceso_validacion_correccion: 'Validación — correcciones',
+    proceso_validacion_correccion: 'Proceso devuelto por validación',
     proceso_cierre_proximo: 'Cierre de proceso próximo',
     proceso_cierre_urgente: 'Cierre de proceso urgente',
     relacionamiento_vencido: 'Relacionamiento vencido',

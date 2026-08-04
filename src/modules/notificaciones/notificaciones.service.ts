@@ -89,11 +89,14 @@ export class NotificacionesService {
 
   private toResponse(notificacion: Notificacion): NotificacionResponseDto {
     return {
-      id: notificacion.id,
+      id: Number(notificacion.id),
       tipo: notificacion.tipo,
       mensaje: notificacion.mensaje,
       entidadTipo: notificacion.entidadTipo,
-      entidadId: notificacion.entidadId,
+      entidadId:
+        notificacion.entidadId !== null && notificacion.entidadId !== undefined
+          ? Number(notificacion.entidadId)
+          : null,
       leida: notificacion.leida,
       fechaCreacion: notificacion.fechaCreacion,
     };

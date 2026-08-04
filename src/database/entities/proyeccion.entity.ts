@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
+import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
+import { Cliente } from './cliente.entity';
 import { Pais } from './pais.entity';
 import { Proceso } from './proceso.entity';
 import { Usuario } from './usuario.entity';
@@ -25,6 +27,15 @@ export class Proyeccion {
   @Column({ name: 'proceso_resultante_id', type: 'bigint', unsigned: true, nullable: true })
   procesoResultanteId: number | null;
 
+  @Column({ name: 'empresa_cliente_id', type: 'bigint', unsigned: true, nullable: true })
+  empresaClienteId: number | null;
+
+  @Column({ name: 'empresa_otro', type: 'varchar', length: 255, nullable: true })
+  empresaOtro: string | null;
+
+  @Column({ type: 'enum', enum: SegmentoProceso, nullable: true })
+  segmento: SegmentoProceso | null;
+
   @Column({ name: 'pais_id', type: 'bigint', unsigned: true })
   paisId: number;
 
@@ -39,6 +50,9 @@ export class Proyeccion {
 
   @Column({ name: 'valor_facturacion', type: 'decimal', precision: 18, scale: 2 })
   valorFacturacion: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  objeto: string | null;
 
   @Column({
     type: 'enum',
@@ -69,6 +83,10 @@ export class Proyeccion {
   @ManyToOne(() => Pais)
   @JoinColumn({ name: 'pais_id' })
   pais: Pais;
+
+  @ManyToOne(() => Cliente, { nullable: true })
+  @JoinColumn({ name: 'empresa_cliente_id' })
+  empresaCliente: Cliente | null;
 
   @ManyToOne(() => Proceso, { nullable: true })
   @JoinColumn({ name: 'proceso_origen_id' })

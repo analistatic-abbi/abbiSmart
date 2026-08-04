@@ -33,8 +33,8 @@ export class Relacionamiento {
   @Column({ name: 'fecha_mensaje', type: 'date' })
   fechaMensaje: string;
 
-  @Column({ name: 'dias_espera_respuesta', type: 'int', unsigned: true, default: 7 })
-  diasEsperaRespuesta: number;
+  @Column({ name: 'fecha_alerta_respuesta', type: 'date' })
+  fechaAlertaRespuesta: string;
 
   @Column({ type: 'text', nullable: true })
   respuesta: string | null;
@@ -51,6 +51,9 @@ export class Relacionamiento {
   @Column({ name: 'fecha_reunion', type: 'date', nullable: true })
   fechaReunion: string | null;
 
+  @Column({ name: 'contacto_referido_id', type: 'bigint', unsigned: true, nullable: true })
+  contactoReferidoId: number | null;
+
   @Column({ type: 'boolean', default: false })
   eliminado: boolean;
 
@@ -63,6 +66,10 @@ export class Relacionamiento {
   @ManyToOne(() => Contacto, { nullable: false })
   @JoinColumn({ name: 'contacto_id' })
   contacto: Contacto;
+
+  @ManyToOne(() => Contacto, { nullable: true })
+  @JoinColumn({ name: 'contacto_referido_id' })
+  contactoReferido: Contacto | null;
 
   @ManyToOne(() => Usuario, { nullable: false })
   @JoinColumn({ name: 'emisor_usuario_id' })

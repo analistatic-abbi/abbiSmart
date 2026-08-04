@@ -6,6 +6,7 @@ import {
   CalendarioService,
 } from '../../core/services/calendario.service';
 import { parseIsoDateLocal } from '../../core/utils/date.util';
+import { formatCurrencyFull } from '../../core/utils/currency.util';
 import { YearSelectorComponent } from '../../shared/components/year-selector/year-selector.component';
 import { ThemeService } from '../../core/services/theme.service';
 import {
@@ -66,6 +67,8 @@ export class CalendarioUnificadoComponent implements OnInit {
     this.themeService.theme();
     return getEventoCalendarioStyle(tipo, estado);
   }
+
+  protected readonly formatValor = formatCurrencyFull;
 
   ngOnInit(): void {
     this.syncAnioFromRoute();

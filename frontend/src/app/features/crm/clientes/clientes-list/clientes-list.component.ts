@@ -5,6 +5,10 @@ import { RouterLink } from '@angular/router';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Cliente, SegmentoCliente } from '../../../../core/models/crm.model';
+import {
+  FILTRO_ELIMINADOS_OPCIONES,
+  FiltroEliminados,
+} from '../../../../core/models/filtro-eliminados.model';
 import { CrmTabsComponent } from '../../shared/crm-tabs.component';
 
 @Component({
@@ -19,11 +23,14 @@ export class ClientesListComponent implements OnInit {
   private readonly auth = inject(AuthService);
 
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
+  protected readonly puedeVerEliminados = () => this.auth.puedeVerEliminados();
+  protected readonly filtrosEliminados = FILTRO_ELIMINADOS_OPCIONES;
 
   protected readonly items = signal<Cliente[]>([]);
   protected readonly loading = signal(true);
   protected readonly search = signal('');
   protected readonly segmento = signal<SegmentoCliente | ''>('');
+  protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
   protected readonly segmentos = Object.values(SegmentoCliente);
 
   ngOnInit(): void {
@@ -40,6 +47,7 @@ export class ClientesListComponent implements OnInit {
       .list({
         search: this.search() || undefined,
         segmento: this.segmento() || undefined,
+        filtroEliminados: this.filtroEliminados(),
       })
       .subscribe({
         next: (r) => {

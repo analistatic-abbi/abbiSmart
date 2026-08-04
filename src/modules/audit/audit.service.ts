@@ -76,7 +76,12 @@ export class AuditService {
       where.entidadId = query.entidadId;
     }
 
-    if (query.fechaDesde && query.fechaHasta) {
+    if (query.fecha) {
+      where.fechaHora = Between(
+        new Date(`${query.fecha}T00:00:00`),
+        new Date(`${query.fecha}T23:59:59`),
+      );
+    } else if (query.fechaDesde && query.fechaHasta) {
       where.fechaHora = Between(
         new Date(query.fechaDesde),
         new Date(query.fechaHasta),

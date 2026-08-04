@@ -13,6 +13,7 @@ import {
   TipoInstrumento,
   TipoProceso,
 } from '../models/proceso.model';
+import { FiltroEliminados } from '../models/filtro-eliminados.model';
 import { Proyeccion } from '../models/admin.model';
 
 export interface FechaHistorial {
@@ -40,6 +41,10 @@ export interface ProcesosListParams {
   segmento?: SegmentoProceso;
   tipoProceso?: TipoProceso;
   tipoInstrumento?: TipoInstrumento;
+  fechaCierreDesde?: string;
+  fechaCierreHasta?: string;
+  filtroEliminados?: FiltroEliminados;
+  /** @deprecated use filtroEliminados */
   incluirEliminados?: boolean;
 }
 
@@ -61,7 +66,13 @@ export class ProcesosService {
     if (params.segmento) query['segmento'] = params.segmento;
     if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
     if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
-    if (params.incluirEliminados) query['incluirEliminados'] = 'true';
+    if (params.fechaCierreDesde) query['fechaCierreDesde'] = params.fechaCierreDesde;
+    if (params.fechaCierreHasta) query['fechaCierreHasta'] = params.fechaCierreHasta;
+    if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
+      query['filtroEliminados'] = params.filtroEliminados;
+    } else if (params.incluirEliminados) {
+      query['filtroEliminados'] = 'todos';
+    }
 
     return this.http.get<{ data: ProcesoListItem[]; total: number }>(this.base, {
       params: query,
@@ -76,7 +87,13 @@ export class ProcesosService {
     if (params.segmento) query['segmento'] = params.segmento;
     if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
     if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
-    if (params.incluirEliminados) query['incluirEliminados'] = 'true';
+    if (params.fechaCierreDesde) query['fechaCierreDesde'] = params.fechaCierreDesde;
+    if (params.fechaCierreHasta) query['fechaCierreHasta'] = params.fechaCierreHasta;
+    if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
+      query['filtroEliminados'] = params.filtroEliminados;
+    } else if (params.incluirEliminados) {
+      query['filtroEliminados'] = 'todos';
+    }
 
     this.http
       .get(`${this.base}/export`, { params: query, responseType: 'blob', observe: 'response' })
@@ -177,9 +194,7 @@ export class ProcesosService {
   ): Observable<{ tarea: ProcesoTarea }> {
     const form = new FormData();
     form.append('confirmar', 'true');
-    if (evidencia.trim()) {
-      form.append('evidencia', evidencia.trim());
-    }
+    form.append('evidencia', evidencia.trim());
     if (archivo) {
       form.append('archivo', archivo, archivo.name);
     }

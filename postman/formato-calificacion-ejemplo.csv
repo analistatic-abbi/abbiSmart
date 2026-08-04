@@ -1,0 +1,9 @@
+indicador_codigo,rango_min,rango_max,puntos
+KTNO,,2.915,0
+KTNO,2.915,3.2,5
+KTNO,3.2,4.198,10
+KTNO,4.198,,15
+PN,,50,0
+PN,50,100,5
+PN,100,150,10
+PN,150,,15

@@ -13,22 +13,21 @@ import { ConfiguracionResponseDto } from './dto/configuracion-response.dto';
 import { UpdateConfiguracionDto } from './dto/update-configuracion.dto';
 
 const CONFIG_VALIDATORS: Record<string, (valor: string) => void> = {
-  dias_espera_respuesta_crm: (valor) => {
-    const parsed = Number.parseInt(valor, 10);
-
-    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 365) {
-      throw new BusinessException(
-        ErrorCode.CONFIGURACION_VALOR_INVALIDO,
-        'dias_espera_respuesta_crm debe ser un entero entre 1 y 365',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  },
   carga_masiva_habilitada: (valor) => {
     if (valor !== 'true' && valor !== 'false') {
       throw new BusinessException(
         ErrorCode.CONFIGURACION_VALOR_INVALIDO,
         'carga_masiva_habilitada debe ser "true" o "false"',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  },
+  indicador_margen_casi_pct: (valor) => {
+    const parsed = Number(valor);
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+      throw new BusinessException(
+        ErrorCode.CONFIGURACION_VALOR_INVALIDO,
+        'indicador_margen_casi_pct debe ser un número entre 0 y 100',
         HttpStatus.BAD_REQUEST,
       );
     }

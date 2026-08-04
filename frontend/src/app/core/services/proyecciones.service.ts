@@ -8,6 +8,7 @@ import {
   EstadoProyeccion,
   Proyeccion,
 } from '../models/admin.model';
+import { FiltroEliminados } from '../models/filtro-eliminados.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProyeccionesService {
@@ -22,6 +23,8 @@ export class ProyeccionesService {
     anioProyectado?: number;
     mercado?: string;
     procesoOrigenId?: number;
+    filtroEliminados?: FiltroEliminados;
+    incluirEliminados?: boolean;
   } = {}): Observable<{ data: Proyeccion[]; total: number }> {
     const query: Record<string, string | number> = {
       page: params.page ?? 1,
@@ -32,6 +35,11 @@ export class ProyeccionesService {
     if (params.anioProyectado) query['anioProyectado'] = params.anioProyectado;
     if (params.mercado) query['mercado'] = params.mercado;
     if (params.procesoOrigenId) query['procesoOrigenId'] = params.procesoOrigenId;
+    if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
+      query['filtroEliminados'] = params.filtroEliminados;
+    } else if (params.incluirEliminados) {
+      query['filtroEliminados'] = 'todos';
+    }
 
     return this.http.get<{ data: Proyeccion[]; total: number }>(this.base, { params: query });
   }

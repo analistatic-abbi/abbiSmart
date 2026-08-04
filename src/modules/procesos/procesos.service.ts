@@ -2,7 +2,7 @@ import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import {
   TAREAS_SEGUIMIENTO_ORDEN,
   tareaAplicaParaProceso,
@@ -15,11 +15,19 @@ import { CumpleIndicador } from '../../common/enums/cumple-indicador.enum';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { MotivoPerdidaProceso } from '../../common/enums/motivo-perdida-proceso.enum';
 import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
-import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
+import {
+  evaluarResultadoIndicador,
+  resolveMargenCasiPct,
+} from '../../common/utils/indicador-resultado.util';
 import { Rol } from '../../common/enums/rol.enum';
 import { TareaCodigo } from '../../common/enums/tarea-codigo.enum';
 import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
+import { VeredictoValidacion } from '../../common/enums/veredicto-validacion.enum';
 import { buildSingleSheetBuffer } from '../../common/utils/spreadsheet-writer';
+import {
+  applyFiltroEliminadosQb,
+  resolveFiltroEliminados,
+} from '../../common/utils/filtro-eliminados.util';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { PermisosService } from '../../common/services/permisos.service';
@@ -34,8 +42,10 @@ import { ProcesoIndicador } from '../../database/entities/proceso-indicador.enti
 import { ProcesoTarea } from '../../database/entities/proceso-tarea.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { ProcesoComentario } from '../../database/entities/proceso-comentario.entity';
+import { ValidacionProceso } from '../../database/entities/validacion-proceso.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { ConfiguracionService } from '../configuracion/configuracion.service';
 import { ParametrosService } from '../parametros/parametros.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
@@ -125,8 +135,11 @@ export class ProcesosService {
     private readonly comentarioRepository: Repository<ProcesoComentario>,
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
+    @InjectRepository(ValidacionProceso)
+    private readonly validacionRepository: Repository<ValidacionProceso>,
     private readonly clientesService: ClientesService,
     private readonly parametrosService: ParametrosService,
+    private readonly configuracionService: ConfiguracionService,
     private readonly permisosService: PermisosService,
     private readonly auditService: AuditService,
     private readonly dataSource: DataSource,
@@ -144,17 +157,30 @@ export class ProcesosService {
   ): Promise<ProcesosPage> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const incluirEliminados =
-      query.incluirEliminados === true &&
-      this.permisosService.puedeVerEliminados(rol);
+    const filtroEliminados = resolveFiltroEliminados(
+      query.filtroEliminados,
+      query.incluirEliminados,
+      rol,
+      this.permisosService,
+    );
+
+    if (
+      query.fechaCierreDesde &&
+      query.fechaCierreHasta &&
+      query.fechaCierreDesde > query.fechaCierreHasta
+    ) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'La fecha de cierre desde no puede ser posterior a la fecha hasta',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const qb = this.procesoRepository
       .createQueryBuilder('p')
       .where('p.pais_id = :paisSesionId', { paisSesionId });
 
-    if (!incluirEliminados) {
-      qb.andWhere('p.eliminado = false');
-    }
+    applyFiltroEliminadosQb(qb, 'p', filtroEliminados);
 
     if (query.estado) {
       qb.andWhere('p.estado = :estado', { estado: query.estado });
@@ -177,10 +203,21 @@ export class ProcesosService {
     }
 
     if (query.search) {
-      qb.andWhere(
-        '(p.codigo LIKE :search OR p.id_digitado LIKE :search OR p.empresa_otro LIKE :search)',
-        { search: `%${query.search}%` },
-      );
+      qb.andWhere('p.id_digitado LIKE :search', {
+        search: `%${query.search}%`,
+      });
+    }
+
+    if (query.fechaCierreDesde) {
+      qb.andWhere('p.fecha_cierre >= :fechaCierreDesde', {
+        fechaCierreDesde: query.fechaCierreDesde,
+      });
+    }
+
+    if (query.fechaCierreHasta) {
+      qb.andWhere('p.fecha_cierre <= :fechaCierreHasta', {
+        fechaCierreHasta: query.fechaCierreHasta,
+      });
     }
 
     qb.orderBy('p.fecha_creacion', 'DESC')
@@ -189,10 +226,14 @@ export class ProcesosService {
 
     const [procesos, total] = await qb.getManyAndCount();
     const calculos = await this.loadCalculosProcesos(procesos.map((p) => p.id));
+    const devoluciones = await this.loadDevolucionValidacionMap(procesos);
 
     return {
       data: procesos.map((proceso) =>
-        this.toResponse(proceso, undefined, calculos.get(proceso.id)),
+        this.enrichWithDevolucionValidacion(
+          this.toResponse(proceso, undefined, calculos.get(proceso.id)),
+          devoluciones.get(proceso.id),
+        ),
       ),
       total,
       page,
@@ -240,10 +281,15 @@ export class ProcesosService {
       motivoPerdidaUsuario: true,
     });
 
-    return this.toResponse(
-      proceso,
-      proceso.indicadores,
-      (await this.loadCalculosProcesos([proceso.id])).get(proceso.id),
+    return this.enrichWithDevolucionValidacion(
+      this.toResponse(
+        proceso,
+        proceso.indicadores,
+        (await this.loadCalculosProcesos([proceso.id])).get(proceso.id),
+      ),
+      (
+        await this.loadDevolucionValidacionMap([proceso])
+      ).get(proceso.id),
     );
   }
 
@@ -457,9 +503,11 @@ export class ProcesosService {
     }
 
     const moneda = resolveMonedaPorPaisNombre(pais.nombre);
+    const anioParametros = dto.anioParametros ?? new Date().getFullYear() - 1;
     const indicadoresProcesados = await this.procesarIndicadores(
       dto.indicadores,
       paisSesionId,
+      anioParametros,
     );
 
     const fechaAdquisicion =
@@ -474,6 +522,7 @@ export class ProcesosService {
         ubicacionId: dto.ubicacionId,
         portalOrigen: dto.portalOrigen ?? null,
         link: dto.link ?? null,
+        objeto: dto.objeto?.trim() ?? null,
         cuantia: dto.cuantia.toString(),
         moneda,
         segmento: dto.segmento,
@@ -484,6 +533,7 @@ export class ProcesosService {
         observacion: dto.experiencia ? dto.observacion ?? null : null,
         estado: EstadoProceso.POR_VALIDAR,
         usuarioCreadorId: actorId,
+        anioParametros,
         fechaApertura: dto.fechaApertura,
         fechaCierre: dto.fechaCierre,
         fechaManifestacionInteres: null,
@@ -568,6 +618,7 @@ export class ProcesosService {
 
     if (dto.portalOrigen !== undefined) proceso.portalOrigen = dto.portalOrigen;
     if (dto.link !== undefined) proceso.link = dto.link;
+    if (dto.objeto !== undefined) proceso.objeto = dto.objeto?.trim() ?? null;
     if (dto.cuantia !== undefined) proceso.cuantia = dto.cuantia.toString();
 
     if (dto.experiencia !== undefined) {
@@ -996,7 +1047,8 @@ export class ProcesosService {
     archivo?: Express.Multer.File,
   ): Promise<TareaResponseDto> {
     this.assertPuedeGestionar(rol);
-    await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+    const proceso = await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+    this.assertProcesoPermiteGestionarTareas(proceso.estado);
 
     const tarea = await this.tareaRepository.findOne({
       where: { id: tareaId, procesoId },
@@ -1018,10 +1070,21 @@ export class ProcesosService {
       );
     }
 
-    const nota = dto.evidencia?.trim() || null;
+    const esEdicion = tarea.completada;
+    const valorAnterior = esEdicion
+      ? JSON.stringify(this.toTareaResponse(tarea))
+      : undefined;
+    const notaEnviada = dto.evidencia !== undefined;
+    const notaFinal = notaEnviada
+      ? dto.evidencia?.trim() || null
+      : esEdicion
+        ? tarea.evidencia
+        : null;
     const tieneArchivo = Boolean(archivo?.buffer?.length);
+    const conservaArchivoExistente =
+      esEdicion && !tieneArchivo && Boolean(tarea.evidenciaArchivoRuta);
 
-    if (!nota && !tieneArchivo) {
+    if (!notaFinal?.trim() && !tieneArchivo && !conservaArchivoExistente) {
       throw new BusinessException(
         ErrorCode.TAREA_EVIDENCIA_REQUERIDA,
         'Debe adjuntar un archivo o escribir una evidencia para completar la tarea',
@@ -1038,6 +1101,10 @@ export class ProcesosService {
     }
 
     if (tieneArchivo && archivo) {
+      if (tarea.evidenciaArchivoRuta) {
+        await this.eliminarArchivoEvidencia(tarea.evidenciaArchivoRuta);
+      }
+
       const savedFile = await this.guardarArchivoEvidencia(
         procesoId,
         tareaId,
@@ -1047,7 +1114,7 @@ export class ProcesosService {
       tarea.evidenciaArchivoRuta = savedFile.rutaRelativa;
     }
 
-    tarea.evidencia = nota;
+    tarea.evidencia = notaFinal;
     tarea.completada = true;
     tarea.fechaCompletada = new Date();
     tarea.usuarioCompletoId = actorId;
@@ -1056,9 +1123,10 @@ export class ProcesosService {
 
     await this.auditService.log({
       usuarioId: actorId,
-      accion: AuditAccion.TAREA_COMPLETAR,
+      accion: esEdicion ? AuditAccion.TAREA_EDITAR : AuditAccion.TAREA_COMPLETAR,
       entidadTipo: AuditEntidadTipo.PROCESO_TAREA,
       entidadId: saved.id,
+      valorAnterior,
       valorNuevo: JSON.stringify(this.toTareaResponse(saved)),
     });
 
@@ -1100,6 +1168,31 @@ export class ProcesosService {
       absolutePath,
       nombre: tarea.evidenciaArchivoNombre,
     };
+  }
+
+  private assertProcesoPermiteGestionarTareas(estado: EstadoProceso): void {
+    const permitidos = new Set<EstadoProceso>([
+      EstadoProceso.EN_PROCESO,
+      EstadoProceso.POR_VALIDAR,
+    ]);
+
+    if (!permitidos.has(estado)) {
+      throw new BusinessException(
+        ErrorCode.TAREA_EDICION_BLOQUEADA,
+        'No se pueden completar ni editar tareas en el estado actual del proceso',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private async eliminarArchivoEvidencia(rutaRelativa: string): Promise<void> {
+    const absolutePath = path.join(process.cwd(), rutaRelativa);
+
+    try {
+      await fs.promises.unlink(absolutePath);
+    } catch {
+      // El archivo pudo haber sido eliminado manualmente; no bloquea la actualización.
+    }
   }
 
   private async guardarArchivoEvidencia(
@@ -1325,6 +1418,7 @@ export class ProcesosService {
   private async procesarIndicadores(
     indicadores: ProcesoIndicadorInputDto[],
     paisSesionId: number,
+    anioParametros: number,
   ): Promise<
     Array<{
       indicadorCodigo: ProcesoIndicador['indicadorCodigo'];
@@ -1340,6 +1434,11 @@ export class ProcesosService {
       cumple: CumpleIndicador | null;
     }> = [];
 
+    const margenConfig = await this.configuracionService
+      .findByClave('indicador_margen_casi_pct')
+      .catch(() => null);
+    const margenPct = resolveMargenCasiPct(margenConfig?.valor);
+
     for (const item of indicadores) {
       if (item.valorRequerido === undefined || item.valorRequerido === null) {
         result.push({
@@ -1351,23 +1450,25 @@ export class ProcesosService {
         continue;
       }
 
-      const parametro = await this.parametrosService.findVigentePorIndicador(
+      const parametro = await this.parametrosService.findPorIndicadorYAnio(
         paisSesionId,
         item.indicadorCodigo,
+        anioParametros,
       );
 
       if (!parametro) {
         throw new BusinessException(
           ErrorCode.PARAMETRO_NO_ENCONTRADO,
-          `No hay parámetro vigente para el indicador ${item.indicadorCodigo}`,
+          `No hay parámetro para el indicador ${item.indicadorCodigo} en el año ${anioParametros}`,
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      const cumple = this.evaluarCumplimiento(
+      const cumple = evaluarResultadoIndicador(
         item.valorRequerido,
         Number(parametro.valor),
         parametro.reglaCumplimiento,
+        margenPct,
       );
 
       result.push({
@@ -1381,17 +1482,79 @@ export class ProcesosService {
     return result;
   }
 
-  private evaluarCumplimiento(
-    valorRequerido: number,
-    valorParametro: number,
-    regla: ReglaCumplimiento,
-  ): CumpleIndicador {
-    const cumple =
-      regla === ReglaCumplimiento.MAYOR_O_IGUAL
-        ? valorRequerido >= valorParametro
-        : valorRequerido <= valorParametro;
+  private enrichWithDevolucionValidacion(
+    proceso: ProcesoResponseDto,
+    devolucion?: {
+      devueltoValidacion: boolean;
+      comentarioDevolucionValidacion: string | null;
+      validadorDevolucionNombre: string | null;
+      fechaDevolucionValidacion: Date | null;
+    },
+  ): ProcesoResponseDto {
+    return {
+      ...proceso,
+      devueltoValidacion: devolucion?.devueltoValidacion ?? false,
+      comentarioDevolucionValidacion:
+        devolucion?.comentarioDevolucionValidacion ?? null,
+      validadorDevolucionNombre: devolucion?.validadorDevolucionNombre ?? null,
+      fechaDevolucionValidacion: devolucion?.fechaDevolucionValidacion ?? null,
+    };
+  }
 
-    return cumple ? CumpleIndicador.CUMPLE : CumpleIndicador.NO_CUMPLE;
+  private async loadDevolucionValidacionMap(
+    procesos: Array<Pick<Proceso, 'id' | 'estado'>>,
+  ): Promise<
+    Map<
+      number,
+      {
+        devueltoValidacion: boolean;
+        comentarioDevolucionValidacion: string | null;
+        validadorDevolucionNombre: string | null;
+        fechaDevolucionValidacion: Date | null;
+      }
+    >
+  > {
+    const map = new Map<
+      number,
+      {
+        devueltoValidacion: boolean;
+        comentarioDevolucionValidacion: string | null;
+        validadorDevolucionNombre: string | null;
+        fechaDevolucionValidacion: Date | null;
+      }
+    >();
+
+    const enProcesoIds = procesos
+      .filter((proceso) => proceso.estado === EstadoProceso.EN_PROCESO)
+      .map((proceso) => proceso.id);
+
+    if (!enProcesoIds.length) {
+      return map;
+    }
+
+    const validaciones = await this.validacionRepository.find({
+      where: {
+        procesoId: In(enProcesoIds),
+        veredicto: VeredictoValidacion.REQUIERE_CORRECCION,
+      },
+      relations: { validador: true },
+      order: { fechaVeredicto: 'DESC' },
+    });
+
+    for (const validacion of validaciones) {
+      if (map.has(validacion.procesoId)) {
+        continue;
+      }
+
+      map.set(validacion.procesoId, {
+        devueltoValidacion: true,
+        comentarioDevolucionValidacion: validacion.comentario,
+        validadorDevolucionNombre: validacion.validador?.nombre ?? null,
+        fechaDevolucionValidacion: validacion.fechaVeredicto,
+      });
+    }
+
+    return map;
   }
 
   toResponse(
@@ -1409,6 +1572,7 @@ export class ProcesosService {
       ubicacionId: proceso.ubicacionId,
       portalOrigen: proceso.portalOrigen,
       link: proceso.link,
+      objeto: proceso.objeto,
       cuantia: proceso.cuantia,
       moneda: proceso.moneda,
       segmento: proceso.segmento,
@@ -1425,6 +1589,7 @@ export class ProcesosService {
       fueAdjudicado: proceso.fueAdjudicado,
       estado: proceso.estado,
       usuarioCreadorId: proceso.usuarioCreadorId,
+      anioParametros: proceso.anioParametros,
       fechaCreacion: proceso.fechaCreacion,
       fechaApertura: proceso.fechaApertura,
       fechaManifestacionInteres: proceso.fechaManifestacionInteres,

@@ -12,6 +12,9 @@
         <h1>Relacionamiento #{{ r.id }}</h1>
         <p>Contacto #{{ r.contactoId }} · Emisor usuario #{{ r.emisorUsuarioId }}</p>
       </div>
+      <div class="actions">
+        <app-fijar-entidad-button entidadTipo="relacionamiento" [entidadId]="r.id" />
+      </div>
     </header>
 
     @if (error()) {
@@ -19,26 +22,91 @@
     }
 
     <div class="panel form-grid">
+      <h2 class="full section-title">Interacción</h2>
+
       <label>Canal
         <select [disabled]="!puedeEscribir()" [ngModel]="canal()" (ngModelChange)="canal.set($event)">
           @for (c of canales; track c) { <option [value]="c">{{ c }}</option> }
         </select>
       </label>
+
+      <label class="full">Mensaje
+        <textarea [disabled]="!puedeEscribir()" [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea>
+      </label>
+
+      <label>Fecha mensaje
+        <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" />
+      </label>
+
+      <label>Fecha de alerta sin respuesta
+        <input type="date" [ngModel]="fechaAlertaRespuesta()" disabled />
+      </label>
+
+      <h2 class="full section-title">Respuesta</h2>
+
+      <label class="full">Respuesta
+        <textarea [disabled]="!puedeEscribir()" [ngModel]="respuesta()" (ngModelChange)="respuesta.set($event)"></textarea>
+      </label>
+
+      <label>Fecha respuesta
+        <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaRespuesta()" (ngModelChange)="fechaRespuesta.set($event)" />
+      </label>
+
+      <h2 class="full section-title">Resultado oficial</h2>
+      <p class="field-hint full">Registre aquí el desenlace cuando ya se conozca.</p>
+
       <label>Resultado
         <select [disabled]="!puedeEscribir()" [ngModel]="resultado()" (ngModelChange)="resultado.set($event)">
           @for (res of resultados; track res) { <option [value]="res">{{ res }}</option> }
         </select>
       </label>
-      <label class="full">Mensaje <textarea [disabled]="!puedeEscribir()" [ngModel]="mensaje()" (ngModelChange)="mensaje.set($event)"></textarea></label>
-      <label>Fecha mensaje <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaMensaje()" (ngModelChange)="fechaMensaje.set($event)" /></label>
-      <label>Días de espera para alerta
-        <input type="number" [ngModel]="diasEsperaRespuesta()" disabled />
-      </label>
+
       @if (resultado() === resultadoReunion) {
-        <label>Fecha reunión <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaReunion()" (ngModelChange)="fechaReunion.set($event)" /></label>
+        <label>Fecha reunión
+          <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaReunion()" (ngModelChange)="fechaReunion.set($event)" />
+        </label>
       }
-      <label class="full">Respuesta <textarea [disabled]="!puedeEscribir()" [ngModel]="respuesta()" (ngModelChange)="respuesta.set($event)"></textarea></label>
-      <label>Fecha respuesta <input type="date" [disabled]="!puedeEscribir()" [ngModel]="fechaRespuesta()" (ngModelChange)="fechaRespuesta.set($event)" /></label>
+
+      @if (resultado() === resultadoReferido) {
+        @if (tieneContactoReferido()) {
+          <div class="full referido-vinculado">
+            <span class="badge badge--referido">Referido registrado</span>
+            <a [routerLink]="['/crm/contactos', r.contactoReferidoId, 'editar']">
+              {{ r.contactoReferidoNombre ?? ('Contacto #' + r.contactoReferidoId) }}
+            </a>
+          </div>
+        } @else if (puedeEscribir()) {
+          <h3 class="full subsection-title">Datos del contacto referido</h3>
+          <label class="full">Nombre referido
+            <input type="text" [ngModel]="refNombre()" (ngModelChange)="refNombre.set($event)" />
+          </label>
+          <label>Cargo
+            <input type="text" [ngModel]="refCargo()" (ngModelChange)="refCargo.set($event)" />
+          </label>
+          <label>Teléfono
+            <input type="text" [ngModel]="refTelefono()" (ngModelChange)="refTelefono.set($event)" />
+          </label>
+          <label>Correo
+            <input type="email" [ngModel]="refCorreo()" (ngModelChange)="refCorreo.set($event)" />
+          </label>
+          <label>Departamento
+            <select [ngModel]="refDepartamento()" (ngModelChange)="onRefDepartamentoChange($event)">
+              <option value="">Usar región del contacto origen</option>
+              @for (d of departamentos(); track d) {
+                <option [value]="d">{{ d }}</option>
+              }
+            </select>
+          </label>
+          <label>Municipio
+            <select [ngModel]="refUbicacionId()" (ngModelChange)="refUbicacionId.set(+$event || null)">
+              <option [ngValue]="null">Usar región del contacto origen</option>
+              @for (m of refMunicipios(); track m.id) {
+                <option [ngValue]="m.id">{{ m.municipio }}</option>
+              }
+            </select>
+          </label>
+        }
+      }
     </div>
 
     @if (puedeEscribir()) {

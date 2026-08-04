@@ -13,10 +13,16 @@ import {
   IsString,
   MaxLength,
   Min,
+  Max,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import {
+  CUANTIA_MAX,
+  CUANTIA_MAX_MENSAJE,
+} from '../../../common/constants/cuantia.constants';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { FiltroEliminados } from '../../../common/enums/filtro-eliminados.enum';
 import { EstadoProceso } from '../../../common/enums/estado-proceso.enum';
 import { MotivoPerdidaProceso } from '../../../common/enums/motivo-perdida-proceso.enum';
 import { IndicadorCodigo } from '../../../common/enums/indicador-codigo.enum';
@@ -51,7 +57,26 @@ export class ProcesosQueryDto extends PaginationQueryDto {
   @IsEnum(TipoInstrumento)
   tipoInstrumento?: TipoInstrumento;
 
-  @ApiPropertyOptional({ description: 'Incluir registros eliminados (Admin/Supervisor)' })
+  @ApiPropertyOptional({ description: 'Filtro fecha cierre desde (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaCierreDesde?: string;
+
+  @ApiPropertyOptional({ description: 'Filtro fecha cierre hasta (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaCierreHasta?: string;
+
+  @ApiPropertyOptional({
+    enum: FiltroEliminados,
+    default: FiltroEliminados.ACTIVOS,
+    description: 'activos | todos | solo_eliminados (Admin/Supervisor)',
+  })
+  @IsOptional()
+  @IsEnum(FiltroEliminados)
+  filtroEliminados?: FiltroEliminados;
+
+  @ApiPropertyOptional({ description: 'Deprecated: use filtroEliminados=todos' })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
@@ -106,10 +131,17 @@ export class CreateProcesoDto {
   @MaxLength(500)
   link?: string;
 
+  @ApiPropertyOptional({ description: 'Objeto o descripción del proceso' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  objeto?: string;
+
   @ApiProperty()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
+  @Max(CUANTIA_MAX, { message: CUANTIA_MAX_MENSAJE })
   cuantia: number;
 
   @ApiProperty({ enum: SegmentoProceso })
@@ -157,6 +189,16 @@ export class CreateProcesoDto {
   @IsBoolean()
   confirmarIndicadoresVacios?: boolean;
 
+  @ApiPropertyOptional({
+    description: 'Año de parámetros financieros para evaluar indicadores (default: año anterior)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(2000)
+  @Max(2100)
+  anioParametros?: number;
+
   @ApiProperty({ description: 'Fecha de apertura (FEC-001)' })
   @IsDateString()
   fechaApertura: string;
@@ -181,9 +223,16 @@ export class UpdateProcesoDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  objeto?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
+  @Max(CUANTIA_MAX, { message: CUANTIA_MAX_MENSAJE })
   cuantia?: number;
 
   @ApiPropertyOptional()
@@ -293,6 +342,7 @@ export class ProcesoResponseDto {
   ubicacionId: number;
   portalOrigen: string | null;
   link: string | null;
+  objeto: string | null;
   cuantia: string;
   moneda: string;
   segmento: SegmentoProceso;
@@ -309,6 +359,7 @@ export class ProcesoResponseDto {
   fueAdjudicado: boolean;
   estado: EstadoProceso;
   usuarioCreadorId: number;
+  anioParametros: number;
   fechaCreacion: Date;
   fechaApertura: string | null;
   fechaManifestacionInteres: string | null;
@@ -329,6 +380,10 @@ export class ProcesoResponseDto {
   mesesEjecucionAnioReporte?: number | null;
   facturacionEstimadaAnioReporte?: string | null;
   indicadores?: ProcesoIndicadorResponseDto[];
+  devueltoValidacion?: boolean;
+  comentarioDevolucionValidacion?: string | null;
+  validadorDevolucionNombre?: string | null;
+  fechaDevolucionValidacion?: Date | null;
 }
 
 export class CreateProcesoComentarioDto {

@@ -42,7 +42,6 @@
             <th>Canal</th>
             <th>Mensaje</th>
             <th>Fecha límite</th>
-            <th>Días espera</th>
           </tr>
         </thead>
         <tbody>
@@ -52,10 +51,9 @@
               <td>{{ item.canal }}</td>
               <td>{{ item.mensaje }}</td>
               <td>{{ item.fechaLimiteRespuesta }}</td>
-              <td>{{ item.diasEsperaRespuesta }}</td>
             </tr>
           } @empty {
-            <tr><td colspan="5">No hay relacionamientos vencidos.</td></tr>
+            <tr><td colspan="4">No hay relacionamientos vencidos.</td></tr>
           }
         </tbody>
       </table>

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UsuariosService } from '../../../../core/services/usuarios.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { Rol } from '../../../../core/models/rol.enum';
+import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-usuario-form',
@@ -80,9 +81,11 @@ export class UsuarioFormComponent implements OnInit {
   }
 
   protected guardar(): void {
+    this.error.set(null);
+
     const paisId = this.paisId();
     if (!this.nombre().trim() || !paisId) {
-      this.error.set('Complete todos los campos obligatorios.');
+      this.error.set('Complete nombre y país.');
       return;
     }
 
@@ -97,8 +100,8 @@ export class UsuarioFormComponent implements OnInit {
         })
         .subscribe({
           next: () => void this.router.navigate(['/usuarios']),
-          error: () => {
-            this.error.set('No fue posible actualizar el usuario.');
+          error: (err) => {
+            this.error.set(mensajeErrorApi(err, 'No fue posible actualizar el usuario.'));
             this.loading.set(false);
           },
         });
@@ -106,7 +109,7 @@ export class UsuarioFormComponent implements OnInit {
     }
 
     if (!this.correo().trim()) {
-      this.error.set('Complete todos los campos obligatorios.');
+      this.error.set('Ingrese el correo electrónico.');
       this.loading.set(false);
       return;
     }
@@ -115,8 +118,8 @@ export class UsuarioFormComponent implements OnInit {
       .create({ nombre: this.nombre().trim(), correo: this.correo().trim(), rol: this.rol(), paisId })
       .subscribe({
         next: () => void this.router.navigate(['/usuarios']),
-        error: () => {
-          this.error.set('No fue posible crear el usuario.');
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible crear el usuario.'));
           this.loading.set(false);
         },
       });

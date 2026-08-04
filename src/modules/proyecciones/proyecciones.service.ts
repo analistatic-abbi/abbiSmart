@@ -21,6 +21,10 @@ import {
   metricasMercadoVacias,
 } from '../../common/utils/efectividad-mercado.util';
 import { calcularEstadoSugerido } from '../../common/utils/proyeccion-calculos.util';
+import {
+  resolveFiltroEliminados,
+} from '../../common/utils/filtro-eliminados.util';
+import { FiltroEliminados } from '../../common/enums/filtro-eliminados.enum';
 import { detectarUmbralesTransicion } from '../../common/utils/proyeccion-transicion.util';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
@@ -28,6 +32,7 @@ import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Usuario } from '../../database/entities/usuario.entity';
 import { AuditService } from '../audit/audit.service';
+import { ClientesService } from '../clientes/clientes.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ProcesosService } from '../procesos/procesos.service';
 import {
@@ -62,6 +67,7 @@ export class ProyeccionesService {
     @Inject(forwardRef(() => ProcesosService))
     private readonly procesosService: ProcesosService,
     private readonly auditService: AuditService,
+    private readonly clientesService: ClientesService,
     private readonly notificacionesService: NotificacionesService,
     private readonly alertasControlService: AlertasControlService,
     private readonly permisosService: PermisosService,
@@ -75,15 +81,20 @@ export class ProyeccionesService {
   ): Promise<ProyeccionesPage> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const incluirEliminados =
-      query.incluirEliminados === true &&
-      this.permisosService.puedeVerEliminados(rol);
+    const filtroEliminados = resolveFiltroEliminados(
+      query.filtroEliminados,
+      query.incluirEliminados,
+      rol,
+      this.permisosService,
+    );
 
     const conditions = ['v.pais_id = ?'];
     const params: unknown[] = [paisSesionId];
 
-    if (!incluirEliminados) {
+    if (filtroEliminados === FiltroEliminados.ACTIVOS) {
       conditions.push('py.eliminado = false');
+    } else if (filtroEliminados === FiltroEliminados.SOLO_ELIMINADOS) {
+      conditions.push('py.eliminado = true');
     }
 
     if (query.estado) {
@@ -155,6 +166,7 @@ export class ProyeccionesService {
     paisSesionId: number,
   ): Promise<ProyeccionResponseDto> {
     let paisId = paisSesionId;
+    const esManual = !dto.procesoOrigenId;
 
     if (dto.procesoOrigenId) {
       const proceso = await this.procesosService.getProcesoActivoOrFail(
@@ -174,12 +186,31 @@ export class ProyeccionesService {
           HttpStatus.CONFLICT,
         );
       }
+    } else {
+      this.validateEmpresaManual(dto.empresaClienteId, dto.empresaOtro);
+      if (!dto.segmento) {
+        throw new BusinessException(
+          ErrorCode.PROCESO_EMPRESA_INVALIDA,
+          'Debe indicar el segmento en proyecciones manuales',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (dto.empresaClienteId) {
+        await this.clientesService.getClienteActivoOrFail(
+          dto.empresaClienteId,
+          paisSesionId,
+        );
+      }
     }
 
     const estado = calcularEstadoSugerido(dto.fechaEstimadaPublicacion);
 
     const proyeccion = this.proyeccionRepository.create({
       procesoOrigenId: dto.procesoOrigenId ?? null,
+      empresaClienteId: esManual ? dto.empresaClienteId ?? null : null,
+      empresaOtro: esManual ? dto.empresaOtro?.trim() ?? null : null,
+      segmento: esManual ? dto.segmento ?? null : null,
+      objeto: dto.objeto?.trim() ?? null,
       paisId,
       anioProyectado: dto.anioProyectado,
       fechaEstimadaPublicacion: dto.fechaEstimadaPublicacion,
@@ -248,6 +279,38 @@ export class ProyeccionesService {
 
     if (dto.valorFacturacion !== undefined) {
       proyeccion.valorFacturacion = dto.valorFacturacion.toString();
+    }
+
+    if (!proyeccion.procesoOrigenId) {
+      if (dto.empresaClienteId !== undefined || dto.empresaOtro !== undefined) {
+        const empresaClienteId =
+          dto.empresaClienteId !== undefined
+            ? dto.empresaClienteId
+            : proyeccion.empresaClienteId;
+        const empresaOtro =
+          dto.empresaOtro !== undefined
+            ? dto.empresaOtro
+            : proyeccion.empresaOtro;
+        this.validateEmpresaManual(empresaClienteId, empresaOtro ?? undefined);
+        if (empresaClienteId) {
+          await this.clientesService.getClienteActivoOrFail(
+            empresaClienteId,
+            paisSesionId,
+          );
+        }
+        proyeccion.empresaClienteId = empresaClienteId ?? null;
+        proyeccion.empresaOtro = empresaOtro?.trim() ?? null;
+      }
+
+      if (dto.segmento !== undefined) {
+        proyeccion.segmento = dto.segmento;
+      }
+
+      if (dto.objeto !== undefined) {
+        proyeccion.objeto = dto.objeto?.trim() ?? null;
+      }
+    } else if (dto.objeto !== undefined) {
+      proyeccion.objeto = dto.objeto?.trim() ?? null;
     }
 
     if (dto.fechaEstimadaPublicacion !== undefined) {
@@ -656,6 +719,10 @@ export class ProyeccionesService {
 
     const proyeccion = this.proyeccionRepository.create({
       procesoOrigenId: proceso.id,
+      empresaClienteId: proceso.empresaClienteId,
+      empresaOtro: proceso.empresaOtro,
+      segmento: proceso.segmento,
+      objeto: proceso.objeto,
       paisId: proceso.paisId,
       anioProyectado,
       fechaEstimadaPublicacion: fechaEstimada,
@@ -890,6 +957,7 @@ export class ProyeccionesService {
          ) AS proyeccionSiguienteId,
          v.empresa,
          v.segmento,
+         v.objeto,
          v.anio_proyectado AS anioProyectado,
          v.fecha_estimada_publicacion AS fechaEstimadaPublicacion,
          v.valor_venta AS valorVenta,
@@ -898,8 +966,11 @@ export class ProyeccionesService {
          v.mercado,
          v.fecha_creacion AS fechaCreacion,
          v.dias_faltantes AS diasFaltantes,
-         v.estado_sugerido AS estadoSugerido
+         v.estado_sugerido AS estadoSugerido,
+         py.empresa_cliente_id AS empresaClienteId,
+         py.empresa_otro AS empresaOtro
        FROM vista_proyecciones_listado v
+       INNER JOIN proyecciones py ON py.id = v.id
        LEFT JOIN procesos po ON po.id = v.proceso_origen_id
        LEFT JOIN procesos pr ON pr.id = v.proceso_resultante_id
        WHERE v.id = ?`,
@@ -957,7 +1028,10 @@ export class ProyeccionesService {
       ),
       proyeccionSiguienteId: num('proyeccionSiguienteId', 'proyeccion_siguiente_id'),
       empresa: str('empresa', 'empresa'),
+      empresaClienteId: num('empresaClienteId', 'empresa_cliente_id'),
+      empresaOtro: str('empresaOtro', 'empresa_otro'),
       segmento: str('segmento', 'segmento'),
+      objeto: str('objeto', 'objeto'),
       anioProyectado: Number(row.anioProyectado ?? row.anio_proyectado),
       fechaEstimadaPublicacion: this.formatFechaListado(row),
       valorVenta: String(row.valorVenta ?? row.valor_venta),
@@ -975,5 +1049,30 @@ export class ProyeccionesService {
         | EstadoProyeccion
         | undefined,
     };
+  }
+
+  private validateEmpresaManual(
+    empresaClienteId?: number | null,
+    empresaOtro?: string,
+  ): void {
+    const tieneCliente =
+      empresaClienteId !== undefined && empresaClienteId !== null;
+    const tieneOtro = Boolean(empresaOtro?.trim());
+
+    if (!tieneCliente && !tieneOtro) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_EMPRESA_INVALIDA,
+        'Debe indicar empresa (cliente registrado) o empresa_otro',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (tieneCliente && tieneOtro) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_EMPRESA_INVALIDA,
+        'Indique solo empresa (cliente registrado) o empresa_otro, no ambos',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

@@ -1,1 +1,16 @@
 @use '../../shared/crm-page';
+
+.referido-info {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f5faf5;
+}
+
+.badge--referido {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.referido-info p {
+  margin: 8px 0 0;
+}
