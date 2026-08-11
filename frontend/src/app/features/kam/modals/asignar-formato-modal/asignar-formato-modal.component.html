@@ -1,0 +1,32 @@
+<app-abbi-modal
+  title="Asignar formato de encuesta"
+  [open]="open()"
+  [loading]="loading()"
+  confirmLabel="Asignar"
+  cancelLabel="Cancelar"
+  (confirm)="onConfirm()"
+  (cancel)="onCancel()"
+>
+  <p class="modal-hint">Seleccione el contacto del proceso y el formato activo que responderá.</p>
+
+  <label>
+    Contacto
+    <app-searchable-select
+      [options]="contactoOptions()"
+      placeholder="Buscar contacto..."
+      emptyMessage="No hay contactos en el proceso"
+      [ngModel]="contactoId()"
+      (ngModelChange)="contactoId.set($event)"
+    />
+  </label>
+
+  <label>
+    Formato de encuesta
+    <select [ngModel]="formatoId()" (ngModelChange)="formatoId.set(+$event || null)">
+      <option [ngValue]="null">Seleccione un formato...</option>
+      @for (f of formatoOptions(); track f.value) {
+        <option [ngValue]="f.value">{{ f.label }}</option>
+      }
+    </select>
+  </label>
+</app-abbi-modal>

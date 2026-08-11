@@ -7,6 +7,7 @@ import {
   CreateProcesoPayload,
   EstadoProceso,
   Proceso,
+  ProcesoContacto,
   ProcesoListItem,
   ProcesoTarea,
   SegmentoProceso,
@@ -14,15 +15,7 @@ import {
   TipoProceso,
 } from '../models/proceso.model';
 import { FiltroEliminados } from '../models/filtro-eliminados.model';
-import { Proyeccion } from '../models/admin.model';
-
-export interface FechaHistorial {
-  id: number;
-  campo: string | null;
-  valorAnterior: string | null;
-  valorNuevo: string | null;
-  fecha: string;
-}
+import { AuditLog, Proyeccion } from '../models/admin.model';
 
 export interface ProcesoComentario {
   id: number;
@@ -38,9 +31,11 @@ export interface ProcesosListParams {
   limit?: number;
   search?: string;
   estado?: EstadoProceso;
-  segmento?: SegmentoProceso;
+  segmento?: string;
   tipoProceso?: TipoProceso;
   tipoInstrumento?: TipoInstrumento;
+  portalOrigen?: string;
+  empresaClienteId?: number;
   fechaCierreDesde?: string;
   fechaCierreHasta?: string;
   filtroEliminados?: FiltroEliminados;
@@ -66,6 +61,8 @@ export class ProcesosService {
     if (params.segmento) query['segmento'] = params.segmento;
     if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
     if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
+    if (params.portalOrigen) query['portalOrigen'] = params.portalOrigen;
+    if (params.empresaClienteId) query['empresaClienteId'] = params.empresaClienteId;
     if (params.fechaCierreDesde) query['fechaCierreDesde'] = params.fechaCierreDesde;
     if (params.fechaCierreHasta) query['fechaCierreHasta'] = params.fechaCierreHasta;
     if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
@@ -87,6 +84,8 @@ export class ProcesosService {
     if (params.segmento) query['segmento'] = params.segmento;
     if (params.tipoProceso) query['tipoProceso'] = params.tipoProceso;
     if (params.tipoInstrumento) query['tipoInstrumento'] = params.tipoInstrumento;
+    if (params.portalOrigen) query['portalOrigen'] = params.portalOrigen;
+    if (params.empresaClienteId) query['empresaClienteId'] = String(params.empresaClienteId);
     if (params.fechaCierreDesde) query['fechaCierreDesde'] = params.fechaCierreDesde;
     if (params.fechaCierreHasta) query['fechaCierreHasta'] = params.fechaCierreHasta;
     if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
@@ -142,12 +141,22 @@ export class ProcesosService {
     return this.http.patch<{ proceso: Proceso }>(`${this.base}/${id}/fechas`, fechas);
   }
 
-  getFechasHistorial(id: number): Observable<{ data: FechaHistorial[] }> {
-    return this.http.get<{ data: FechaHistorial[] }>(`${this.base}/${id}/fechas/historial`);
+  getFechasHistorial(id: number): Observable<{ data: AuditLog[] }> {
+    return this.http.get<{ data: AuditLog[] }>(`${this.base}/${id}/fechas/historial`);
   }
 
   getComentarios(id: number): Observable<{ data: ProcesoComentario[] }> {
     return this.http.get<{ data: ProcesoComentario[] }>(`${this.base}/${id}/comentarios`);
+  }
+
+  getContactos(id: number): Observable<{ data: ProcesoContacto[] }> {
+    return this.http.get<{ data: ProcesoContacto[] }>(`${this.base}/${id}/contactos`);
+  }
+
+  setContactos(id: number, contactoIds: number[]): Observable<{ data: ProcesoContacto[] }> {
+    return this.http.put<{ data: ProcesoContacto[] }>(`${this.base}/${id}/contactos`, {
+      contactoIds,
+    });
   }
 
   crearComentario(id: number, texto: string): Observable<{ comentario: ProcesoComentario }> {

@@ -2,23 +2,29 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CatalogosService } from '../../../core/services/catalogos.service';
+import { ContactosService } from '../../../core/services/contactos.service';
 import { ProcesosService } from '../../../core/services/procesos.service';
 import {
   ParametroPorAnioResponseItem,
   ParametrosService,
 } from '../../../core/services/parametros.service';
 import {
-  INDICADORES_ORDEN,
-  SegmentoProceso,
   TipoInstrumento,
   TipoProceso,
 } from '../../../core/models/proceso.model';
+import { CatalogoPaisItem } from '../../../core/models/pais-config.model';
+import { Contacto } from '../../../core/models/crm.model';
+import { PortalOrigen, PORTAL_ORIGEN_OPCIONES } from '../../../core/models/portal-origen.model';
 import { ProcesoWizardStore } from '../services/proceso-wizard.store';
 import { ApiErrorBody } from '../../../core/models/auth.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
 import { formatParametroValor, indicadorValorHint } from '../../../core/utils/parametro.util';
 import { esDecimalEnEdicion, parseDecimalInput } from '../../../core/utils/decimal-input.util';
+import { mensajeExitoApi } from '../../../core/utils/api-error.util';
+import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { confirmarCreacion, confirmarGuardado } from '../../../core/utils/confirm-dialog.util';
 
 const CUANTIA_MAX_ENTEROS = 16;
 
@@ -39,15 +45,22 @@ function cuantiaExcedeMaximo(value: number): boolean {
 })
 export class ProcesoCreateComponent implements OnInit {
   private readonly catalogos = inject(CatalogosService);
+  private readonly contactos = inject(ContactosService);
   private readonly procesos = inject(ProcesosService);
   private readonly parametros = inject(ParametrosService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
   protected readonly store = inject(ProcesoWizardStore);
 
-  protected readonly segmentos = Object.values(SegmentoProceso);
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
+  protected readonly portalesOrigen = PORTAL_ORIGEN_OPCIONES;
+  protected readonly portalOtro = PortalOrigen.Otro;
   protected readonly tiposProceso = Object.values(TipoProceso);
   protected readonly tiposInstrumento = Object.values(TipoInstrumento);
-  protected readonly indicadores = INDICADORES_ORDEN;
+  protected readonly indicadores = signal<CatalogoPaisItem[]>([]);
+  protected readonly etiquetaGeoNivel1 = signal('Departamento');
+  protected readonly etiquetaGeoNivel2 = signal('Municipio');
   protected readonly anioActual = new Date().getFullYear();
   protected readonly formatReferencia = formatParametroValor;
   protected readonly valorHint = indicadorValorHint;
@@ -55,6 +68,8 @@ export class ProcesoCreateComponent implements OnInit {
   protected readonly departamentos = signal<string[]>([]);
   protected readonly municipios = signal<Array<{ id: number; municipio: string }>>([]);
   protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
+  protected readonly contactosCliente = signal<Contacto[]>([]);
+  protected readonly contactosLoading = signal(false);
   protected readonly referencias = signal<ParametroPorAnioResponseItem[]>([]);
   protected readonly referenciasLoading = signal(false);
   protected readonly clienteOptions = computed(() =>
@@ -71,6 +86,22 @@ export class ProcesoCreateComponent implements OnInit {
   ngOnInit(): void {
     this.catalogos.getDepartamentos().subscribe((r) => this.departamentos.set(r.data));
     this.catalogos.getClientes().subscribe((r) => this.clientes.set(r.data));
+    this.catalogos.getCapabilitiesSesion().subscribe({
+      next: (r) => {
+        this.etiquetaGeoNivel1.set(r.data.etiquetasGeo.nivel1);
+        this.etiquetaGeoNivel2.set(r.data.etiquetasGeo.nivel2);
+      },
+    });
+    this.catalogos.getCatalogoSesion('segmento_proceso').subscribe((r) => {
+      this.segmentos.set(r.data);
+      if (r.data.length) {
+        this.store.setSegmentoDefault(r.data[0].codigo);
+      }
+    });
+    this.catalogos.getCatalogoSesion('indicador').subscribe((r) => {
+      this.indicadores.set(r.data);
+      this.store.syncIndicadores(r.data.map((item) => item.codigo));
+    });
     this.loadReferencias();
   }
 
@@ -89,6 +120,52 @@ export class ProcesoCreateComponent implements OnInit {
 
   protected updatePaso1(field: string, value: unknown): void {
     this.store.paso1.update((p) => ({ ...p, [field]: value }));
+
+    if (field === 'empresaClienteId') {
+      const clienteId = value ? Number(value) : null;
+      this.store.paso1.update((p) => ({ ...p, contactoIds: [] }));
+      this.loadContactosCliente(clienteId);
+    }
+
+    if (field === 'usarOtro' && value) {
+      this.store.paso1.update((p) => ({ ...p, contactoIds: [], empresaClienteId: null }));
+      this.contactosCliente.set([]);
+    }
+  }
+
+  protected toggleContacto(contactoId: number, checked: boolean): void {
+    this.store.paso1.update((p) => {
+      const current = new Set(p.contactoIds);
+      if (checked) {
+        current.add(contactoId);
+      } else {
+        current.delete(contactoId);
+      }
+      return { ...p, contactoIds: [...current] };
+    });
+  }
+
+  protected isContactoSelected(contactoId: number): boolean {
+    return this.store.paso1().contactoIds.includes(contactoId);
+  }
+
+  private loadContactosCliente(clienteId: number | null): void {
+    if (!clienteId) {
+      this.contactosCliente.set([]);
+      return;
+    }
+
+    this.contactosLoading.set(true);
+    this.contactos.listByCliente(clienteId).subscribe({
+      next: (response) => {
+        this.contactosCliente.set(response.data);
+        this.contactosLoading.set(false);
+      },
+      error: () => {
+        this.contactosCliente.set([]);
+        this.contactosLoading.set(false);
+      },
+    });
   }
 
   protected onAnioParametrosChange(value: number | string): void {
@@ -127,8 +204,13 @@ export class ProcesoCreateComponent implements OnInit {
         if (!p1.empresaOtro.trim()) faltantes.push('empresa en "Otro"');
       } else if (!p1.empresaClienteId) {
         faltantes.push('cliente');
+      } else if (!p1.contactoIds.length) {
+        faltantes.push('al menos un contacto del cliente');
       }
       if (!p1.ubicacionId) faltantes.push('ubicación');
+      if (p1.portalOrigen === PortalOrigen.Otro && !p1.portalOrigenOtro.trim()) {
+        faltantes.push('especificación del portal de origen');
+      }
       if (p1.cuantia === null || p1.cuantia === undefined || Number.isNaN(p1.cuantia)) {
         faltantes.push('cuantía');
       } else if (cuantiaExcedeMaximo(p1.cuantia)) {
@@ -190,24 +272,34 @@ export class ProcesoCreateComponent implements OnInit {
       this.error.set(validacion);
       return;
     }
-    this.loading.set(true);
 
-    this.procesos.create(this.store.toPayload()).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        this.store.reset();
-        void this.router.navigate(['/procesos', res.proceso.id]);
+    void confirmarCreacion(this.confirmDialog, '¿Desea crear el proceso con la información ingresada?').then(
+      (ok) => {
+        if (!ok) return;
+
+        this.loading.set(true);
+
+        this.procesos.create(this.store.toPayload()).subscribe({
+          next: (res) => {
+            this.loading.set(false);
+            this.store.reset();
+            this.toast.success(mensajeExitoApi(res, 'Proceso creado correctamente.'));
+            void this.router.navigate(['/procesos', res.proceso.id]);
+          },
+          error: (err: HttpErrorResponse) => {
+            this.loading.set(false);
+            const body = err.error as ApiErrorBody;
+            if (body?.errorCode === 'PROCESO_INDICADORES_VACIOS_SIN_CONFIRMACION') {
+              this.showConfirmVacios.set(true);
+              return;
+            }
+            this.error.set(
+              (body?.message as string) ?? 'No fue posible crear el proceso. Revise los datos.',
+            );
+          },
+        });
       },
-      error: (err: HttpErrorResponse) => {
-        this.loading.set(false);
-        const body = err.error as ApiErrorBody;
-        if (body?.errorCode === 'PROCESO_INDICADORES_VACIOS_SIN_CONFIRMACION') {
-          this.showConfirmVacios.set(true);
-          return;
-        }
-        this.error.set(body?.message ?? 'No fue posible crear el proceso.');
-      },
-    });
+    );
   }
 
   private loadReferencias(): void {

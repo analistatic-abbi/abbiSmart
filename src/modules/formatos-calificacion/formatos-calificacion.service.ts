@@ -22,6 +22,7 @@ import { ProcesoCalificacionDetalle } from '../../database/entities/proceso-cali
 import { ProcesoCalificacion } from '../../database/entities/proceso-calificacion.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { ParametrosService } from '../parametros/parametros.service';
+import { PaisConfigService } from '../catalogos/pais-config.service';
 import {
   EvaluarCalificacionesDto,
   FormatoCalificacionDetailDto,
@@ -52,6 +53,7 @@ export class FormatosCalificacionService {
     @InjectRepository(Proceso)
     private readonly procesoRepository: Repository<Proceso>,
     private readonly parametrosService: ParametrosService,
+    private readonly paisConfigService: PaisConfigService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -59,6 +61,7 @@ export class FormatosCalificacionService {
     paisSesionId: number,
     soloActivos = false,
   ): Promise<FormatoCalificacionListItemDto[]> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     const qb = this.formatoRepository
       .createQueryBuilder('formato')
       .leftJoin('formato.rangos', 'rango')
@@ -103,6 +106,7 @@ export class FormatosCalificacionService {
     id: number,
     paisSesionId: number,
   ): Promise<FormatoCalificacionDetailDto> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     const formato = await this.formatoRepository.findOne({
       where: { id, paisId: paisSesionId },
       relations: { rangos: true },
@@ -134,6 +138,7 @@ export class FormatosCalificacionService {
     usuarioId: number,
     paisSesionId: number,
   ): Promise<FormatoCalificacionDetailDto> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     const existente = await this.formatoRepository.findOne({
       where: { paisId: paisSesionId, nombre },
     });
@@ -201,6 +206,7 @@ export class FormatosCalificacionService {
     paisSesionId: number,
     activo: boolean,
   ): Promise<FormatoCalificacionListItemDto> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     const formato = await this.formatoRepository.findOne({
       where: { id, paisId: paisSesionId },
       relations: { rangos: true },
@@ -233,6 +239,7 @@ export class FormatosCalificacionService {
     procesoId: number,
     paisSesionId: number,
   ): Promise<ProcesoCalificacionResponseDto[]> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     await this.assertProcesoPais(procesoId, paisSesionId);
 
     const calificaciones = await this.procesoCalificacionRepository.find({
@@ -256,6 +263,7 @@ export class FormatosCalificacionService {
     usuarioId: number,
     paisSesionId: number,
   ): Promise<ProcesoCalificacionResponseDto[]> {
+    await this.paisConfigService.assertCalificacionPorPuntos(paisSesionId);
     const proceso = await this.assertProcesoPais(procesoId, paisSesionId);
     const formatoIds = [...new Set(dto.formatoIds.map((id) => Number(id)))];
     const anioParametros =

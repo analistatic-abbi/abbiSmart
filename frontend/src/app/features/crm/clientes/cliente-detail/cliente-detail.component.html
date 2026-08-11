@@ -90,7 +90,7 @@
               <tr>
                 <td>{{ proceso.codigo ?? proceso.idDigitado }}</td>
                 <td>{{ proceso.estado }}</td>
-                <td>{{ formatCuantia(proceso.cuantia, proceso.moneda) }}</td>
+                <td [title]="formatCuantiaTitle(proceso.cuantia)">{{ formatValor(proceso.cuantia) }} {{ proceso.moneda ?? '' }}</td>
                 <td>{{ proceso.fechaCierre ?? '—' }}</td>
                 <td><a [routerLink]="['/procesos', proceso.id]">Ver</a></td>
               </tr>
@@ -122,8 +122,8 @@
                 <td>{{ proyeccion.anioProyectado }}</td>
                 <td>{{ proyeccion.estado }}</td>
                 <td>{{ proyeccion.mercado ?? '—' }}</td>
-                <td>{{ formatCurrency(proyeccion.valorVenta) }}</td>
-                <td>{{ formatCurrency(proyeccion.valorFacturacion) }}</td>
+                <td [title]="tituloValor(proyeccion.valorVenta)">{{ formatValor(proyeccion.valorVenta) }}</td>
+                <td [title]="tituloValor(proyeccion.valorFacturacion)">{{ formatValor(proyeccion.valorFacturacion) }}</td>
                 <td>{{ proyeccion.fechaEstimadaPublicacion }}</td>
                 <td><a [routerLink]="['/proyecciones', proyeccion.id]">Ver</a></td>
               </tr>

@@ -1,14 +1,4 @@
 <div class="login-shell">
-  <button
-    type="button"
-    class="login-theme-toggle"
-    [attr.aria-label]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-    [attr.title]="themeService.isDark() ? 'Modo claro' : 'Modo oscuro'"
-    (click)="themeService.toggle()"
-  >
-    <span class="material-symbols-outlined">{{ themeService.isDark() ? 'dark_mode' : 'light_mode' }}</span>
-  </button>
-
   @if (faqOpen()) {
     <div class="login-faq-backdrop" (click)="closeFaqPanel()" role="presentation"></div>
     <aside
@@ -153,27 +143,38 @@
     <div class="login-aside__inner">
       <div class="bento">
         <div
-          class="bento__hero"
+          class="bento__hero bento__card"
+          [appScrollReveal]="0"
           [style.background-image]="'url(' + loginHeroEquipo + ')'"
         >
+          <div class="bento__hero-media"></div>
           <div class="bento__hero-overlay"></div>
           <div class="bento__hero-text">
             <p>Operaciones en Colombia y Perú</p>
             <h3>Construyendo progreso</h3>
           </div>
         </div>
-        <div class="bento__stat">
-          <span class="bento__stat-value">2003</span>
+        <div
+          class="bento__stat bento__card"
+          [appScrollReveal]="120"
+          (scrollReveal)="onStatReveal()"
+        >
+          <span class="bento__stat-value">{{ statYear() }}</span>
           <span class="bento__stat-label">Funcionando desde</span>
         </div>
-        <div class="bento__shield">
-          <span class="material-symbols-outlined">verified_user</span>
+        <div class="bento__shield bento__card" [appScrollReveal]="240">
+          <span class="bento__shield-icon material-symbols-outlined">verified_user</span>
+          <p class="bento__shield-title">Compromiso y Seguridad</p>
+          <p class="bento__shield-subtitle">Equipo certificado</p>
         </div>
-        <div
-          class="bento__operador"
-          [style.background-image]="'url(' + loginOperador + ')'"
-        ></div>
-        <div class="bento__talent">
+        <div class="bento__operador bento__card" [appScrollReveal]="360">
+          <div
+            class="bento__operador-media"
+            [style.background-image]="'url(' + loginOperador + ')'"
+          ></div>
+          <div class="bento__operador-badge">✔ Personal certificado</div>
+        </div>
+        <div class="bento__talent bento__card bento__card--featured" [appScrollReveal]="480">
           <div class="bento__talent-head">
             <span class="bento__talent-icon material-symbols-outlined">trending_up</span>
             <h4>Trayectoria en Licitaciones Públicas</h4>
@@ -184,8 +185,10 @@
           </p>
         </div>
       </div>
-      <p class="login-aside__quote">
-        "Desde 2003 construyendo progreso, confianza, compromiso y resultados"
+      <p class="login-aside__quote scroll-reveal" [appScrollReveal]="600">
+        <span class="login-aside__quote-text">
+          "Desde 2003 construyendo progreso, confianza, compromiso y resultados"
+        </span>
       </p>
     </div>
   </aside>

@@ -5,8 +5,8 @@ import {
   CalendarioEventoTipo,
   CalendarioService,
 } from '../../core/services/calendario.service';
-import { parseIsoDateLocal } from '../../core/utils/date.util';
-import { formatCurrencyFull } from '../../core/utils/currency.util';
+import { parseIsoDateLocal, formatFechaCorta } from '../../core/utils/date.util';
+import { formatMonedaAbreviada, tituloMonedaCompleta } from '../../core/utils/currency.util';
 import { YearSelectorComponent } from '../../shared/components/year-selector/year-selector.component';
 import { ThemeService } from '../../core/services/theme.service';
 import {
@@ -35,11 +35,14 @@ export class CalendarioUnificadoComponent implements OnInit {
 
   protected readonly items = signal<CalendarioEvento[]>([]);
   protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
   protected readonly anio = signal(new Date().getFullYear());
 
   protected readonly filtroProyecciones = signal(true);
   protected readonly filtroProcesos = signal(true);
   protected readonly filtroRelacionamientos = signal(true);
+  protected readonly filtroKam = signal(true);
+  protected readonly filtroReunionAclaratoria = signal(true);
 
   protected readonly meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -68,7 +71,30 @@ export class CalendarioUnificadoComponent implements OnInit {
     return getEventoCalendarioStyle(tipo, estado);
   }
 
-  protected readonly formatValor = formatCurrencyFull;
+  protected readonly formatValor = formatMonedaAbreviada;
+  protected readonly tituloValor = tituloMonedaCompleta;
+  protected readonly formatFechaCorta = formatFechaCorta;
+
+  protected esReunion(tipo: CalendarioEventoTipo): boolean {
+    return tipo === 'relacionamiento' || tipo === 'kam' || tipo === 'reunion_aclaratoria';
+  }
+
+  protected metaEvento(evento: CalendarioEvento): string {
+    const fecha = formatFechaCorta(evento.fecha);
+
+    switch (evento.tipo) {
+      case 'kam':
+        return `${fecha} · Fin de ronda · ${evento.estado}`;
+      case 'proceso':
+        return `${fecha} · Cierre · ${evento.estado}`;
+      case 'relacionamiento':
+      case 'reunion_aclaratoria':
+      case 'proyeccion':
+        return `${fecha} · ${evento.estado}`;
+      default:
+        return `${fecha} · ${evento.estado}`;
+    }
+  }
 
   ngOnInit(): void {
     this.syncAnioFromRoute();
@@ -89,6 +115,8 @@ export class CalendarioUnificadoComponent implements OnInit {
     if (tipo === 'proyeccion') this.filtroProyecciones.update((v) => !v);
     if (tipo === 'proceso') this.filtroProcesos.update((v) => !v);
     if (tipo === 'relacionamiento') this.filtroRelacionamientos.update((v) => !v);
+    if (tipo === 'kam') this.filtroKam.update((v) => !v);
+    if (tipo === 'reunion_aclaratoria') this.filtroReunionAclaratoria.update((v) => !v);
     this.load();
   }
 
@@ -101,7 +129,7 @@ export class CalendarioUnificadoComponent implements OnInit {
   }
 
   protected navigateToEvento(evento: CalendarioEvento): void {
-    void this.router.navigate(rutaEventoCalendario(evento.tipo, evento.id));
+    void this.router.navigate(rutaEventoCalendario(evento));
   }
 
   private tiposActivos(): CalendarioEventoTipo[] {
@@ -109,6 +137,8 @@ export class CalendarioUnificadoComponent implements OnInit {
     if (this.filtroProyecciones()) tipos.push('proyeccion');
     if (this.filtroProcesos()) tipos.push('proceso');
     if (this.filtroRelacionamientos()) tipos.push('relacionamiento');
+    if (this.filtroKam()) tipos.push('kam');
+    if (this.filtroReunionAclaratoria()) tipos.push('reunion_aclaratoria');
     return tipos;
   }
 
@@ -135,11 +165,13 @@ export class CalendarioUnificadoComponent implements OnInit {
     const tipos = this.tiposActivos();
     if (tipos.length === 0) {
       this.items.set([]);
+      this.error.set(null);
       this.loading.set(false);
       return;
     }
 
     this.loading.set(true);
+    this.error.set(null);
     this.calendario.getEventos(this.anio(), tipos).subscribe({
       next: (r) => {
         this.items.set(r.data);
@@ -147,6 +179,7 @@ export class CalendarioUnificadoComponent implements OnInit {
       },
       error: () => {
         this.items.set([]);
+        this.error.set('No se pudieron cargar los eventos. Recarga la página o contacta al administrador.');
         this.loading.set(false);
       },
     });

@@ -5,6 +5,7 @@ import { ProcesoCalificacion } from '../../database/entities/proceso-calificacio
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ParametroFinanciero } from '../../database/entities/parametro-financiero.entity';
 import { AuditModule } from '../audit/audit.module';
+import { CatalogosModule } from '../catalogos/catalogos.module';
 import { ConfiguracionModule } from '../configuracion/configuracion.module';
 import { ParametrosDependientesService } from './parametros-dependientes.service';
 import { ParametrosController } from './parametros.controller';
@@ -19,6 +20,7 @@ import { ParametrosService } from './parametros.service';
       FormatoCalificacion,
     ]),
     AuditModule,
+    CatalogosModule,
     ConfiguracionModule,
   ],
   controllers: [ParametrosController],

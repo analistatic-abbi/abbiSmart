@@ -1,12 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 import {
   CreateProcesoPayload,
-  IndicadorCodigo,
   INDICADORES_ORDEN,
-  SegmentoProceso,
   TipoInstrumento,
   TipoProceso,
 } from '../../../core/models/proceso.model';
+import { PortalOrigen } from '../../../core/models/portal-origen.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProcesoWizardStore {
@@ -17,13 +16,15 @@ export class ProcesoWizardStore {
     empresaClienteId: null as number | null,
     empresaOtro: '',
     usarOtro: false,
+    contactoIds: [] as number[],
     departamento: '',
     ubicacionId: null as number | null,
     portalOrigen: '',
+    portalOrigenOtro: '',
     link: '',
     objeto: '',
     cuantia: null as number | null,
-    segmento: SegmentoProceso.GasNatural,
+    segmento: '',
     tipoProceso: TipoProceso.Periodico,
     tipoInstrumento: TipoInstrumento.Licitacion,
     plazoEjecucionMeses: 12,
@@ -31,11 +32,14 @@ export class ProcesoWizardStore {
     observacion: '',
   });
 
-  readonly paso2 = signal({
+  readonly paso2 = signal<{
+    anioParametros: number;
+    indicadores: Array<{ indicadorCodigo: string; valorRequerido: number | null }>;
+  }>({
     anioParametros: new Date().getFullYear() - 1,
     indicadores: INDICADORES_ORDEN.map((codigo) => ({
       indicadorCodigo: codigo,
-      valorRequerido: null as number | null,
+      valorRequerido: null,
     })),
   });
 
@@ -68,7 +72,7 @@ export class ProcesoWizardStore {
       plazoEjecucionMeses: Number(p1.plazoEjecucionMeses),
       experiencia: p1.experiencia,
       indicadores: this.paso2().indicadores.map((i) => ({
-        indicadorCodigo: i.indicadorCodigo as IndicadorCodigo,
+        indicadorCodigo: i.indicadorCodigo,
         valorRequerido: i.valorRequerido,
       })),
       anioParametros: this.paso2().anioParametros,
@@ -76,7 +80,12 @@ export class ProcesoWizardStore {
       fechaCierre: p3.fechaCierre,
     };
 
-    if (p1.portalOrigen) payload.portalOrigen = p1.portalOrigen;
+    if (p1.portalOrigen) {
+      payload.portalOrigen = p1.portalOrigen;
+      if (p1.portalOrigen === PortalOrigen.Otro && p1.portalOrigenOtro.trim()) {
+        payload.portalOrigenOtro = p1.portalOrigenOtro.trim();
+      }
+    }
     if (p1.link) payload.link = p1.link;
     if (p1.objeto?.trim()) payload.objeto = p1.objeto.trim();
     if (p1.experiencia && p1.observacion) payload.observacion = p1.observacion;
@@ -85,6 +94,7 @@ export class ProcesoWizardStore {
       payload.empresaOtro = p1.empresaOtro.trim();
     } else if (p1.empresaClienteId) {
       payload.empresaClienteId = p1.empresaClienteId;
+      payload.contactoIds = [...p1.contactoIds];
     }
 
     if (this.confirmarIndicadoresVacios()) {
@@ -92,6 +102,23 @@ export class ProcesoWizardStore {
     }
 
     return payload;
+  }
+
+  syncIndicadores(codigos: string[]): void {
+    const actuales = this.paso2().indicadores;
+    const mapa = new Map(actuales.map((item) => [item.indicadorCodigo, item.valorRequerido]));
+
+    this.paso2.update((paso) => ({
+      ...paso,
+      indicadores: codigos.map((codigo) => ({
+        indicadorCodigo: codigo,
+        valorRequerido: mapa.get(codigo) ?? null,
+      })),
+    }));
+  }
+
+  setSegmentoDefault(segmento: string): void {
+    this.paso1.update((paso) => ({ ...paso, segmento: paso.segmento || segmento }));
   }
 
   hasIndicadoresVacios(): boolean {
@@ -108,13 +135,15 @@ export class ProcesoWizardStore {
       empresaClienteId: null,
       empresaOtro: '',
       usarOtro: false,
+      contactoIds: [],
       departamento: '',
       ubicacionId: null,
       portalOrigen: '',
+      portalOrigenOtro: '',
       link: '',
       objeto: '',
       cuantia: null,
-      segmento: SegmentoProceso.GasNatural,
+      segmento: '',
       tipoProceso: TipoProceso.Periodico,
       tipoInstrumento: TipoInstrumento.Licitacion,
       plazoEjecucionMeses: 12,

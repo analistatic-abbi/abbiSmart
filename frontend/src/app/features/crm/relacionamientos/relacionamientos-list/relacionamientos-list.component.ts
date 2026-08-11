@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { RelacionamientosService } from '../../../../core/services/relacionamientos.service';
@@ -11,6 +11,8 @@ import {
   ResultadoRelacionamiento,
 } from '../../../../core/models/crm.model';
 import { CrmTabsComponent } from '../../shared/crm-tabs.component';
+import { formatFechaHora } from '../../../../core/utils/date.util';
+import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
 
 type Vista = 'todos' | 'vencidos';
 
@@ -38,6 +40,35 @@ export class RelacionamientosListComponent implements OnInit {
   protected readonly resultados = Object.values(ResultadoRelacionamiento);
   protected readonly canal = signal<CanalRelacionamiento | ''>('');
   protected readonly resultado = signal<ResultadoRelacionamiento | ''>('');
+  protected readonly fechaMensajeDesde = signal('');
+  protected readonly fechaMensajeHasta = signal('');
+  protected readonly error = signal<string | null>(null);
+  protected readonly total = signal(0);
+  protected readonly formatFecha = formatFechaHora;
+
+  protected readonly tieneFiltrosActivos = computed(
+    () =>
+      Boolean(this.search().trim()) ||
+      Boolean(this.canal()) ||
+      Boolean(this.resultado()) ||
+      Boolean(this.fechaMensajeDesde()) ||
+      Boolean(this.fechaMensajeHasta()),
+  );
+
+  protected readonly vencidosFiltrados = computed(() => {
+    const desde = this.fechaMensajeDesde();
+    const hasta = this.fechaMensajeHasta();
+    let items = this.vencidos();
+
+    if (desde) {
+      items = items.filter((item) => item.fechaLimiteRespuesta >= desde);
+    }
+    if (hasta) {
+      items = items.filter((item) => item.fechaLimiteRespuesta <= hasta);
+    }
+
+    return items;
+  });
 
   ngOnInit(): void {
     this.contactos.list({ limit: 500 }).subscribe({
@@ -62,6 +93,18 @@ export class RelacionamientosListComponent implements OnInit {
   }
 
   protected onFilter(): void {
+    if (!this.validarRangoFechas()) return;
+    if (this.vista() === 'vencidos') return;
+    this.load();
+  }
+
+  protected limpiarFiltros(): void {
+    this.search.set('');
+    this.canal.set('');
+    this.resultado.set('');
+    this.fechaMensajeDesde.set('');
+    this.fechaMensajeHasta.set('');
+    this.error.set(null);
     this.load();
   }
 
@@ -86,16 +129,36 @@ export class RelacionamientosListComponent implements OnInit {
         search: this.search() || undefined,
         canal: this.canal() || undefined,
         resultado: this.resultado() || undefined,
+        fechaMensajeDesde: this.fechaMensajeDesde() || undefined,
+        fechaMensajeHasta: this.fechaMensajeHasta() || undefined,
+        limit: 500,
       })
       .subscribe({
         next: (r) => {
           this.items.set(r.data);
+          this.total.set(r.total);
           this.loading.set(false);
         },
-        error: () => {
+        error: (err) => {
           this.items.set([]);
+          this.total.set(0);
+          this.error.set(mensajeErrorApi(err, 'No fue posible cargar los relacionamientos.'));
           this.loading.set(false);
         },
       });
+  }
+
+  private validarRangoFechas(): boolean {
+    if (
+      this.fechaMensajeDesde() &&
+      this.fechaMensajeHasta() &&
+      this.fechaMensajeDesde() > this.fechaMensajeHasta()
+    ) {
+      this.error.set('La fecha desde no puede ser posterior a la fecha hasta.');
+      return false;
+    }
+
+    this.error.set(null);
+    return true;
   }
 }

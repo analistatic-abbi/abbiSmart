@@ -94,6 +94,37 @@ th {
   color: var(--color-error);
 }
 
+.filters__empresa {
+  flex: 0 1 240px;
+  min-width: 200px;
+  max-width: 280px;
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
+  }
+}
+
+.filters__dates {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+
+  > label {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+    white-space: nowrap;
+  }
+}
+
 .filters__checkbox {
   display: inline-flex;
   align-items: center;
@@ -106,4 +137,13 @@ th {
   input {
     margin: 0;
   }
+}
+
+.col-objeto {
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--color-emphasis);
 }

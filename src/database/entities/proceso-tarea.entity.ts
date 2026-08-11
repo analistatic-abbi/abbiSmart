@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { TareaCodigo } from '../../common/enums/tarea-codigo.enum';
 import { Proceso } from './proceso.entity';
 import { Usuario } from './usuario.entity';
 
@@ -19,12 +18,8 @@ export class ProcesoTarea {
   @Column({ name: 'proceso_id', type: 'bigint', unsigned: true })
   procesoId: number;
 
-  @Column({
-    name: 'tarea_codigo',
-    type: 'enum',
-    enum: TareaCodigo,
-  })
-  tareaCodigo: TareaCodigo;
+  @Column({ name: 'tarea_codigo', type: 'varchar', length: 80 })
+  tareaCodigo: string;
 
   @Column({ type: 'boolean', default: true })
   aplica: boolean;

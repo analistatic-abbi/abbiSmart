@@ -120,6 +120,22 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/paises',
+        canActivate: [roleGuard([Rol.Administrador])],
+        loadComponent: () =>
+          import('./features/admin/paises/paises-list/paises-list.component').then(
+            (m) => m.PaisesListComponent,
+          ),
+      },
+      {
+        path: 'admin/paises/:id/config',
+        canActivate: [roleGuard([Rol.Administrador])],
+        loadComponent: () =>
+          import('./features/admin/paises/pais-config/pais-config.component').then(
+            (m) => m.PaisConfigComponent,
+          ),
+      },
+      {
         path: 'usuarios/nuevo',
         canActivate: [roleGuard([Rol.Administrador])],
         loadComponent: () =>
@@ -284,6 +300,56 @@ export const routes: Routes = [
           import('./features/admin/formatos-calificacion/formatos-calificacion-list/formatos-calificacion-list.component').then(
             (m) => m.FormatosCalificacionListComponent,
           ),
+      },
+      {
+        path: 'admin/formatos-encuesta/nuevo',
+        canActivate: [roleGuard([Rol.Administrador, Rol.SupervisorSistema, Rol.Operador])],
+        loadComponent: () =>
+          import('./features/admin/formatos-encuesta/formatos-encuesta-list/formatos-encuesta-list.component').then(
+            (m) => m.FormatosEncuestaListComponent,
+          ),
+        data: { modoFormato: 'nuevo' },
+      },
+      {
+        path: 'admin/formatos-encuesta/:id/editar',
+        canActivate: [roleGuard([Rol.Administrador, Rol.SupervisorSistema, Rol.Operador])],
+        loadComponent: () =>
+          import('./features/admin/formatos-encuesta/formatos-encuesta-list/formatos-encuesta-list.component').then(
+            (m) => m.FormatosEncuestaListComponent,
+          ),
+        data: { modoFormato: 'editar' },
+      },
+      {
+        path: 'admin/formatos-encuesta',
+        canActivate: [roleGuard([Rol.Administrador, Rol.SupervisorSistema, Rol.Operador])],
+        loadComponent: () =>
+          import('./features/admin/formatos-encuesta/formatos-encuesta-list/formatos-encuesta-list.component').then(
+            (m) => m.FormatosEncuestaListComponent,
+          ),
+      },
+      {
+        path: 'kam',
+        loadComponent: () =>
+          import('./features/kam/kam-list/kam-list.component').then((m) => m.KamListComponent),
+      },
+      {
+        path: 'kam/calendario',
+        loadComponent: () =>
+          import('./features/kam/kam-calendario/kam-calendario.component').then(
+            (m) => m.KamCalendarioComponent,
+          ),
+      },
+      {
+        path: 'kam/:kamId/rondas/:rondaId/encuestas/:encuestaId',
+        loadComponent: () =>
+          import('./features/kam/kam-encuesta/kam-encuesta.component').then(
+            (m) => m.KamEncuestaComponent,
+          ),
+      },
+      {
+        path: 'kam/:id',
+        loadComponent: () =>
+          import('./features/kam/kam-detail/kam-detail.component').then((m) => m.KamDetailComponent),
       },
       {
         path: 'admin/auditoria',

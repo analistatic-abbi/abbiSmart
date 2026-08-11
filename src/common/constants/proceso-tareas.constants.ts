@@ -32,6 +32,25 @@ export function tareaAplicaParaInstrumento(
   return true;
 }
 
+export function tareaAplicaParaPlantilla(
+  plantilla: {
+    aplicaRfi: boolean;
+    requiereFechaAdquisicion: boolean;
+  },
+  tipoInstrumento: TipoInstrumento,
+  fechaAdquisicionDerecho?: string | null,
+): boolean {
+  if (tipoInstrumento === TipoInstrumento.RFI && !plantilla.aplicaRfi) {
+    return false;
+  }
+
+  if (plantilla.requiereFechaAdquisicion && !fechaAdquisicionDerecho) {
+    return false;
+  }
+
+  return true;
+}
+
 export function tareaAplicaParaProceso(
   tareaCodigo: TareaCodigo,
   tipoInstrumento: TipoInstrumento,

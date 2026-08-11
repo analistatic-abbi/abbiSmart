@@ -1,11 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { IndicadorCodigo } from '../../common/enums/indicador-codigo.enum';
 import { ResultadoCalificacion } from '../../common/enums/resultado-calificacion.enum';
 import {
   evaluarResultadoIndicador,
-  resolveMargenCasiPct,
 } from '../../common/utils/indicador-resultado.util';
 import {
   findRangoParaValor,
@@ -17,7 +15,7 @@ import { ProcesoCalificacionDetalle } from '../../database/entities/proceso-cali
 import { ProcesoCalificacion } from '../../database/entities/proceso-calificacion.entity';
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ParametroFinanciero } from '../../database/entities/parametro-financiero.entity';
-import { ConfiguracionService } from '../configuracion/configuracion.service';
+import { PaisConfigService } from '../catalogos/pais-config.service';
 
 export interface ParametrosPropagacionResult {
   indicadoresActualizados: number;
@@ -38,7 +36,7 @@ export class ParametrosDependientesService {
     private readonly formatoRepository: Repository<FormatoCalificacion>,
     @InjectRepository(ParametroFinanciero)
     private readonly parametroRepository: Repository<ParametroFinanciero>,
-    private readonly configuracionService: ConfiguracionService,
+    private readonly paisConfigService: PaisConfigService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -46,7 +44,7 @@ export class ParametrosDependientesService {
     paisId: number,
     anio: number,
     actorId: number,
-    indicadoresAfectados: IndicadorCodigo[],
+    indicadoresAfectados: string[],
   ): Promise<ParametrosPropagacionResult> {
     const indicadoresActualizados = await this.actualizarCumplimientoIndicadores(
       paisId,
@@ -70,7 +68,7 @@ export class ParametrosDependientesService {
   private async actualizarCumplimientoIndicadores(
     paisId: number,
     anio: number,
-    indicadoresAfectados: IndicadorCodigo[],
+    indicadoresAfectados: string[],
   ): Promise<number> {
     const qb = this.indicadorRepository
       .createQueryBuilder('pi')
@@ -90,10 +88,7 @@ export class ParametrosDependientesService {
       return 0;
     }
 
-    const margenConfig = await this.configuracionService
-      .findByClave('indicador_margen_casi_pct')
-      .catch(() => null);
-    const margenPct = resolveMargenCasiPct(margenConfig?.valor);
+    const margenPct = await this.paisConfigService.getMargenCasiPct(paisId);
 
     let actualizados = 0;
 
@@ -174,7 +169,7 @@ export class ParametrosDependientesService {
     const rangosPorIndicador = this.groupRangosByIndicador(formato.rangos);
     let puntajeTotal = 0;
     const detalleRows: Array<{
-      indicadorCodigo: IndicadorCodigo;
+      indicadorCodigo: string;
       parametroFinancieroId: number;
       valorAbbi: string;
       formatoRangoId: number;
@@ -251,7 +246,7 @@ export class ParametrosDependientesService {
 
   private async findPorIndicadorYAnio(
     paisId: number,
-    indicadorCodigo: IndicadorCodigo,
+    indicadorCodigo: string,
     anio: number,
   ): Promise<ParametroFinanciero | null> {
     return this.parametroRepository.findOne({
@@ -265,8 +260,8 @@ export class ParametrosDependientesService {
 
   private groupRangosByIndicador(
     rangos: FormatoCalificacionRango[],
-  ): Map<IndicadorCodigo, FormatoCalificacionRango[]> {
-    const map = new Map<IndicadorCodigo, FormatoCalificacionRango[]>();
+  ): Map<string, FormatoCalificacionRango[]> {
+    const map = new Map<string, FormatoCalificacionRango[]>();
 
     for (const rango of rangos) {
       const grupo = map.get(rango.indicadorCodigo) ?? [];

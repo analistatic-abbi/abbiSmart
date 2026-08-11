@@ -28,6 +28,7 @@ import { MotivoPerdidaProceso } from '../../../common/enums/motivo-perdida-proce
 import { IndicadorCodigo } from '../../../common/enums/indicador-codigo.enum';
 import { SegmentoProceso } from '../../../common/enums/segmento-proceso.enum';
 import { TipoInstrumento } from '../../../common/enums/tipo-instrumento.enum';
+import { PortalOrigen } from '../../../common/enums/portal-origen.enum';
 import { TipoProceso } from '../../../common/enums/tipo-proceso.enum';
 
 export class ProcesosQueryDto extends PaginationQueryDto {
@@ -42,10 +43,11 @@ export class ProcesosQueryDto extends PaginationQueryDto {
   @MaxLength(255)
   search?: string;
 
-  @ApiPropertyOptional({ enum: SegmentoProceso })
+  @ApiPropertyOptional({ enum: SegmentoProceso, deprecated: true })
   @IsOptional()
-  @IsEnum(SegmentoProceso)
-  segmento?: SegmentoProceso;
+  @IsString()
+  @MaxLength(100)
+  segmento?: string;
 
   @ApiPropertyOptional({ enum: TipoProceso })
   @IsOptional()
@@ -56,6 +58,17 @@ export class ProcesosQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(TipoInstrumento)
   tipoInstrumento?: TipoInstrumento;
+
+  @ApiPropertyOptional({ enum: PortalOrigen })
+  @IsOptional()
+  @IsEnum(PortalOrigen)
+  portalOrigen?: PortalOrigen;
+
+  @ApiPropertyOptional({ description: 'Filtrar por cliente/empresa registrada' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  empresaClienteId?: number;
 
   @ApiPropertyOptional({ description: 'Filtro fecha cierre desde (YYYY-MM-DD)' })
   @IsOptional()
@@ -84,9 +97,10 @@ export class ProcesosQueryDto extends PaginationQueryDto {
 }
 
 export class ProcesoIndicadorInputDto {
-  @ApiProperty({ enum: IndicadorCodigo })
-  @IsEnum(IndicadorCodigo)
-  indicadorCodigo: IndicadorCodigo;
+  @ApiProperty()
+  @IsString()
+  @MaxLength(50)
+  indicadorCodigo: string;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
@@ -119,11 +133,17 @@ export class CreateProcesoDto {
   @IsInt()
   ubicacionId: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: PortalOrigen })
   @IsOptional()
+  @IsEnum(PortalOrigen)
+  portalOrigen?: PortalOrigen;
+
+  @ApiPropertyOptional({ description: 'Texto libre cuando portalOrigen = otro' })
+  @ValidateIf((dto: CreateProcesoDto) => dto.portalOrigen === PortalOrigen.Otro)
   @IsString()
+  @IsNotEmpty()
   @MaxLength(255)
-  portalOrigen?: string;
+  portalOrigenOtro?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -144,9 +164,10 @@ export class CreateProcesoDto {
   @Max(CUANTIA_MAX, { message: CUANTIA_MAX_MENSAJE })
   cuantia: number;
 
-  @ApiProperty({ enum: SegmentoProceso })
-  @IsEnum(SegmentoProceso)
-  segmento: SegmentoProceso;
+  @ApiProperty()
+  @IsString()
+  @MaxLength(100)
+  segmento: string;
 
   @ApiProperty({ enum: TipoProceso })
   @IsEnum(TipoProceso)
@@ -176,6 +197,17 @@ export class CreateProcesoDto {
   @Type(() => Number)
   @IsInt()
   proyeccionId?: number;
+
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'Contactos del cliente vinculados al proceso (obligatorio si hay cliente)',
+  })
+  @ValidateIf((dto: CreateProcesoDto) => !!dto.empresaClienteId)
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
+  @Type(() => Number)
+  contactoIds?: number[];
 
   @ApiProperty({ type: [ProcesoIndicadorInputDto] })
   @IsArray()
@@ -209,11 +241,16 @@ export class CreateProcesoDto {
 }
 
 export class UpdateProcesoDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: PortalOrigen })
+  @IsOptional()
+  @IsEnum(PortalOrigen)
+  portalOrigen?: PortalOrigen;
+
+  @ApiPropertyOptional({ description: 'Texto libre cuando portalOrigen = otro' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  portalOrigen?: string;
+  portalOrigenOtro?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -326,10 +363,28 @@ export class RegistrarMotivoPerdidaDto {
 
 export class ProcesoIndicadorResponseDto {
   id: number;
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   valorRequerido: string | null;
   parametroFinancieroId: number | null;
   cumple: string | null;
+}
+
+export class ProcesoContactoResponseDto {
+  contactoId: number;
+  nombre: string;
+  cargo: string | null;
+  correo: string | null;
+  telefono: string | null;
+  fechaAsociacion: Date;
+}
+
+export class UpdateProcesoContactosDto {
+  @ApiProperty({ type: [Number], description: 'IDs de contactos del cliente del proceso' })
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsInt({ each: true })
+  @Type(() => Number)
+  contactoIds: number[];
 }
 
 export class ProcesoResponseDto {
@@ -341,11 +396,13 @@ export class ProcesoResponseDto {
   paisId: number;
   ubicacionId: number;
   portalOrigen: string | null;
+  portalOrigenOtro: string | null;
+  portalOrigenMostrar?: string | null;
   link: string | null;
   objeto: string | null;
   cuantia: string;
   moneda: string;
-  segmento: SegmentoProceso;
+  segmento: string;
   tipoProceso: TipoProceso;
   tipoInstrumento: TipoInstrumento;
   plazoEjecucionMeses: number;
@@ -380,6 +437,7 @@ export class ProcesoResponseDto {
   mesesEjecucionAnioReporte?: number | null;
   facturacionEstimadaAnioReporte?: string | null;
   indicadores?: ProcesoIndicadorResponseDto[];
+  contactos?: ProcesoContactoResponseDto[];
   devueltoValidacion?: boolean;
   comentarioDevolucionValidacion?: string | null;
   validadorDevolucionNombre?: string | null;
@@ -421,6 +479,7 @@ export class TareaResponseDto {
   id: number;
   procesoId: number;
   tareaCodigo: string;
+  tareaNombre: string | null;
   aplica: boolean;
   evidencia: string | null;
   evidenciaArchivoNombre: string | null;

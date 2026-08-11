@@ -5,12 +5,13 @@ import {
   AuditAccion,
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
-import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
+import { CatalogoPaisTipo } from '../../common/enums/catalogo-pais-tipo.enum';
 import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { ParametroFinanciero } from '../../database/entities/parametro-financiero.entity';
 import { AuditService } from '../audit/audit.service';
+import { CatalogoPaisService } from '../catalogos/catalogo-pais.service';
 import {
   CreateParametroDto,
   ParametroPorAnioResponseItemDto,
@@ -22,6 +23,10 @@ import {
   UpsertParametrosPorAnioDto,
 } from './dto/parametro.dto';
 import { ParametrosDependientesService } from './parametros-dependientes.service';
+import {
+  logParametroAuditoria,
+  parametroAuditSnapshot,
+} from '../../common/utils/audit-field-diff.util';
 
 export interface ParametrosPage {
   data: ParametroResponseDto[];
@@ -38,6 +43,7 @@ export class ParametrosService {
     private readonly auditService: AuditService,
     private readonly dataSource: DataSource,
     private readonly dependientesService: ParametrosDependientesService,
+    private readonly catalogoPaisService: CatalogoPaisService,
   ) {}
 
   async findAll(
@@ -122,13 +128,16 @@ export class ParametrosService {
       where: { paisId: paisSesionId, anio },
     });
 
-    const porCodigo = new Map(
+    const indicadoresActivos =
+      await this.catalogoPaisService.getIndicadoresActivos(paisSesionId);
+
+    const porCodigo = new Map<string, ParametroFinanciero>(
       existentes.map((parametro) => [parametro.indicadorCodigo, parametro]),
     );
 
     return {
       anio,
-      indicadores: INDICADORES_FINANCIEROS.map((indicadorCodigo) => {
+      indicadores: indicadoresActivos.map((indicadorCodigo) => {
         const parametro = porCodigo.get(indicadorCodigo);
         return this.toPorAnioItem(indicadorCodigo, parametro);
       }),
@@ -154,6 +163,11 @@ export class ParametrosService {
       );
     }
 
+    await this.catalogoPaisService.assertIndicadoresCompletos(
+      paisSesionId,
+      codigos,
+    );
+
     await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ParametroFinanciero);
 
@@ -167,19 +181,18 @@ export class ParametrosService {
         });
 
         if (existente) {
-          const valorAnterior = JSON.stringify(this.toResponse(existente));
+          const anterior = parametroAuditSnapshot(this.toResponse(existente));
           existente.valor = item.valor.toString();
           existente.reglaCumplimiento = item.reglaCumplimiento as ReglaCumplimiento;
           existente.usuarioModificoId = actorId;
           const saved = await repo.save(existente);
 
-          await this.auditService.log({
+          await logParametroAuditoria(this.auditService, {
             usuarioId: actorId,
             accion: AuditAccion.PARAMETRO_EDITAR,
-            entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
             entidadId: saved.id,
-            valorAnterior,
-            valorNuevo: JSON.stringify(this.toResponse(saved)),
+            anterior,
+            nuevo: parametroAuditSnapshot(this.toResponse(saved)),
           });
           continue;
         }
@@ -194,12 +207,11 @@ export class ParametrosService {
         });
         const saved = await repo.save(parametro);
 
-        await this.auditService.log({
+        await logParametroAuditoria(this.auditService, {
           usuarioId: actorId,
           accion: AuditAccion.PARAMETRO_CREAR,
-          entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
           entidadId: saved.id,
-          valorNuevo: JSON.stringify(this.toResponse(saved)),
+          nuevo: parametroAuditSnapshot(this.toResponse(saved)),
         });
       }
     });
@@ -249,12 +261,11 @@ export class ParametrosService {
 
     const saved = await this.parametroRepository.save(parametro);
 
-    await this.auditService.log({
+    await logParametroAuditoria(this.auditService, {
       usuarioId: actorId,
       accion: AuditAccion.PARAMETRO_CREAR,
-      entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
       entidadId: saved.id,
-      valorNuevo: JSON.stringify(this.toResponse(saved)),
+      nuevo: parametroAuditSnapshot(this.toResponse(saved)),
     });
 
     const propagacion = await this.dependientesService.propagarCambios(
@@ -277,7 +288,7 @@ export class ParametrosService {
     paisSesionId: number,
   ): Promise<{ parametro: ParametroResponseDto; propagacion: ParametrosPropagacionDto }> {
     const parametro = await this.getParametroOrFail(id, paisSesionId);
-    const valorAnterior = JSON.stringify(this.toResponse(parametro));
+    const anterior = parametroAuditSnapshot(this.toResponse(parametro));
 
     if (dto.valor !== undefined) {
       parametro.valor = dto.valor.toString();
@@ -290,13 +301,12 @@ export class ParametrosService {
     parametro.usuarioModificoId = actorId;
     const saved = await this.parametroRepository.save(parametro);
 
-    await this.auditService.log({
+    await logParametroAuditoria(this.auditService, {
       usuarioId: actorId,
       accion: AuditAccion.PARAMETRO_EDITAR,
-      entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
       entidadId: saved.id,
-      valorAnterior,
-      valorNuevo: JSON.stringify(this.toResponse(saved)),
+      anterior,
+      nuevo: parametroAuditSnapshot(this.toResponse(saved)),
     });
 
     const propagacion = await this.dependientesService.propagarCambios(
@@ -314,14 +324,13 @@ export class ParametrosService {
 
   async remove(id: number, actorId: number, paisSesionId: number): Promise<void> {
     const parametro = await this.getParametroOrFail(id, paisSesionId);
-    const valorAnterior = JSON.stringify(this.toResponse(parametro));
+    const anterior = parametroAuditSnapshot(this.toResponse(parametro));
 
-    await this.auditService.log({
+    await logParametroAuditoria(this.auditService, {
       usuarioId: actorId,
       accion: AuditAccion.PARAMETRO_ELIMINAR,
-      entidadTipo: AuditEntidadTipo.PARAMETRO_FINANCIERO,
       entidadId: parametro.id,
-      valorAnterior,
+      anterior,
     });
 
     await this.parametroRepository.remove(parametro);
@@ -367,7 +376,7 @@ export class ParametrosService {
   }
 
   private toPorAnioItem(
-    indicadorCodigo: ParametroFinanciero['indicadorCodigo'],
+    indicadorCodigo: string,
     parametro?: ParametroFinanciero,
   ): ParametroPorAnioResponseItemDto {
     if (!parametro) {

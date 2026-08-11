@@ -11,6 +11,12 @@ export class Pais {
   @Column({ type: 'varchar', length: 100 })
   nombre: string;
 
+  @Column({ name: 'codigo_iso', type: 'char', length: 2, nullable: true })
+  codigoIso: string | null;
+
+  @Column({ name: 'codigo_moneda', type: 'varchar', length: 3, nullable: true })
+  codigoMoneda: string | null;
+
   @Column({ type: 'boolean', default: true })
   activo: boolean;
 

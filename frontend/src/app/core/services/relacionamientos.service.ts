@@ -23,6 +23,8 @@ export class RelacionamientosService {
     contactoId?: number;
     canal?: CanalRelacionamiento;
     resultado?: ResultadoRelacionamiento;
+    fechaMensajeDesde?: string;
+    fechaMensajeHasta?: string;
   } = {}): Observable<{ data: Relacionamiento[]; total: number }> {
     const query: Record<string, string | number> = {
       page: params.page ?? 1,
@@ -32,6 +34,8 @@ export class RelacionamientosService {
     if (params.contactoId) query['contactoId'] = params.contactoId;
     if (params.canal) query['canal'] = params.canal;
     if (params.resultado) query['resultado'] = params.resultado;
+    if (params.fechaMensajeDesde) query['fechaMensajeDesde'] = params.fechaMensajeDesde;
+    if (params.fechaMensajeHasta) query['fechaMensajeHasta'] = params.fechaMensajeHasta;
 
     return this.http.get<{ data: Relacionamiento[]; total: number }>(this.base, { params: query });
   }

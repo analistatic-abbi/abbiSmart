@@ -1,0 +1,27 @@
+<div class="table-pagination">
+  <span class="table-pagination__info">
+    Mostrando {{ from() }}–{{ to() }} de {{ total() }}
+  </span>
+  <div class="table-pagination__controls">
+    <label>
+      Filas
+      <select [ngModel]="limit()" (ngModelChange)="onLimitChange($event)">
+        @for (opt of limitOptions(); track opt) {
+          <option [value]="opt">{{ opt }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" class="btn-secondary" [disabled]="page() <= 1" (click)="previous()">
+      Anterior
+    </button>
+    <span class="table-pagination__page">{{ page() }} / {{ totalPages() }}</span>
+    <button
+      type="button"
+      class="btn-secondary"
+      [disabled]="page() >= totalPages()"
+      (click)="next()"
+    >
+      Siguiente
+    </button>
+  </div>
+</div>

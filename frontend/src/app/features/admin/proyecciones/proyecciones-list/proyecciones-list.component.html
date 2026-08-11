@@ -17,7 +17,7 @@
   </header>
 
   <div class="filters">
-    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <input type="search" placeholder="Buscar por empresa, código u objeto..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
     <select [ngModel]="estado()" (ngModelChange)="estado.set($event); onFilter()">
       <option value="">Todos los estados</option>
       @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
@@ -54,6 +54,7 @@
         <thead>
           <tr>
             <th>Proceso origen</th>
+            <th>Objeto</th>
             <th>Empresa</th>
             <th>Año</th>
             <th>Fecha est. publicación</th>
@@ -69,18 +70,19 @@
           @for (p of items(); track p.id) {
             <tr>
               <td>{{ p.procesoCodigo ?? (p.procesoOrigenId ? 'ID ' + p.procesoOrigenId : 'Manual') }}</td>
+              <td class="col-objeto" [title]="p.objeto ?? ''">{{ p.objeto ?? '—' }}</td>
               <td>{{ p.empresa ?? '—' }}</td>
               <td>{{ p.anioProyectado }}</td>
               <td>{{ p.fechaEstimadaPublicacion }}</td>
-              <td>{{ p.valorVenta }}</td>
-              <td>{{ p.valorFacturacion }}</td>
+              <td [title]="tituloValor(p.valorVenta)">{{ formatValor(p.valorVenta) }}</td>
+              <td [title]="tituloValor(p.valorFacturacion)">{{ formatValor(p.valorFacturacion) }}</td>
               <td><span [class]="estadoClass(p.estado)">{{ p.estado }}</span></td>
               <td>{{ p.mercado ?? '—' }}</td>
               <td>{{ p.diasFaltantes ?? '—' }}</td>
               <td><a [routerLink]="['/proyecciones', p.id]">Ver detalle</a></td>
             </tr>
           } @empty {
-            <tr><td colspan="10">No hay proyecciones registradas.</td></tr>
+            <tr><td colspan="11">No hay proyecciones registradas.</td></tr>
           }
         </tbody>
       </table>

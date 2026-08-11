@@ -31,7 +31,7 @@ export interface Cliente {
   empresa: string;
   paisId: number;
   ubicacionId: number;
-  segmento: SegmentoCliente;
+  segmento: string;
   segmentoOtro: string | null;
   fechaCreacion: string;
 }
@@ -85,14 +85,14 @@ export interface ClienteVista360 {
 export interface ClienteListItem {
   id: number;
   empresa: string;
-  segmento: SegmentoCliente;
+  segmento: string;
   fechaCreacion: string;
 }
 
 export interface CreateClientePayload {
   empresa: string;
   ubicacionId: number;
-  segmento: SegmentoCliente;
+  segmento: string;
   segmentoOtro?: string;
 }
 

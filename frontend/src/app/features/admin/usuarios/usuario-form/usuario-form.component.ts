@@ -4,7 +4,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UsuariosService } from '../../../../core/services/usuarios.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { Rol } from '../../../../core/models/rol.enum';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarCreacion, confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-usuario-form',
@@ -18,6 +21,8 @@ export class UsuarioFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly usuarios = inject(UsuariosService);
   private readonly catalogos = inject(CatalogosService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly roles = Object.values(Rol);
   protected readonly paises = signal<Array<{ id: number; nombre: string }>>([]);
@@ -92,19 +97,32 @@ export class UsuarioFormComponent implements OnInit {
     this.loading.set(true);
 
     if (this.isEdit()) {
-      this.usuarios
-        .update(this.usuarioId, {
-          nombre: this.nombre().trim(),
-          rol: this.rol(),
-          paisId,
-        })
-        .subscribe({
-          next: () => void this.router.navigate(['/usuarios']),
-          error: (err) => {
-            this.error.set(mensajeErrorApi(err, 'No fue posible actualizar el usuario.'));
-            this.loading.set(false);
-          },
-        });
+      void confirmarGuardado(
+        this.confirmDialog,
+        '¿Desea guardar los cambios del usuario?',
+      ).then((ok) => {
+        if (!ok) {
+          this.loading.set(false);
+          return;
+        }
+
+        this.usuarios
+          .update(this.usuarioId, {
+            nombre: this.nombre().trim(),
+            rol: this.rol(),
+            paisId,
+          })
+          .subscribe({
+            next: (r) => {
+              this.toast.success(mensajeExitoApi(r, 'Usuario actualizado correctamente.'));
+              void this.router.navigate(['/usuarios']);
+            },
+            error: (err) => {
+              this.error.set(mensajeErrorApi(err, 'No fue posible actualizar el usuario.'));
+              this.loading.set(false);
+            },
+          });
+      });
       return;
     }
 
@@ -114,14 +132,24 @@ export class UsuarioFormComponent implements OnInit {
       return;
     }
 
-    this.usuarios
-      .create({ nombre: this.nombre().trim(), correo: this.correo().trim(), rol: this.rol(), paisId })
-      .subscribe({
-        next: () => void this.router.navigate(['/usuarios']),
-        error: (err) => {
-          this.error.set(mensajeErrorApi(err, 'No fue posible crear el usuario.'));
-          this.loading.set(false);
-        },
-      });
+    void confirmarCreacion(this.confirmDialog, '¿Desea crear el usuario?').then((ok) => {
+      if (!ok) {
+        this.loading.set(false);
+        return;
+      }
+
+      this.usuarios
+        .create({ nombre: this.nombre().trim(), correo: this.correo().trim(), rol: this.rol(), paisId })
+        .subscribe({
+          next: (r) => {
+            this.toast.success(mensajeExitoApi(r, 'Usuario creado correctamente.'));
+            void this.router.navigate(['/usuarios']);
+          },
+          error: (err) => {
+            this.error.set(mensajeErrorApi(err, 'No fue posible crear el usuario.'));
+            this.loading.set(false);
+          },
+        });
+    });
   }
 }

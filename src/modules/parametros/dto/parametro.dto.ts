@@ -40,9 +40,10 @@ export class ParametrosQueryDto extends PaginationQueryDto {
 }
 
 export class CreateParametroDto {
-  @ApiProperty({ enum: IndicadorCodigo })
-  @IsEnum(IndicadorCodigo)
-  indicadorCodigo: IndicadorCodigo;
+  @ApiProperty()
+  @IsString()
+  @MaxLength(50)
+  indicadorCodigo: string;
 
   @ApiProperty()
   @Type(() => Number)
@@ -77,7 +78,7 @@ export class UpdateParametroDto {
 export class ParametroResponseDto {
   id: number;
   paisId: number;
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   anio: number;
   valor: string;
   reglaCumplimiento: string;
@@ -86,9 +87,10 @@ export class ParametroResponseDto {
 }
 
 export class ParametroPorAnioItemDto {
-  @ApiProperty({ enum: IndicadorCodigo })
-  @IsEnum(IndicadorCodigo)
-  indicadorCodigo: IndicadorCodigo;
+  @ApiProperty()
+  @IsString()
+  @MaxLength(50)
+  indicadorCodigo: string;
 
   @ApiProperty()
   @Type(() => Number)
@@ -111,7 +113,7 @@ export class UpsertParametrosPorAnioDto {
 }
 
 export class ParametroPorAnioResponseItemDto {
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   id: number | null;
   valor: string | null;
   reglaCumplimiento: string | null;

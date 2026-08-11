@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProcesosService } from '../../../core/services/procesos.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { CatalogosService } from '../../../core/services/catalogos.service';
+import { ClientesService } from '../../../core/services/clientes.service';
 import {
   FILTRO_ELIMINADOS_OPCIONES,
   FiltroEliminados,
@@ -10,10 +12,20 @@ import {
 import {
   EstadoProceso,
   ProcesoListItem,
-  SegmentoProceso,
   TipoInstrumento,
   TipoProceso,
 } from '../../../core/models/proceso.model';
+import { PORTAL_ORIGEN_OPCIONES } from '../../../core/models/portal-origen.model';
+import { CatalogoPaisItem } from '../../../core/models/pais-config.model';
+import {
+  formatCuantiaConMoneda,
+  formatMonedaAbreviada,
+  tituloMonedaCompleta,
+} from '../../../core/utils/currency.util';
+import {
+  SearchableSelectComponent,
+  SearchableSelectOption,
+} from '../../../shared/components/searchable-select/searchable-select.component';
 
 const PROCESOS_LIST_FILTERS_KEY = 'abbi.procesos-list.filters';
 
@@ -23,6 +35,8 @@ interface ProcesosListFiltersState {
   segmento: string;
   tipoProceso: string;
   tipoInstrumento: string;
+  portalOrigen: string;
+  empresaClienteId: number | null;
   fechaCierreDesde: string;
   fechaCierreHasta: string;
   filtroEliminados: FiltroEliminados;
@@ -34,6 +48,8 @@ const PROCESOS_LIST_FILTER_QUERY_KEYS = [
   'segmento',
   'tipoProceso',
   'tipoInstrumento',
+  'portalOrigen',
+  'empresaClienteId',
   'fechaCierreDesde',
   'fechaCierreHasta',
   'filtroEliminados',
@@ -42,13 +58,15 @@ const PROCESOS_LIST_FILTER_QUERY_KEYS = [
 @Component({
   selector: 'app-procesos-list',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, SearchableSelectComponent],
   templateUrl: './procesos-list.component.html',
   styleUrl: './procesos-list.component.scss',
 })
 export class ProcesosListComponent implements OnInit {
   private readonly procesos = inject(ProcesosService);
   private readonly auth = inject(AuthService);
+  private readonly catalogos = inject(CatalogosService);
+  private readonly clientesService = inject(ClientesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -56,18 +74,29 @@ export class ProcesosListComponent implements OnInit {
   protected readonly puedeVerEliminados = () => this.auth.puedeVerEliminados();
 
   protected readonly estados = Object.values(EstadoProceso);
-  protected readonly segmentos = Object.values(SegmentoProceso);
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
   protected readonly tiposProceso = Object.values(TipoProceso);
   protected readonly tiposInstrumento = Object.values(TipoInstrumento);
+  protected readonly portalesOrigen = PORTAL_ORIGEN_OPCIONES;
   protected readonly filtrosEliminados = FILTRO_ELIMINADOS_OPCIONES;
+  protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
+
+  protected readonly clienteOptions = computed<SearchableSelectOption<number>[]>(() =>
+    this.clientes().map((cliente) => ({
+      value: cliente.id,
+      label: cliente.empresa,
+    })),
+  );
 
   protected readonly items = signal<ProcesoListItem[]>([]);
   protected readonly loading = signal(true);
   protected readonly search = signal('');
   protected readonly estado = signal<EstadoProceso | ''>('');
-  protected readonly segmento = signal<SegmentoProceso | ''>('');
+  protected readonly segmento = signal('');
   protected readonly tipoProceso = signal<TipoProceso | ''>('');
   protected readonly tipoInstrumento = signal<TipoInstrumento | ''>('');
+  protected readonly portalOrigen = signal('');
+  protected readonly empresaClienteId = signal<number | null>(null);
   protected readonly fechaCierreDesde = signal('');
   protected readonly fechaCierreHasta = signal('');
   protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
@@ -82,12 +111,21 @@ export class ProcesosListComponent implements OnInit {
       !!this.segmento() ||
       !!this.tipoProceso() ||
       !!this.tipoInstrumento() ||
+      !!this.portalOrigen() ||
+      this.empresaClienteId() != null ||
       !!this.fechaCierreDesde() ||
       !!this.fechaCierreHasta() ||
       this.filtroEliminados() !== 'activos',
   );
 
   ngOnInit(): void {
+    this.catalogos.getCatalogoSesion('segmento_proceso', false).subscribe((r) =>
+      this.segmentos.set(r.data),
+    );
+    this.clientesService.list({ limit: 500 }).subscribe({
+      next: (r) =>
+        this.clientes.set(r.data.map((c) => ({ id: c.id, empresa: c.empresa }))),
+    });
     this.syncFiltersFromRoute();
     this.load();
   }
@@ -97,12 +135,19 @@ export class ProcesosListComponent implements OnInit {
     this.load();
   }
 
+  protected onEmpresaChange(value: number | null): void {
+    this.empresaClienteId.set(value);
+    this.onFilter();
+  }
+
   protected limpiarFiltros(): void {
     this.search.set('');
     this.estado.set('');
     this.segmento.set('');
     this.tipoProceso.set('');
     this.tipoInstrumento.set('');
+    this.portalOrigen.set('');
+    this.empresaClienteId.set(null);
     this.fechaCierreDesde.set('');
     this.fechaCierreHasta.set('');
     this.filtroEliminados.set('activos');
@@ -115,6 +160,8 @@ export class ProcesosListComponent implements OnInit {
         segmento: null,
         tipoProceso: null,
         tipoInstrumento: null,
+        portalOrigen: null,
+        empresaClienteId: null,
         fechaCierreDesde: null,
         fechaCierreHasta: null,
         filtroEliminados: null,
@@ -156,6 +203,26 @@ export class ProcesosListComponent implements OnInit {
     );
   }
 
+  protected formatCuantia(proceso: ProcesoListItem): string {
+    if (!proceso.cuantia) {
+      return '—';
+    }
+
+    if (proceso.moneda) {
+      return formatCuantiaConMoneda(proceso.cuantia, proceso.moneda);
+    }
+
+    return formatMonedaAbreviada(proceso.cuantia);
+  }
+
+  protected cuantiaTitle(proceso: ProcesoListItem): string {
+    if (!proceso.cuantia) {
+      return '';
+    }
+
+    return tituloMonedaCompleta(proceso.cuantia);
+  }
+
   private buildParams() {
     return {
       page: 1,
@@ -165,6 +232,8 @@ export class ProcesosListComponent implements OnInit {
       segmento: this.segmento() || undefined,
       tipoProceso: this.tipoProceso() || undefined,
       tipoInstrumento: this.tipoInstrumento() || undefined,
+      portalOrigen: this.portalOrigen() || undefined,
+      empresaClienteId: this.empresaClienteId() ?? undefined,
       fechaCierreDesde: this.fechaCierreDesde() || undefined,
       fechaCierreHasta: this.fechaCierreHasta() || undefined,
       filtroEliminados: this.filtroEliminados(),
@@ -191,11 +260,23 @@ export class ProcesosListComponent implements OnInit {
   private applyFiltersState(state: ProcesosListFiltersState): void {
     this.search.set(state.search);
     this.estado.set(this.readEnumParam(state.estado || null, this.estados));
-    this.segmento.set(this.readEnumParam(state.segmento || null, this.segmentos));
+    this.segmento.set(
+      this.readEnumParam(
+        state.segmento || null,
+        this.segmentos().map((item) => item.codigo),
+      ),
+    );
     this.tipoProceso.set(this.readEnumParam(state.tipoProceso || null, this.tiposProceso));
     this.tipoInstrumento.set(
       this.readEnumParam(state.tipoInstrumento || null, this.tiposInstrumento),
     );
+    this.portalOrigen.set(
+      this.readEnumParam(
+        state.portalOrigen || null,
+        this.portalesOrigen.map((item) => item.value),
+      ),
+    );
+    this.empresaClienteId.set(state.empresaClienteId);
     this.fechaCierreDesde.set(state.fechaCierreDesde);
     this.fechaCierreHasta.set(state.fechaCierreHasta);
     this.filtroEliminados.set(state.filtroEliminados);
@@ -205,12 +286,16 @@ export class ProcesosListComponent implements OnInit {
     params: { get: (key: string) => string | null },
   ): ProcesosListFiltersState {
     const filtroEliminados = params.get('filtroEliminados');
+    const empresaRaw = params.get('empresaClienteId');
+    const empresaParsed = empresaRaw ? Number(empresaRaw) : NaN;
     return {
       search: params.get('search') ?? '',
       estado: params.get('estado') ?? '',
       segmento: params.get('segmento') ?? '',
       tipoProceso: params.get('tipoProceso') ?? '',
       tipoInstrumento: params.get('tipoInstrumento') ?? '',
+      portalOrigen: params.get('portalOrigen') ?? '',
+      empresaClienteId: Number.isFinite(empresaParsed) ? empresaParsed : null,
       fechaCierreDesde: params.get('fechaCierreDesde') ?? '',
       fechaCierreHasta: params.get('fechaCierreHasta') ?? '',
       filtroEliminados:
@@ -226,7 +311,14 @@ export class ProcesosListComponent implements OnInit {
     try {
       const raw = sessionStorage.getItem(PROCESOS_LIST_FILTERS_KEY);
       if (!raw) return null;
-      return JSON.parse(raw) as ProcesosListFiltersState;
+      const parsed = JSON.parse(raw) as ProcesosListFiltersState;
+      if (parsed.empresaClienteId != null) {
+        const id = Number(parsed.empresaClienteId);
+        parsed.empresaClienteId = Number.isFinite(id) ? id : null;
+      } else {
+        parsed.empresaClienteId = null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -243,6 +335,8 @@ export class ProcesosListComponent implements OnInit {
       segmento: this.segmento(),
       tipoProceso: this.tipoProceso(),
       tipoInstrumento: this.tipoInstrumento(),
+      portalOrigen: this.portalOrigen(),
+      empresaClienteId: this.empresaClienteId(),
       fechaCierreDesde: this.fechaCierreDesde(),
       fechaCierreHasta: this.fechaCierreHasta(),
       filtroEliminados: this.filtroEliminados(),
@@ -259,6 +353,8 @@ export class ProcesosListComponent implements OnInit {
         segmento: this.segmento() || null,
         tipoProceso: this.tipoProceso() || null,
         tipoInstrumento: this.tipoInstrumento() || null,
+        portalOrigen: this.portalOrigen() || null,
+        empresaClienteId: this.empresaClienteId(),
         fechaCierreDesde: this.fechaCierreDesde() || null,
         fechaCierreHasta: this.fechaCierreHasta() || null,
         filtroEliminados:

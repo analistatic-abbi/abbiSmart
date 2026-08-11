@@ -25,6 +25,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.state().accessToken);
   readonly rol = computed(() => this.state().usuario?.rol ?? null);
   readonly paisNombre = computed(() => this.state().paisNombre);
+  readonly paisCodigoIso = computed(() => this.state().paisCodigoIso);
 
   constructor(
     private readonly http: HttpClient,
@@ -159,6 +160,7 @@ export class AuthService {
             usuario: current.usuario,
             session: null,
             paisNombre: current.paisNombre,
+            paisCodigoIso: current.paisCodigoIso,
           });
           this.persistState();
           void this.router.navigate(['/select-country']);
@@ -202,18 +204,47 @@ export class AuthService {
     return rol === 'Administrador' || rol === 'Supervisor del Sistema';
   }
 
-  setPaisNombre(nombre: string): void {
+  setPaisNombre(nombre: string, codigoIso?: string | null): void {
     const current = this.state();
-    this.state.set({ ...current, paisNombre: nombre });
+    this.state.set({
+      ...current,
+      paisNombre: nombre,
+      paisCodigoIso: codigoIso ?? current.paisCodigoIso,
+    });
     this.persistState();
   }
 
-  getPreAuthPaises(): Array<{ id: number; nombre: string }> {
-    const raw = sessionStorage.getItem('abbi_pre_auth_paises');
-    return raw ? (JSON.parse(raw) as Array<{ id: number; nombre: string }>) : [];
+  setPaisCodigoIso(codigoIso: string | null): void {
+    const current = this.state();
+    this.state.set({ ...current, paisCodigoIso: codigoIso });
+    this.persistState();
   }
 
-  setPreAuthPaises(paises: Array<{ id: number; nombre: string }>): void {
+  getPreAuthPaises(): Array<{
+    id: number;
+    nombre: string;
+    codigoIso?: string | null;
+    codigoMoneda?: string | null;
+  }> {
+    const raw = sessionStorage.getItem('abbi_pre_auth_paises');
+    return raw
+      ? (JSON.parse(raw) as Array<{
+          id: number;
+          nombre: string;
+          codigoIso?: string | null;
+          codigoMoneda?: string | null;
+        }>)
+      : [];
+  }
+
+  setPreAuthPaises(
+    paises: Array<{
+      id: number;
+      nombre: string;
+      codigoIso?: string | null;
+      codigoMoneda?: string | null;
+    }>,
+  ): void {
     sessionStorage.setItem('abbi_pre_auth_paises', JSON.stringify(paises));
   }
 
@@ -227,6 +258,7 @@ export class AuthService {
       usuario,
       session,
       paisNombre: this.state().paisNombre,
+      paisCodigoIso: this.state().paisCodigoIso,
     });
     this.persistState();
   }
@@ -240,6 +272,7 @@ export class AuthService {
       usuario: null,
       session: null,
       paisNombre: null,
+      paisCodigoIso: null,
     });
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -247,13 +280,20 @@ export class AuthService {
   private loadState(): AuthState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return { accessToken: null, usuario: null, session: null, paisNombre: null };
+      return { accessToken: null, usuario: null, session: null, paisNombre: null, paisCodigoIso: null };
     }
 
     try {
-      return JSON.parse(raw) as AuthState;
+      const parsed = JSON.parse(raw) as Partial<AuthState>;
+      return {
+        accessToken: parsed.accessToken ?? null,
+        usuario: parsed.usuario ?? null,
+        session: parsed.session ?? null,
+        paisNombre: parsed.paisNombre ?? null,
+        paisCodigoIso: parsed.paisCodigoIso ?? null,
+      };
     } catch {
-      return { accessToken: null, usuario: null, session: null, paisNombre: null };
+      return { accessToken: null, usuario: null, session: null, paisNombre: null, paisCodigoIso: null };
     }
   }
 

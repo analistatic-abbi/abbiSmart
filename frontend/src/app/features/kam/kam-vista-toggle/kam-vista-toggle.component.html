@@ -1,0 +1,18 @@
+<div class="vista-toggle">
+  <a
+    class="btn-secondary"
+    [class.active]="vistaActual() === 'tabla'"
+    routerLink="/kam"
+    [queryParams]="anio() ? { anio: anio() } : {}"
+  >
+    Vista de tabla
+  </a>
+  <a
+    class="btn-secondary"
+    [class.active]="vistaActual() === 'calendario'"
+    routerLink="/kam/calendario"
+    [queryParams]="anio() ? { anio: anio() } : {}"
+  >
+    Vista de calendario
+  </a>
+</div>

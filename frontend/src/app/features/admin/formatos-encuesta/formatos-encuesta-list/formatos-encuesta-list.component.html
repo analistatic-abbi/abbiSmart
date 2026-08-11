@@ -1,0 +1,657 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Formatos de encuesta KAM</h1>
+      <p>Administre plantillas de encuesta para las rondas KAM.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-primary" (click)="abrirNuevo('importar')">
+        Cargar nuevo formato (Excel)
+      </button>
+      <button type="button" class="btn-secondary" (click)="abrirNuevo('clonar')">
+        Clonar un formato existente
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (feedback()) {
+    <p class="success">{{ feedback() }}</p>
+  }
+
+  @if (mostrarFormulario()) {
+    <div class="panel nuevo-formato-panel">
+      <div class="modo-toggle">
+        <button
+          type="button"
+          class="btn-secondary"
+          [class.active]="modoNuevo() === 'importar'"
+          (click)="setModoNuevo('importar')"
+        >
+          Importar Excel
+        </button>
+        <button
+          type="button"
+          class="btn-secondary"
+          [class.active]="modoNuevo() === 'clonar'"
+          (click)="setModoNuevo('clonar')"
+        >
+          Clonar formato
+        </button>
+        <button
+          type="button"
+          class="btn-secondary"
+          [class.active]="modoNuevo() === 'manual'"
+          (click)="setModoNuevo('manual')"
+        >
+          Crear manual
+        </button>
+      </div>
+
+      <h2>
+        @switch (modoNuevo()) {
+          @case ('importar') { Importar desde Excel/CSV }
+          @case ('clonar') { Clonar formato existente }
+          @default { Crear formato manual }
+        }
+      </h2>
+
+      @if (modoNuevo() === 'importar') {
+        <label>Nombre del formato
+          <input
+            type="text"
+            [ngModel]="nombre()"
+            (ngModelChange)="nombre.set($event)"
+            maxlength="150"
+            placeholder="Ej. Encuesta satisfacción Q3 2026"
+          />
+        </label>
+
+        <aside class="import-specs" aria-label="Especificaciones del archivo de importación">
+          <h3 class="import-specs__title">Cómo debe ser el archivo</h3>
+          <ul class="import-specs__list">
+            <li>Use <strong>Excel (.xlsx)</strong> o <strong>CSV</strong> (máx. 2 MB).</li>
+            <li>
+              Incluya fila de encabezado con columnas:
+              <strong>seccion</strong>, <strong>pregunta</strong>, <strong>subseccion</strong>,
+              <strong>requiere_calificacion</strong>.
+            </li>
+            <li>
+              <strong>requiere_calificacion</strong>: use <strong>si</strong> / <strong>no</strong>
+              (también acepta 1/0, true/false).
+            </li>
+            <li>
+              Varias filas con la misma sección y pregunta agrupan ítems (subsecciones) bajo esa pregunta.
+            </li>
+            <li>El <strong>nombre del formato</strong> se define arriba; no va dentro del Excel.</li>
+            <li>Cada pregunta: máximo <strong>500 caracteres</strong>.</li>
+          </ul>
+          <div class="import-specs__example">
+            <span class="import-specs__example-label">Ejemplo:</span>
+            <pre class="import-specs__preview">seccion,pregunta,subseccion,requiere_calificacion
+Sección I,¿Cómo calificarías el cumplimiento de ANS?,,si
+Sección II,¿Cómo calificarías la comunicación?,Disponibilidad,si
+Sección II,¿Cómo calificarías la comunicación?,Capacidad de respuesta,si
+Sección V,¿Qué aspectos positivos destacaría?,,no</pre>
+          </div>
+          <p class="import-specs__note">
+            También se acepta el formato legado (una pregunta por fila en la columna A, sin encabezado).
+          </p>
+        </aside>
+
+        <div
+          class="dropzone"
+          [class.dropzone--active]="dragOver()"
+          (drop)="onDrop($event)"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+        >
+          <p>Arrastre aquí su archivo Excel o CSV</p>
+          <label class="dropzone__input">
+            Seleccionar archivo
+            <input type="file" accept=".csv,.xlsx" (change)="onFileSelected($event)" />
+          </label>
+          @if (archivo()) {
+            <p class="dropzone__file">{{ archivo()!.name }}</p>
+          }
+        </div>
+        <p class="plantilla-link">
+          <button type="button" class="link" (click)="descargarPlantilla()">
+            Descargar plantilla de ejemplo (.csv)
+          </button>
+        </p>
+        <div class="form-actions">
+          <button type="button" class="btn-primary" [disabled]="uploadLoading() || !archivo()" (click)="subir()">
+            {{ uploadLoading() ? 'Importando...' : 'Guardar formato' }}
+          </button>
+          <a class="btn-secondary" routerLink="/admin/formatos-encuesta">Cancelar</a>
+        </div>
+      } @else if (modoNuevo() === 'clonar') {
+        <label>Nombre del nuevo formato
+          <input type="text" [ngModel]="nombreClon()" (ngModelChange)="nombreClon.set($event)" maxlength="150" />
+        </label>
+        <label>Formato a clonar
+          <select [ngModel]="clonarDesdeId()" (ngModelChange)="onClonarOrigenChange(+$event)">
+            <option [ngValue]="null">Seleccione un formato...</option>
+            @for (f of formatos(); track f.id) {
+              <option [ngValue]="f.id">{{ f.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        @if (seccionesClon().length) {
+          <div class="estructura-editor">
+            <div class="estructura-editor__header">
+              <strong>Estructura (editable antes de guardar)</strong>
+              <button type="button" class="btn-secondary" (click)="agregarSeccion('clon')">Agregar sección</button>
+            </div>
+            <div class="accordion">
+              @for (seccion of seccionesClon(); track $index; let si = $index) {
+                <article class="accordion__item">
+                  <button type="button" class="accordion__header" (click)="toggleSeccion('clon', si)">
+                    <span class="accordion__title">
+                      {{ seccion.titulo.trim() || ('Sección ' + (si + 1)) }}
+                    </span>
+                    <span class="material-symbols-outlined accordion__chevron">
+                      {{ seccion.abierta ? 'expand_less' : 'expand_more' }}
+                    </span>
+                  </button>
+                  @if (seccion.abierta) {
+                    <div class="accordion__body">
+                      <label>Título de la sección
+                        <input
+                          type="text"
+                          [ngModel]="seccion.titulo"
+                          (ngModelChange)="actualizarTituloSeccion('clon', si, $event)"
+                          maxlength="250"
+                        />
+                      </label>
+                      <div class="preguntas-editor">
+                        <div class="preguntas-editor__header">
+                          <strong>Preguntas</strong>
+                          <button type="button" class="btn-secondary" (click)="agregarPregunta('clon', si)">
+                            Agregar pregunta
+                          </button>
+                        </div>
+                        @for (pregunta of seccion.preguntas; track $index; let pi = $index) {
+                          <div class="pregunta-block">
+                            <div class="pregunta-row">
+                              <span class="pregunta-row__orden">{{ pi + 1 }}</span>
+                              <input
+                                type="text"
+                                [ngModel]="pregunta.texto"
+                                (ngModelChange)="actualizarTextoPregunta('clon', si, pi, $event)"
+                                placeholder="Texto de la pregunta"
+                                maxlength="500"
+                              />
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                [disabled]="seccion.preguntas.length <= 1"
+                                (click)="eliminarPregunta('clon', si, pi)"
+                                title="Eliminar pregunta"
+                              >
+                                <span class="material-symbols-outlined">delete</span>
+                              </button>
+                            </div>
+                            <div class="items-editor">
+                              <div class="items-editor__header">
+                                <span>Ítems / subsecciones</span>
+                                <button type="button" class="btn-secondary" (click)="agregarItem('clon', si, pi)">
+                                  Agregar ítem
+                                </button>
+                              </div>
+                              @for (item of pregunta.items; track $index; let ii = $index) {
+                                <div class="item-row">
+                                  <input
+                                    type="text"
+                                    [ngModel]="item.subseccion"
+                                    (ngModelChange)="actualizarItemSubseccion('clon', si, pi, ii, $event)"
+                                    placeholder="Subsección (opcional)"
+                                    maxlength="250"
+                                  />
+                                  <label class="checkbox-inline">
+                                    <input
+                                      type="checkbox"
+                                      [ngModel]="item.requiereCalificacion"
+                                      (ngModelChange)="actualizarItemRequiere('clon', si, pi, ii, $event)"
+                                    />
+                                    Requiere calificación 1–5
+                                  </label>
+                                  <button
+                                    type="button"
+                                    class="btn-icon"
+                                    [disabled]="pregunta.items.length <= 1"
+                                    (click)="eliminarItem('clon', si, pi, ii)"
+                                    title="Eliminar ítem"
+                                  >
+                                    <span class="material-symbols-outlined">delete</span>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      <div class="form-actions">
+                        <button
+                          type="button"
+                          class="btn-secondary"
+                          [disabled]="seccionesClon().length <= 1"
+                          (click)="eliminarSeccion('clon', si)"
+                        >
+                          Eliminar sección
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="confirmarClonarNuevo()">
+            {{ actionLoading() ? 'Guardando...' : 'Guardar formato' }}
+          </button>
+          <a class="btn-secondary" routerLink="/admin/formatos-encuesta">Cancelar</a>
+        </div>
+      } @else {
+        <label>Nombre del formato
+          <input type="text" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" maxlength="150" />
+        </label>
+
+        <label class="checkbox-inline checkbox-inline--block">
+          <input
+            type="checkbox"
+            [ngModel]="usarEstructuraDefault()"
+            (ngModelChange)="toggleUsarDefault($event)"
+          />
+          Usar estructura por defecto del sistema (se puede editar después)
+        </label>
+
+        @if (!usarEstructuraDefault()) {
+          <div class="estructura-editor">
+            <div class="estructura-editor__header">
+              <strong>Estructura</strong>
+              <button type="button" class="btn-secondary" (click)="agregarSeccion('nuevo')">Agregar sección</button>
+            </div>
+            <div class="accordion">
+              @for (seccion of seccionesNuevo(); track $index; let si = $index) {
+                <article class="accordion__item">
+                  <button type="button" class="accordion__header" (click)="toggleSeccion('nuevo', si)">
+                    <span class="accordion__title">
+                      {{ seccion.titulo.trim() || ('Sección ' + (si + 1)) }}
+                    </span>
+                    <span class="material-symbols-outlined accordion__chevron">
+                      {{ seccion.abierta ? 'expand_less' : 'expand_more' }}
+                    </span>
+                  </button>
+                  @if (seccion.abierta) {
+                    <div class="accordion__body">
+                      <label>Título de la sección
+                        <input
+                          type="text"
+                          [ngModel]="seccion.titulo"
+                          (ngModelChange)="actualizarTituloSeccion('nuevo', si, $event)"
+                          maxlength="250"
+                        />
+                      </label>
+                      <div class="preguntas-editor">
+                        <div class="preguntas-editor__header">
+                          <strong>Preguntas</strong>
+                          <button type="button" class="btn-secondary" (click)="agregarPregunta('nuevo', si)">
+                            Agregar pregunta
+                          </button>
+                        </div>
+                        @for (pregunta of seccion.preguntas; track $index; let pi = $index) {
+                          <div class="pregunta-block">
+                            <div class="pregunta-row">
+                              <span class="pregunta-row__orden">{{ pi + 1 }}</span>
+                              <input
+                                type="text"
+                                [ngModel]="pregunta.texto"
+                                (ngModelChange)="actualizarTextoPregunta('nuevo', si, pi, $event)"
+                                placeholder="Texto de la pregunta"
+                                maxlength="500"
+                              />
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                [disabled]="seccion.preguntas.length <= 1"
+                                (click)="eliminarPregunta('nuevo', si, pi)"
+                                title="Eliminar pregunta"
+                              >
+                                <span class="material-symbols-outlined">delete</span>
+                              </button>
+                            </div>
+                            <div class="items-editor">
+                              <div class="items-editor__header">
+                                <span>Ítems / subsecciones</span>
+                                <button type="button" class="btn-secondary" (click)="agregarItem('nuevo', si, pi)">
+                                  Agregar ítem
+                                </button>
+                              </div>
+                              @for (item of pregunta.items; track $index; let ii = $index) {
+                                <div class="item-row">
+                                  <input
+                                    type="text"
+                                    [ngModel]="item.subseccion"
+                                    (ngModelChange)="actualizarItemSubseccion('nuevo', si, pi, ii, $event)"
+                                    placeholder="Subsección (opcional)"
+                                    maxlength="250"
+                                  />
+                                  <label class="checkbox-inline">
+                                    <input
+                                      type="checkbox"
+                                      [ngModel]="item.requiereCalificacion"
+                                      (ngModelChange)="actualizarItemRequiere('nuevo', si, pi, ii, $event)"
+                                    />
+                                    Requiere calificación 1–5
+                                  </label>
+                                  <button
+                                    type="button"
+                                    class="btn-icon"
+                                    [disabled]="pregunta.items.length <= 1"
+                                    (click)="eliminarItem('nuevo', si, pi, ii)"
+                                    title="Eliminar ítem"
+                                  >
+                                    <span class="material-symbols-outlined">delete</span>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      <div class="form-actions">
+                        <button
+                          type="button"
+                          class="btn-secondary"
+                          [disabled]="seccionesNuevo().length <= 1"
+                          (click)="eliminarSeccion('nuevo', si)"
+                        >
+                          Eliminar sección
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="crearManual()">
+            {{ actionLoading() ? 'Guardando...' : 'Guardar formato' }}
+          </button>
+          <a class="btn-secondary" routerLink="/admin/formatos-encuesta">Cancelar</a>
+        </div>
+      }
+    </div>
+  }
+
+  @if (detalle(); as d) {
+    <section class="panel detalle-panel">
+      <header class="detalle-panel__header">
+        <h2>{{ editando() ? 'Editar formato' : d.nombre }}</h2>
+        <div class="detalle-panel__actions">
+          @if (!editando() && !d.enUso) {
+            <button type="button" class="btn-secondary" (click)="iniciarEdicion()">Editar</button>
+          }
+          <button type="button" class="btn-secondary" (click)="cerrarDetalle()">Volver a la lista</button>
+        </div>
+      </header>
+
+      @if (editando()) {
+        <label>Nombre del formato
+          <input type="text" [ngModel]="nombreEdicion()" (ngModelChange)="nombreEdicion.set($event)" maxlength="150" />
+        </label>
+        <div class="estructura-editor">
+          <div class="estructura-editor__header">
+            <strong>Estructura</strong>
+            <button type="button" class="btn-secondary" (click)="agregarSeccion('edicion')">Agregar sección</button>
+          </div>
+          <div class="accordion">
+            @for (seccion of seccionesEdicion(); track $index; let si = $index) {
+              <article class="accordion__item">
+                <button type="button" class="accordion__header" (click)="toggleSeccion('edicion', si)">
+                  <span class="accordion__title">
+                    {{ seccion.titulo.trim() || ('Sección ' + (si + 1)) }}
+                  </span>
+                  <span class="material-symbols-outlined accordion__chevron">
+                    {{ seccion.abierta ? 'expand_less' : 'expand_more' }}
+                  </span>
+                </button>
+                @if (seccion.abierta) {
+                  <div class="accordion__body">
+                    <label>Título de la sección
+                      <input
+                        type="text"
+                        [ngModel]="seccion.titulo"
+                        (ngModelChange)="actualizarTituloSeccion('edicion', si, $event)"
+                        maxlength="250"
+                      />
+                    </label>
+                    <div class="preguntas-editor">
+                      <div class="preguntas-editor__header">
+                        <strong>Preguntas</strong>
+                        <button type="button" class="btn-secondary" (click)="agregarPregunta('edicion', si)">
+                          Agregar pregunta
+                        </button>
+                      </div>
+                      @for (pregunta of seccion.preguntas; track $index; let pi = $index) {
+                        <div class="pregunta-block">
+                          <div class="pregunta-row">
+                            <span class="pregunta-row__orden">{{ pi + 1 }}</span>
+                            <input
+                              type="text"
+                              [ngModel]="pregunta.texto"
+                              (ngModelChange)="actualizarTextoPregunta('edicion', si, pi, $event)"
+                              placeholder="Texto de la pregunta"
+                              maxlength="500"
+                            />
+                            <button
+                              type="button"
+                              class="btn-icon"
+                              [disabled]="seccion.preguntas.length <= 1"
+                              (click)="eliminarPregunta('edicion', si, pi)"
+                              title="Eliminar pregunta"
+                            >
+                              <span class="material-symbols-outlined">delete</span>
+                            </button>
+                          </div>
+                          <div class="items-editor">
+                            <div class="items-editor__header">
+                              <span>Ítems / subsecciones</span>
+                              <button type="button" class="btn-secondary" (click)="agregarItem('edicion', si, pi)">
+                                Agregar ítem
+                              </button>
+                            </div>
+                            @for (item of pregunta.items; track $index; let ii = $index) {
+                              <div class="item-row">
+                                <input
+                                  type="text"
+                                  [ngModel]="item.subseccion"
+                                  (ngModelChange)="actualizarItemSubseccion('edicion', si, pi, ii, $event)"
+                                  placeholder="Subsección (opcional)"
+                                  maxlength="250"
+                                />
+                                <label class="checkbox-inline">
+                                  <input
+                                    type="checkbox"
+                                    [ngModel]="item.requiereCalificacion"
+                                    (ngModelChange)="actualizarItemRequiere('edicion', si, pi, ii, $event)"
+                                  />
+                                  Requiere calificación 1–5
+                                </label>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  [disabled]="pregunta.items.length <= 1"
+                                  (click)="eliminarItem('edicion', si, pi, ii)"
+                                  title="Eliminar ítem"
+                                >
+                                  <span class="material-symbols-outlined">delete</span>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    <div class="form-actions">
+                      <button
+                        type="button"
+                        class="btn-secondary"
+                        [disabled]="seccionesEdicion().length <= 1"
+                        (click)="eliminarSeccion('edicion', si)"
+                      >
+                        Eliminar sección
+                      </button>
+                    </div>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="guardarEdicion()">
+            {{ actionLoading() ? 'Guardando...' : 'Guardar formato' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+        </div>
+      } @else {
+        <p>
+          Secciones: <strong>{{ d.secciones?.length ?? 0 }}</strong>
+          · Preguntas: <strong>{{ d.preguntas.length }}</strong>
+          · Ítems: <strong>{{ contarItemsDetalle(d) }}</strong>
+          · Estado: <strong>{{ d.activo ? 'Activo' : 'Inactivo' }}</strong>
+          @if (d.enUso) { · <em>En uso — clone el formato para editar la estructura</em> }
+        </p>
+        <div class="accordion detalle-estructura">
+          @for (seccion of d.secciones; track seccion.id) {
+            <article class="accordion__item">
+              <div class="accordion__header accordion__header--static">
+                <strong>{{ seccion.orden }}. {{ seccion.titulo }}</strong>
+              </div>
+              <div class="accordion__body">
+                @for (pregunta of seccion.preguntas; track pregunta.id) {
+                  <div class="pregunta-lectura">
+                    <p class="pregunta-lectura__texto">{{ pregunta.orden }}. {{ pregunta.texto }}</p>
+                    <ul class="pregunta-lectura__items">
+                      @for (item of pregunta.items; track item.id) {
+                        <li>
+                          @if (item.subseccion) {
+                            <span>{{ item.subseccion }}</span>
+                          } @else {
+                            <span>Ítem {{ item.orden }}</span>
+                          }
+                          ·
+                          <span class="badge" [class.badge--aprobado]="item.requiereCalificacion" [class.badge--no-aprobado]="!item.requiereCalificacion">
+                            {{ item.requiereCalificacion ? 'Calificación 1–5' : 'Solo observación' }}
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  } @else if (!mostrarFormulario()) {
+    <section class="panel">
+      <div class="lista-toolbar">
+        <input
+          type="search"
+          placeholder="Buscar por nombre..."
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event); onSearchChange()"
+          aria-label="Buscar formatos"
+        />
+      </div>
+
+      <h2>Formatos cargados</h2>
+      @if (loading()) {
+        <p>Cargando...</p>
+      } @else if (!formatos().length) {
+        <p>No hay formatos cargados para este país.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>N° preguntas</th>
+                <th>N° ítems</th>
+                <th>Fecha creación</th>
+                <th>Estado</th>
+                <th class="col-actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (formato of formatosPaginados(); track formato.id) {
+                <tr>
+                  <td>{{ formato.nombre }}</td>
+                  <td>{{ formato.cantidadPreguntas }}</td>
+                  <td>{{ formato.cantidadItems ?? '—' }}</td>
+                  <td>{{ formatFechaHora(formato.fechaCreacion) }}</td>
+                  <td>
+                    <span class="badge" [class.badge--aprobado]="formato.activo" [class.badge--no-aprobado]="!formato.activo">
+                      {{ formato.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <div class="actions-menu" [class.actions-menu--open]="menuAbierto(formato.id)">
+                      <button type="button" class="actions-menu__trigger" (click)="toggleMenu(formato.id, $event)">
+                        Acciones
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                      </button>
+                      @if (menuAbierto(formato.id)) {
+                        <div class="actions-menu__panel" role="menu" (click)="$event.stopPropagation()">
+                          <button type="button" class="actions-menu__item" (click)="verDetalle(formato.id)">
+                            Ver / editar
+                          </button>
+                          <button type="button" class="actions-menu__item" (click)="abrirClonarDesdeLista(formato)">
+                            Clonar
+                          </button>
+                          <button
+                            type="button"
+                            class="actions-menu__item"
+                            [class.actions-menu__item--danger]="formato.activo"
+                            [disabled]="actionLoading()"
+                            (click)="toggleActivo(formato)"
+                          >
+                            {{ formato.activo ? 'Desactivar' : 'Activar' }}
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6">No hay formatos que coincidan con la búsqueda.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <app-table-pagination
+          [page]="page()"
+          [limit]="limit()"
+          [total]="totalFiltrados()"
+          (pageChange)="onPageChange($event)"
+          (limitChange)="onLimitChange($event)"
+        />
+      }
+    </section>
+  }
+</section>

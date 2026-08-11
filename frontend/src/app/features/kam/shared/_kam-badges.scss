@@ -1,0 +1,41 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge--pendiente {
+  background: var(--badge-lejano-bg);
+  border-color: var(--badge-lejano-border);
+  color: var(--badge-lejano-text);
+}
+
+.badge--ejecutado {
+  background: var(--badge-proximo-bg);
+  border-color: var(--badge-proximo-border);
+  color: var(--badge-proximo-text);
+}
+
+.badge--socializado {
+  background: var(--badge-publicado-bg);
+  border-color: var(--badge-publicado-border);
+  color: var(--badge-publicado-text);
+}
+
+.badge--encuesta-pendiente {
+  background: var(--badge-lejano-bg);
+  border-color: var(--badge-lejano-border);
+  color: var(--badge-lejano-text);
+}
+
+.badge--encuesta-completa {
+  background: var(--badge-publicado-bg);
+  border-color: var(--badge-publicado-border);
+  color: var(--badge-publicado-text);
+}

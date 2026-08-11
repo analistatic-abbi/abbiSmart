@@ -1,0 +1,62 @@
+.audit-historial-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.audit-historial-item {
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--color-surface-container-lowest, #fff);
+}
+
+.audit-historial-item__header {
+  margin-bottom: 8px;
+}
+
+.audit-historial-item__meta {
+  margin: 4px 0 0;
+  color: var(--color-on-surface-variant);
+  font-size: 12px;
+}
+
+.audit-historial-item__cambios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audit-historial-item__cambios li {
+  display: grid;
+  grid-template-columns: minmax(120px, 38%) 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 13px;
+}
+
+.audit-historial-item__label {
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+}
+
+.audit-historial-item__valor {
+  word-break: break-word;
+  color: var(--color-on-surface);
+}
+
+.audit-historial__empty,
+.audit-historial__status {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 14px;
+}
+
+.audit-historial__status--error {
+  color: var(--color-error);
+}

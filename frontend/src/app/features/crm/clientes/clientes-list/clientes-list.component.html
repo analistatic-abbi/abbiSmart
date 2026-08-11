@@ -15,8 +15,8 @@
     <input type="search" placeholder="Buscar empresa..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
     <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event); onFilter()">
       <option value="">Todos los segmentos</option>
-      @for (s of segmentos; track s) {
-        <option [value]="s">{{ s }}</option>
+      @for (s of segmentos(); track s.codigo) {
+        <option [value]="s.codigo">{{ s.etiqueta }}</option>
       }
     </select>
     @if (puedeVerEliminados()) {

@@ -17,6 +17,20 @@ export function mensajeErrorApi(
   return fallback;
 }
 
+export function mensajeExitoApi(
+  response: unknown,
+  fallback: string,
+): string {
+  if (response && typeof response === 'object' && 'message' in response) {
+    const message = (response as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim();
+    }
+  }
+
+  return fallback;
+}
+
 export function esErrorCodigo(err: unknown, code: string): boolean {
   if (!(err instanceof HttpErrorResponse)) {
     return false;

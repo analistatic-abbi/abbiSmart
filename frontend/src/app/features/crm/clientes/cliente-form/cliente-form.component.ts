@@ -4,12 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
-import { SegmentoCliente } from '../../../../core/models/crm.model';
+import { CatalogoPaisItem } from '../../../../core/models/pais-config.model';
 import {
   DuplicadoAlertaComponent,
   DuplicadoSugerencia,
 } from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarCreacion, confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-cliente-form',
@@ -23,12 +26,16 @@ export class ClienteFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly clientes = inject(ClientesService);
   private readonly catalogos = inject(CatalogosService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
-  protected readonly segmentos = Object.values(SegmentoCliente);
-  protected readonly segmentoOtro = SegmentoCliente.Otro;
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
+  protected readonly segmentoOtro = 'Otro';
+  protected readonly etiquetaGeoNivel1 = signal('Departamento');
+  protected readonly etiquetaGeoNivel2 = signal('Municipio');
 
   protected readonly empresa = signal('');
-  protected readonly segmento = signal<SegmentoCliente>(SegmentoCliente.Mineria);
+  protected readonly segmento = signal('');
   protected readonly segmentoOtroValor = signal('');
   protected readonly departamento = signal('');
   protected readonly ubicacionId = signal<number | null>(null);
@@ -90,6 +97,20 @@ export class ClienteFormComponent implements OnInit {
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.catalogos.getDepartamentos().subscribe((r) => this.departamentos.set(r.data));
+    this.catalogos.getCapabilitiesSesion().subscribe({
+      next: (r) => {
+        this.etiquetaGeoNivel1.set(r.data.etiquetasGeo.nivel1);
+        this.etiquetaGeoNivel2.set(r.data.etiquetasGeo.nivel2);
+      },
+    });
+    this.catalogos.getCatalogoSesion('segmento_cliente').subscribe({
+      next: (r) => {
+        this.segmentos.set(r.data);
+        if (!this.isEdit() && r.data.length) {
+          this.segmento.set(r.data[0].codigo);
+        }
+      },
+    });
 
     if (idParam) {
       this.isEdit.set(true);
@@ -130,7 +151,7 @@ export class ClienteFormComponent implements OnInit {
       return;
     }
 
-    if (this.segmento() === SegmentoCliente.Otro && !this.segmentoOtroValor().trim()) {
+    if (this.segmento() === this.segmentoOtro && !this.segmentoOtroValor().trim()) {
       this.error.set('Indique el segmento cuando selecciona «Otro».');
       return;
     }
@@ -141,24 +162,38 @@ export class ClienteFormComponent implements OnInit {
       empresa: this.empresa().trim(),
       ubicacionId,
       segmento: this.segmento(),
-      ...(this.segmento() === SegmentoCliente.Otro
+      ...(this.segmento() === this.segmentoOtro
         ? { segmentoOtro: this.segmentoOtroValor().trim() }
         : {}),
     };
 
-    this.loading.set(true);
-    const req = this.isEdit()
-      ? this.clientes.update(this.clienteId, payload)
-      : this.clientes.create(payload);
+    const confirm = this.isEdit()
+      ? confirmarGuardado(this.confirmDialog, '¿Desea guardar los cambios del cliente?')
+      : confirmarCreacion(this.confirmDialog, '¿Desea crear el cliente?');
 
-    req.subscribe({
-      next: (r) => {
-        void this.router.navigate(['/crm/clientes', r.cliente.id]);
-      },
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible guardar el cliente.'));
-        this.loading.set(false);
-      },
+    void confirm.then((ok) => {
+      if (!ok) return;
+
+      this.loading.set(true);
+      const req = this.isEdit()
+        ? this.clientes.update(this.clienteId, payload)
+        : this.clientes.create(payload);
+
+      req.subscribe({
+        next: (r) => {
+          this.toast.success(
+            mensajeExitoApi(
+              r,
+              this.isEdit() ? 'Cliente actualizado correctamente.' : 'Cliente creado correctamente.',
+            ),
+          );
+          void this.router.navigate(['/crm/clientes', r.cliente.id]);
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible guardar el cliente.'));
+          this.loading.set(false);
+        },
+      });
     });
   }
 }

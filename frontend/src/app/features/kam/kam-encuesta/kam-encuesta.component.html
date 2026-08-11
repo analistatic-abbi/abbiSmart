@@ -1,0 +1,193 @@
+@if (loading()) {
+  <p class="page-loading">Cargando encuesta...</p>
+} @else if (error()) {
+  <section class="page">
+    <div class="empty-state">
+      <p class="error">{{ error() }}</p>
+      <div class="form-actions">
+        <a [routerLink]="['/kam', kamId]" class="btn-secondary">← Volver al KAM</a>
+      </div>
+    </div>
+  </section>
+} @else if (encuesta()) {
+  <section class="page encuesta-page">
+    <header class="encuesta-page__header">
+      <div>
+        <a [routerLink]="['/kam', kamId]" class="back">← Volver al KAM</a>
+        <h1>{{ encuesta()!.formatoNombre }}</h1>
+        <p class="encuesta-page__meta">
+          {{ procesoCodigo() ?? 'Proceso KAM' }} · {{ empresaMostrar() }}
+          @if (ronda(); as r) {
+            · Ronda {{ r.numero }}
+            <span [class]="badgeClass(r.estado)">{{ r.estado }}</span>
+          }
+        </p>
+        @if (contacto(); as c) {
+          <p class="encuesta-page__contacto">
+            Contacto: <strong>{{ c.nombre }}</strong>
+            <span [class]="estadoEncuestaClass(c.completo)">
+              {{ c.completo ? 'Completa' : 'Pendiente de respuesta' }}
+            </span>
+          </p>
+        }
+      </div>
+    </header>
+
+    @if (formato(); as f) {
+      <section class="panel encuesta-form">
+        <h2>Encuesta</h2>
+        <p class="encuesta-form__hint">
+          Responda por sección. Solo los ítems marcados para calificación usan la escala 1–5;
+          el resto admite únicamente observación.
+        </p>
+
+        <div class="secciones-lista">
+          @for (seccion of secciones(); track seccion.id) {
+            <article class="seccion-block">
+              <header class="seccion-block__header">
+                <h3>{{ seccion.titulo }}</h3>
+              </header>
+
+              <div class="preguntas-lista">
+                @for (pregunta of seccion.preguntas; track pregunta.id) {
+                  <div class="pregunta-card">
+                    <p class="pregunta-card__texto">{{ pregunta.texto }}</p>
+
+                    @for (item of itemsDePregunta(pregunta); track item.id) {
+                      <div class="item-block" [class.item-block--nested]="!!item.subseccion">
+                        @if (item.subseccion) {
+                          <p class="item-block__subseccion">{{ item.subseccion }}</p>
+                        }
+
+                        @if (puedeEditar()) {
+                          @if (item.requiereCalificacion) {
+                            <div class="escala">
+                              <span class="escala__label">Calificación</span>
+                              <div
+                                class="escala__botones"
+                                role="group"
+                                [attr.aria-label]="'Calificación para: ' + (item.subseccion || pregunta.texto)"
+                              >
+                                @for (n of [1, 2, 3, 4, 5]; track n) {
+                                  <button
+                                    type="button"
+                                    class="escala__btn"
+                                    [class.escala__btn--activo]="getPuntaje(+item.id) === n"
+                                    (click)="setPuntaje(+item.id, n)"
+                                  >
+                                    {{ n }}
+                                  </button>
+                                }
+                              </div>
+                            </div>
+                          }
+                          <label>
+                            Observación
+                            <textarea
+                              rows="2"
+                              placeholder="Comentario (opcional)"
+                              [ngModel]="getObservacion(+item.id)"
+                              (ngModelChange)="setObservacion(+item.id, $event)"
+                            ></textarea>
+                          </label>
+                        } @else {
+                          <div class="pregunta-card__lectura">
+                            @if (item.requiereCalificacion) {
+                              <span>Calificación: <strong>{{ getPuntaje(+item.id) ?? '—' }}</strong></span>
+                            }
+                            @if (getObservacion(+item.id)) {
+                              <span>Observación: {{ getObservacion(+item.id) }}</span>
+                            } @else if (!item.requiereCalificacion) {
+                              <span>Sin observación</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (resumen(); as resumen) {
+      <section class="panel resumen-panel">
+        <header class="resumen-panel__header">
+          <h2>Resumen</h2>
+          <div class="resumen-panel__meta">
+            <span class="badge">{{ resumen.categoria }}</span>
+            <span>Global: <strong>{{ formatPorcentaje(resumen.porcentajeGlobal) }}</strong></span>
+            <span>
+              {{ resumen.puntosObtenidos }} / {{ resumen.puntosPosibles }} pts
+            </span>
+          </div>
+        </header>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sección</th>
+                <th>Etiqueta</th>
+                <th>Puntos</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (sec of resumen.secciones; track sec.seccionId) {
+                <tr>
+                  <td>{{ sec.titulo }}</td>
+                  <td>{{ sec.etiqueta }}</td>
+                  <td>{{ sec.puntosObtenidos }} / {{ sec.puntosPosibles }}</td>
+                  <td>{{ formatPorcentaje(sec.porcentaje) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="veredicto-block">
+          <label>
+            Veredicto
+            @if (encuesta()!.veredictoEditado) {
+              <span class="badge badge--editado">Editado</span>
+            }
+            <textarea
+              rows="4"
+              [ngModel]="veredictoDraft()"
+              (ngModelChange)="veredictoDraft.set($event)"
+              [readonly]="!puedeEscribir()"
+              placeholder="Veredicto de la encuesta"
+            ></textarea>
+          </label>
+          @if (puedeEscribir()) {
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                [disabled]="savingVeredicto()"
+                (click)="guardarVeredicto()"
+              >
+                {{ savingVeredicto() ? 'Guardando...' : 'Guardar veredicto' }}
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (puedeEditar()) {
+      <footer class="encuesta-barra">
+        <div class="encuesta-barra__inner">
+          <a class="btn-secondary" [routerLink]="['/kam', kamId]">Cancelar</a>
+          <button type="button" class="btn-primary" [disabled]="saving()" (click)="guardar()">
+            {{ saving() ? 'Guardando...' : 'Guardar respuestas' }}
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+}

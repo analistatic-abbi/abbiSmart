@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Cliente, ClienteVista360, CreateClientePayload, SegmentoCliente } from '../models/crm.model';
+import { Cliente, ClienteVista360, CreateClientePayload } from '../models/crm.model';
 import { FiltroEliminados } from '../models/filtro-eliminados.model';
 
 @Injectable({ providedIn: 'root' })
@@ -14,7 +14,7 @@ export class ClientesService {
     page?: number;
     limit?: number;
     search?: string;
-    segmento?: SegmentoCliente;
+    segmento?: string;
     filtroEliminados?: FiltroEliminados;
     incluirEliminados?: boolean;
   } = {}): Observable<{ data: Cliente[]; total: number }> {

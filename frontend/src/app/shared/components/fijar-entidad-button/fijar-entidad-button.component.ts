@@ -3,7 +3,8 @@ import {
   BandejaPersonalService,
   FijacionEntidadTipo,
 } from '../../../core/services/bandeja-personal.service';
-import { mensajeErrorApi } from '../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../core/utils/api-error.util';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-fijar-entidad-button',
@@ -79,6 +80,7 @@ export class FijarEntidadButtonComponent {
   readonly changed = output<boolean>();
 
   private readonly bandejaService = inject(BandejaPersonalService);
+  private readonly toast = inject(ToastService);
 
   protected readonly fijado = signal(false);
   protected readonly loading = signal(false);
@@ -110,11 +112,17 @@ export class FijarEntidadButtonComponent {
       : this.bandejaService.fijar(tipo, id);
 
     request.subscribe({
-      next: () => {
+      next: (r) => {
         const nuevoEstado = !this.fijado();
         this.fijado.set(nuevoEstado);
         this.loading.set(false);
         this.changed.emit(nuevoEstado);
+        this.toast.success(
+          mensajeExitoApi(
+            r,
+            nuevoEstado ? 'Entidad fijada en su bandeja.' : 'Entidad desfijada de su bandeja.',
+          ),
+        );
       },
       error: (err) => {
         this.loading.set(false);

@@ -3,8 +3,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Proyeccion } from '../../../../core/models/admin.model';
-import { formatCurrencyFull } from '../../../../core/utils/currency.util';
-import { parseIsoDateLocal } from '../../../../core/utils/date.util';
+import { formatMonedaAbreviada, tituloMonedaCompleta } from '../../../../core/utils/currency.util';
+import { parseIsoDateLocal, formatFechaCorta } from '../../../../core/utils/date.util';
 import { getEstadoCalendarioStyle } from './estado-calendario.styles';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
 import { YearSelectorComponent } from '../../../../shared/components/year-selector/year-selector.component';
@@ -61,7 +61,9 @@ export class CalendarioProyeccionesComponent implements OnInit {
   protected readonly puedeAsignarMercado = () => this.auth.puedeAsignarMercadoProyeccion();
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
 
-  protected readonly formatValor = formatCurrencyFull;
+  protected readonly formatValor = formatMonedaAbreviada;
+  protected readonly tituloValor = tituloMonedaCompleta;
+  protected readonly formatFechaCorta = formatFechaCorta;
   protected estadoStyle(estado: string) {
     this.themeService.theme();
     return getEstadoCalendarioStyle(estado);

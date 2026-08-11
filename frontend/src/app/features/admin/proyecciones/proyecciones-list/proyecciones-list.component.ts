@@ -9,6 +9,10 @@ import {
   FiltroEliminados,
 } from '../../../../core/models/filtro-eliminados.model';
 import { claseBadgeEstadoProyeccion } from '../../../../core/utils/proyeccion-ui.util';
+import {
+  formatMonedaAbreviada,
+  tituloMonedaCompleta,
+} from '../../../../core/utils/currency.util';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
 
 @Component({
@@ -38,6 +42,8 @@ export class ProyeccionesListComponent implements OnInit {
   protected readonly puedeVerEliminados = () => this.auth.puedeVerEliminados();
   protected readonly filtrosEliminados = FILTRO_ELIMINADOS_OPCIONES;
   protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
+  protected readonly formatValor = formatMonedaAbreviada;
+  protected readonly tituloValor = tituloMonedaCompleta;
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProyeccion(estado);
 
   ngOnInit(): void {

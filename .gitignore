@@ -31,5 +31,8 @@ Thumbs.db
 # Temp
 *.tsbuildinfo
 
+# Design exports (Stitch)
+.stitch-export/
+
 # Uploads locales (evidencias de tareas)
 uploads/

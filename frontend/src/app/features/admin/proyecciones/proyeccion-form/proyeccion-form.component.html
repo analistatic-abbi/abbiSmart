@@ -35,8 +35,8 @@
       <label>
         Segmento
         <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event)">
-          @for (s of segmentos; track s) {
-            <option [value]="s">{{ s }}</option>
+          @for (s of segmentos(); track s.codigo) {
+            <option [value]="s.codigo">{{ s.etiqueta }}</option>
           }
         </select>
       </label>

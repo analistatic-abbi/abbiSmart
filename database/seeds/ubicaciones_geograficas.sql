@@ -159,7 +159,7 @@ VALUES
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Atlántico', 'Suan'),
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Atlántico', 'Tubará'),
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Atlántico', 'Usiacurí'),
-  ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Bogotá D.C.', 'Bogotá D.C.'),
+  ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Cundinamarca', 'Bogotá'),
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Bolívar', 'Cartagena'),
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Bolívar', 'Achí'),
   ((SELECT id FROM paises WHERE nombre = 'Colombia'), 'Bolívar', 'Altos del Rosario'),

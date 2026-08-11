@@ -2,6 +2,11 @@
   color: var(--color-on-surface-variant);
 }
 
+.error {
+  color: var(--color-error);
+  margin-bottom: 16px;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -95,9 +100,24 @@
 
 .evento-card__top {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.evento-card__top-main {
+  display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.evento-card__dia {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .evento-card__icon {
@@ -121,5 +141,26 @@
 .evento-card__sub {
   margin-top: 4px;
   font-size: 11px;
+  color: var(--color-on-surface-variant);
+
+  &--strong {
+    font-weight: 600;
+    color: var(--color-on-surface);
+  }
+}
+
+.evento-card__detalle {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--color-on-surface-variant);
+}
+
+.evento-card__meta {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 10px;
+  font-weight: 500;
   color: var(--color-on-surface-variant);
 }

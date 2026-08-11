@@ -1,0 +1,21 @@
+@use '../../../../../styles/forms' as forms;
+
+.modal-hint {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  line-height: 1.5;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-emphasis);
+
+  input {
+    @include forms.abbi-text-field;
+  }
+}

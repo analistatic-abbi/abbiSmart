@@ -47,6 +47,18 @@ export class RelacionamientosService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
+    if (
+      query.fechaMensajeDesde &&
+      query.fechaMensajeHasta &&
+      query.fechaMensajeDesde > query.fechaMensajeHasta
+    ) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'La fecha desde no puede ser posterior a la fecha hasta',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const qb = this.relacionamientoRepository
       .createQueryBuilder('r')
       .innerJoin('r.contacto', 'co')
@@ -74,6 +86,18 @@ export class RelacionamientosService {
         '(r.mensaje LIKE :search OR r.respuesta LIKE :search)',
         { search: `%${query.search}%` },
       );
+    }
+
+    if (query.fechaMensajeDesde) {
+      qb.andWhere('r.fecha_mensaje >= :fechaMensajeDesde', {
+        fechaMensajeDesde: query.fechaMensajeDesde,
+      });
+    }
+
+    if (query.fechaMensajeHasta) {
+      qb.andWhere('r.fecha_mensaje <= :fechaMensajeHasta', {
+        fechaMensajeHasta: query.fechaMensajeHasta,
+      });
     }
 
     qb.orderBy('r.fecha_mensaje', 'DESC')

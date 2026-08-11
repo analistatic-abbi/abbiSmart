@@ -14,8 +14,8 @@ export class ClienteResponseDto {
   @ApiProperty()
   ubicacionId: number;
 
-  @ApiProperty({ enum: SegmentoCliente })
-  segmento: SegmentoCliente;
+  @ApiProperty({ example: 'Minería' })
+  segmento: string;
 
   @ApiPropertyOptional()
   segmentoOtro: string | null;

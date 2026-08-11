@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
-import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
 import { Cliente } from './cliente.entity';
 import { Pais } from './pais.entity';
 import { Proceso } from './proceso.entity';
@@ -33,8 +32,8 @@ export class Proyeccion {
   @Column({ name: 'empresa_otro', type: 'varchar', length: 255, nullable: true })
   empresaOtro: string | null;
 
-  @Column({ type: 'enum', enum: SegmentoProceso, nullable: true })
-  segmento: SegmentoProceso | null;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  segmento: string | null;
 
   @Column({ name: 'pais_id', type: 'bigint', unsigned: true })
   paisId: number;

@@ -6,6 +6,8 @@ import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
+import { AuditModule } from '../audit/audit.module';
+import { CatalogosModule } from '../catalogos/catalogos.module';
 import { ClientesController } from './clientes.controller';
 import { ClientesService } from './clientes.service';
 
@@ -19,6 +21,8 @@ import { ClientesService } from './clientes.service';
       Relacionamiento,
       UbicacionGeografica,
     ]),
+    CatalogosModule,
+    AuditModule,
   ],
   controllers: [ClientesController],
   providers: [ClientesService],

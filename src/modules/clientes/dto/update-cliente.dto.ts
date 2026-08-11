@@ -1,39 +1,28 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPositive,
-  IsString,
-  MaxLength,
-  ValidateIf,
-} from 'class-validator';
-import { SegmentoCliente } from '../../../common/enums/segmento-cliente.enum';
+import { IsInt, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
 export class UpdateClienteDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
   empresa?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  @IsPositive()
   ubicacionId?: number;
 
-  @ApiPropertyOptional({ enum: SegmentoCliente })
+  @ApiPropertyOptional({ example: 'Minería' })
   @IsOptional()
-  @IsEnum(SegmentoCliente)
-  segmento?: SegmentoCliente;
+  @IsString()
+  @MaxLength(100)
+  segmento?: string;
 
   @ApiPropertyOptional()
-  @ValidateIf((dto: UpdateClienteDto) => dto.segmento === SegmentoCliente.OTRO)
+  @ValidateIf((dto: UpdateClienteDto) => dto.segmento === 'Otro')
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
   segmentoOtro?: string;
 }

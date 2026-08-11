@@ -5,6 +5,7 @@ import {
   AuditAccion,
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
+import { CatalogoPaisTipo } from '../../common/enums/catalogo-pais-tipo.enum';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { EstadoUsuario } from '../../common/enums/estado-usuario.enum';
@@ -32,6 +33,7 @@ import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Usuario } from '../../database/entities/usuario.entity';
 import { AuditService } from '../audit/audit.service';
+import { CatalogoPaisService } from '../catalogos/catalogo-pais.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ProcesosService } from '../procesos/procesos.service';
@@ -72,6 +74,7 @@ export class ProyeccionesService {
     private readonly alertasControlService: AlertasControlService,
     private readonly permisosService: PermisosService,
     private readonly eliminacionDependenciasService: EliminacionDependenciasService,
+    private readonly catalogoPaisService: CatalogoPaisService,
   ) {}
 
   async findAll(
@@ -113,9 +116,11 @@ export class ProyeccionesService {
     }
 
     if (query.search?.trim()) {
-      conditions.push('(v.empresa LIKE ? OR v.proceso_codigo LIKE ?)');
+      conditions.push(
+        '(v.empresa LIKE ? OR v.proceso_codigo LIKE ? OR v.objeto LIKE ?)',
+      );
       const term = `%${query.search.trim()}%`;
-      params.push(term, term);
+      params.push(term, term, term);
     }
 
     if (query.procesoOrigenId) {
@@ -195,6 +200,12 @@ export class ProyeccionesService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      await this.catalogoPaisService.assertCodigoActivo(
+        paisSesionId,
+        CatalogoPaisTipo.SEGMENTO_PROCESO,
+        dto.segmento,
+        'segmento',
+      );
       if (dto.empresaClienteId) {
         await this.clientesService.getClienteActivoOrFail(
           dto.empresaClienteId,
@@ -302,7 +313,13 @@ export class ProyeccionesService {
         proyeccion.empresaOtro = empresaOtro?.trim() ?? null;
       }
 
-      if (dto.segmento !== undefined) {
+      if (dto.segmento !== undefined && dto.segmento !== null) {
+        await this.catalogoPaisService.assertCodigoActivo(
+          paisSesionId,
+          CatalogoPaisTipo.SEGMENTO_PROCESO,
+          dto.segmento,
+          'segmento',
+        );
         proyeccion.segmento = dto.segmento;
       }
 

@@ -5,6 +5,7 @@ import * as path from 'path';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import {
   TAREAS_SEGUIMIENTO_ORDEN,
+  tareaAplicaParaPlantilla,
   tareaAplicaParaProceso,
 } from '../../common/constants/proceso-tareas.constants';
 import {
@@ -17,7 +18,6 @@ import { MotivoPerdidaProceso } from '../../common/enums/motivo-perdida-proceso.
 import { INDICADORES_FINANCIEROS } from '../../common/enums/indicador-codigo.enum';
 import {
   evaluarResultadoIndicador,
-  resolveMargenCasiPct,
 } from '../../common/utils/indicador-resultado.util';
 import { Rol } from '../../common/enums/rol.enum';
 import { TareaCodigo } from '../../common/enums/tarea-codigo.enum';
@@ -33,11 +33,13 @@ import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { PermisosService } from '../../common/services/permisos.service';
 import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { AlertasControlService } from '../../common/services/alertas-control.service';
-import { resolveMonedaPorPaisNombre } from '../../common/utils/moneda.util';
+import { normalizeContactoIds } from '../../common/utils/proceso-contactos.util';
+import { resolveMonedaForPais } from '../../common/utils/moneda.util';
 import {
   validateFechasEnRango,
 } from '../../common/utils/proceso-fechas.util';
 import { Pais } from '../../database/entities/pais.entity';
+import { ProcesoContacto } from '../../database/entities/proceso-contacto.entity';
 import { ProcesoIndicador } from '../../database/entities/proceso-indicador.entity';
 import { ProcesoTarea } from '../../database/entities/proceso-tarea.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
@@ -45,9 +47,19 @@ import { ProcesoComentario } from '../../database/entities/proceso-comentario.en
 import { ValidacionProceso } from '../../database/entities/validacion-proceso.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { ContactosService } from '../contactos/contactos.service';
 import { ConfiguracionService } from '../configuracion/configuracion.service';
+import { PaisConfigService } from '../catalogos/pais-config.service';
+import { CatalogoPaisService } from '../catalogos/catalogo-pais.service';
+import { CatalogoPaisTipo } from '../../common/enums/catalogo-pais-tipo.enum';
 import { ParametrosService } from '../parametros/parametros.service';
+import {
+  normalizePortalOrigenOtro,
+  portalOrigenMostrar,
+  validatePortalOrigen,
+} from '../../common/utils/portal-origen.util';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
+import { KamService } from '../kam/kam.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ProyeccionResponseDto } from '../proyecciones/dto/proyeccion.dto';
 import {
@@ -56,6 +68,7 @@ import {
   CreateProcesoComentarioDto,
   CreateProcesoDto,
   ProcesoComentarioResponseDto,
+  ProcesoContactoResponseDto,
   ProcesoIndicadorInputDto,
   ProcesoIndicadorResponseDto,
   ProcesoResponseDto,
@@ -63,6 +76,7 @@ import {
   RegistrarMotivoPerdidaDto,
   TareaResponseDto,
   UpdateProcesoDto,
+  UpdateProcesoContactosDto,
   UpdateProcesoFechasDto,
 } from './dto/proceso.dto';
 
@@ -129,6 +143,8 @@ export class ProcesosService {
     private readonly procesoRepository: Repository<Proceso>,
     @InjectRepository(ProcesoIndicador)
     private readonly indicadorRepository: Repository<ProcesoIndicador>,
+    @InjectRepository(ProcesoContacto)
+    private readonly procesoContactoRepository: Repository<ProcesoContacto>,
     @InjectRepository(ProcesoTarea)
     private readonly tareaRepository: Repository<ProcesoTarea>,
     @InjectRepository(ProcesoComentario)
@@ -138,13 +154,17 @@ export class ProcesosService {
     @InjectRepository(ValidacionProceso)
     private readonly validacionRepository: Repository<ValidacionProceso>,
     private readonly clientesService: ClientesService,
+    private readonly contactosService: ContactosService,
     private readonly parametrosService: ParametrosService,
     private readonly configuracionService: ConfiguracionService,
+    private readonly paisConfigService: PaisConfigService,
+    private readonly catalogoPaisService: CatalogoPaisService,
     private readonly permisosService: PermisosService,
     private readonly auditService: AuditService,
     private readonly dataSource: DataSource,
     @Inject(forwardRef(() => ProyeccionesService))
     private readonly proyeccionesService: ProyeccionesService,
+    private readonly kamService: KamService,
     private readonly eliminacionDependenciasService: EliminacionDependenciasService,
     private readonly alertasControlService: AlertasControlService,
     private readonly notificacionesService: NotificacionesService,
@@ -202,10 +222,23 @@ export class ProcesosService {
       });
     }
 
-    if (query.search) {
-      qb.andWhere('p.id_digitado LIKE :search', {
-        search: `%${query.search}%`,
+    if (query.portalOrigen) {
+      qb.andWhere('p.portal_origen = :portalOrigen', {
+        portalOrigen: query.portalOrigen,
       });
+    }
+
+    if (query.empresaClienteId) {
+      qb.andWhere('p.empresa_cliente_id = :empresaClienteId', {
+        empresaClienteId: query.empresaClienteId,
+      });
+    }
+
+    if (query.search) {
+      qb.andWhere(
+        '(p.id_digitado LIKE :search OR p.codigo LIKE :search OR p.objeto LIKE :search)',
+        { search: `%${query.search}%` },
+      );
     }
 
     if (query.fechaCierreDesde) {
@@ -280,12 +313,14 @@ export class ProcesosService {
       indicadores: true,
       motivoPerdidaUsuario: true,
     });
+    const contactos = await this.findContactosProceso(id);
 
     return this.enrichWithDevolucionValidacion(
       this.toResponse(
         proceso,
         proceso.indicadores,
         (await this.loadCalculosProcesos([proceso.id])).get(proceso.id),
+        contactos,
       ),
       (
         await this.loadDevolucionValidacionMap([proceso])
@@ -293,23 +328,75 @@ export class ProcesosService {
     );
   }
 
+  async findContactosProceso(procesoId: number): Promise<ProcesoContactoResponseDto[]> {
+    const rows = await this.procesoContactoRepository.find({
+      where: { procesoId },
+      relations: { contacto: true },
+      order: { fechaAsociacion: 'ASC' },
+    });
+
+    return rows.map((row) => ({
+      contactoId: Number(row.contactoId),
+      nombre: row.contacto.nombre,
+      cargo: row.contacto.cargo,
+      correo: row.contacto.correo,
+      telefono: row.contacto.telefono,
+      fechaAsociacion: row.fechaAsociacion,
+    }));
+  }
+
+  async setContactosProceso(
+    procesoId: number,
+    dto: UpdateProcesoContactosDto,
+    actorId: number,
+    paisSesionId: number,
+    rol: Rol,
+  ): Promise<ProcesoContactoResponseDto[]> {
+    this.assertPuedeGestionar(rol);
+    const proceso = await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+
+    if (!proceso.empresaClienteId) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_CONTACTOS_REQUERIDOS,
+        'Solo los procesos con cliente registrado admiten contactos vinculados',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const contactosAnteriores = await this.findContactosProceso(procesoId);
+
+    await this.dataSource.transaction(async (manager) => {
+      await this.syncProcesoContactos(
+        manager,
+        procesoId,
+        proceso.empresaClienteId!,
+        dto.contactoIds,
+        paisSesionId,
+      );
+    });
+
+    const contactos = await this.findContactosProceso(procesoId);
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.PROCESO_EDITAR,
+      entidadTipo: AuditEntidadTipo.PROCESO,
+      entidadId: procesoId,
+      valorAnterior: JSON.stringify({ contactos: contactosAnteriores }),
+      valorNuevo: JSON.stringify({ contactos }),
+    });
+
+    return contactos;
+  }
+
   async getFechasHistorial(id: number, paisSesionId: number) {
     await this.getProcesoActivoOrFail(id, paisSesionId);
 
-    const rows = await this.auditService.findByEntidad(
+    return this.auditService.findByEntidad(
       AuditEntidadTipo.PROCESO,
       id,
       { accion: AuditAccion.PROCESO_FECHA_EDITAR, limit: 100 },
     );
-
-    return rows.map((row) => ({
-      id: row.id,
-      campo: row.campo,
-      valorAnterior: row.valorAnterior,
-      valorNuevo: row.valorNuevo,
-      usuarioId: row.usuarioId,
-      fechaHora: row.fechaHora,
-    }));
   }
 
   async findComentarios(
@@ -462,7 +549,18 @@ export class ProcesosService {
   ): Promise<ProcesoResponseDto> {
     this.validateEmpresa(dto.empresaClienteId, dto.empresaOtro);
     this.validateExperiencia(dto.experiencia, dto.observacion);
-    this.validateIndicadoresCompletos(dto.indicadores);
+    await this.catalogoPaisService.assertCodigoActivo(
+      paisSesionId,
+      CatalogoPaisTipo.SEGMENTO_PROCESO,
+      dto.segmento,
+      'segmento',
+    );
+
+    if (dto.portalOrigen) {
+      validatePortalOrigen(dto.portalOrigen, dto.portalOrigenOtro);
+    }
+
+    await this.validateIndicadoresCompletos(paisSesionId, dto.indicadores);
     validateFechasEnRango({
       fechaApertura: dto.fechaApertura,
       fechaCierre: dto.fechaCierre,
@@ -485,6 +583,7 @@ export class ProcesosService {
         dto.empresaClienteId,
         paisSesionId,
       );
+      this.validateContactosRequeridos(dto.empresaClienteId, dto.contactoIds);
     }
 
     await this.clientesService.validateUbicacionInPais(
@@ -502,7 +601,7 @@ export class ProcesosService {
       );
     }
 
-    const moneda = resolveMonedaPorPaisNombre(pais.nombre);
+    const moneda = resolveMonedaForPais(pais);
     const anioParametros = dto.anioParametros ?? new Date().getFullYear() - 1;
     const indicadoresProcesados = await this.procesarIndicadores(
       dto.indicadores,
@@ -521,6 +620,10 @@ export class ProcesosService {
         paisId: paisSesionId,
         ubicacionId: dto.ubicacionId,
         portalOrigen: dto.portalOrigen ?? null,
+        portalOrigenOtro: normalizePortalOrigenOtro(
+          dto.portalOrigen,
+          dto.portalOrigenOtro,
+        ),
         link: dto.link ?? null,
         objeto: dto.objeto?.trim() ?? null,
         cuantia: dto.cuantia.toString(),
@@ -563,18 +666,54 @@ export class ProcesosService {
         );
       }
 
-      for (const tareaCodigo of TAREAS_SEGUIMIENTO_ORDEN) {
+      const plantillaTareas = await this.paisConfigService.findPlantillaTareas(
+        paisSesionId,
+        true,
+      );
+      const tareasParaCrear =
+        plantillaTareas.length > 0
+          ? plantillaTareas.map((item) => ({
+              codigo: item.codigo,
+              aplicaRfi: item.aplicaRfi,
+              requiereFechaAdquisicion: item.requiereFechaAdquisicion,
+            }))
+          : TAREAS_SEGUIMIENTO_ORDEN.map((codigo) => ({
+              codigo,
+              aplicaRfi: true,
+              requiereFechaAdquisicion:
+                codigo === TareaCodigo.ADQUISICION_DERECHO,
+            }));
+
+      for (const tarea of tareasParaCrear) {
+        const aplica = plantillaTareas.length
+          ? tareaAplicaParaPlantilla(
+              tarea,
+              dto.tipoInstrumento,
+              fechaAdquisicion,
+            )
+          : tareaAplicaParaProceso(
+              tarea.codigo as TareaCodigo,
+              dto.tipoInstrumento,
+              fechaAdquisicion,
+            );
+
         await manager.save(
           manager.create(ProcesoTarea, {
             procesoId: procesoGuardado.id,
-            tareaCodigo,
-            aplica: tareaAplicaParaProceso(
-              tareaCodigo,
-              dto.tipoInstrumento,
-              fechaAdquisicion,
-            ),
+            tareaCodigo: tarea.codigo,
+            aplica,
             completada: false,
           }),
+        );
+      }
+
+      if (dto.empresaClienteId && dto.contactoIds?.length) {
+        await this.syncProcesoContactos(
+          manager,
+          procesoGuardado.id,
+          dto.empresaClienteId,
+          dto.contactoIds,
+          paisSesionId,
         );
       }
 
@@ -602,7 +741,7 @@ export class ProcesosService {
       );
     }
 
-    return this.toResponse(reloaded, reloaded.indicadores);
+    return this.toResponse(reloaded, reloaded.indicadores, undefined, await this.findContactosProceso(reloaded.id));
   }
 
   async update(
@@ -616,7 +755,24 @@ export class ProcesosService {
     const proceso = await this.getProcesoActivoOrFail(id, paisSesionId);
     const valorAnterior = JSON.stringify(this.toResponse(proceso));
 
-    if (dto.portalOrigen !== undefined) proceso.portalOrigen = dto.portalOrigen;
+    if (dto.portalOrigen !== undefined) {
+      validatePortalOrigen(
+        dto.portalOrigen,
+        dto.portalOrigenOtro ?? proceso.portalOrigenOtro,
+      );
+      proceso.portalOrigen = dto.portalOrigen;
+      proceso.portalOrigenOtro = normalizePortalOrigenOtro(
+        dto.portalOrigen,
+        dto.portalOrigenOtro ?? proceso.portalOrigenOtro,
+      );
+    } else if (dto.portalOrigenOtro !== undefined) {
+      validatePortalOrigen(proceso.portalOrigen, dto.portalOrigenOtro);
+      proceso.portalOrigenOtro = normalizePortalOrigenOtro(
+        proceso.portalOrigen,
+        dto.portalOrigenOtro,
+      );
+    }
+
     if (dto.link !== undefined) proceso.link = dto.link;
     if (dto.objeto !== undefined) proceso.objeto = dto.objeto?.trim() ?? null;
     if (dto.cuantia !== undefined) proceso.cuantia = dto.cuantia.toString();
@@ -889,6 +1045,10 @@ export class ProcesosService {
             saved.id,
             actorId,
           );
+
+        if (saved.empresaClienteId) {
+          await this.kamService.generarDesdeProcesoAdjudicado(saved.id, actorId);
+        }
       } catch (error) {
         proceso.estado = estadoPrevio;
         await this.procesoRepository.save(proceso);
@@ -1027,14 +1187,15 @@ export class ProcesosService {
     procesoId: number,
     paisSesionId: number,
   ): Promise<TareaResponseDto[]> {
-    await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+    const proceso = await this.getProcesoActivoOrFail(procesoId, paisSesionId);
+    const nombresTarea = await this.buildNombresTareaMap(proceso.paisId);
 
     const tareas = await this.tareaRepository.find({
       where: { procesoId },
       order: { id: 'ASC' },
     });
 
-    return tareas.map((tarea) => this.toTareaResponse(tarea));
+    return tareas.map((tarea) => this.toTareaResponse(tarea, nombresTarea));
   }
 
   async completarTarea(
@@ -1120,6 +1281,7 @@ export class ProcesosService {
     tarea.usuarioCompletoId = actorId;
 
     const saved = await this.tareaRepository.save(tarea);
+    const nombresTarea = await this.buildNombresTareaMap(proceso.paisId);
 
     await this.auditService.log({
       usuarioId: actorId,
@@ -1127,11 +1289,11 @@ export class ProcesosService {
       entidadTipo: AuditEntidadTipo.PROCESO_TAREA,
       entidadId: saved.id,
       valorAnterior,
-      valorNuevo: JSON.stringify(this.toTareaResponse(saved)),
+      valorNuevo: JSON.stringify(this.toTareaResponse(saved, nombresTarea)),
     });
 
     return {
-      ...this.toTareaResponse(saved),
+      ...this.toTareaResponse(saved, nombresTarea),
       avancePorcentaje: await this.getAvancePorcentaje(procesoId),
     };
   }
@@ -1257,12 +1419,33 @@ export class ProcesosService {
       where: { procesoId: proceso.id },
     });
 
+    const plantilla = await this.paisConfigService.findPlantillaTareas(
+      proceso.paisId,
+      true,
+    );
+    const plantillaMap = new Map(
+      plantilla.map((item) => [
+        item.codigo,
+        {
+          aplicaRfi: item.aplicaRfi,
+          requiereFechaAdquisicion: item.requiereFechaAdquisicion,
+        },
+      ]),
+    );
+
     for (const tarea of tareas) {
-      const aplica = tareaAplicaParaProceso(
-        tarea.tareaCodigo as TareaCodigo,
-        proceso.tipoInstrumento,
-        proceso.fechaAdquisicionDerecho,
-      );
+      const plantillaItem = plantillaMap.get(tarea.tareaCodigo);
+      const aplica = plantillaItem
+        ? tareaAplicaParaPlantilla(
+            plantillaItem,
+            proceso.tipoInstrumento,
+            proceso.fechaAdquisicionDerecho,
+          )
+        : tareaAplicaParaProceso(
+            tarea.tareaCodigo as TareaCodigo,
+            proceso.tipoInstrumento,
+            proceso.fechaAdquisicionDerecho,
+          );
 
       if (tarea.aplica !== aplica) {
         tarea.aplica = aplica;
@@ -1297,6 +1480,65 @@ export class ProcesosService {
     }
   }
 
+  private validateContactosRequeridos(
+    empresaClienteId: number,
+    contactoIds?: number[],
+  ): void {
+    const ids = normalizeContactoIds(contactoIds ?? []);
+
+    if (ids.length === 0) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_CONTACTOS_REQUERIDOS,
+        'Debe vincular al menos un contacto del cliente al proceso',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private async syncProcesoContactos(
+    manager: EntityManager,
+    procesoId: number,
+    empresaClienteId: number,
+    contactoIds: number[],
+    paisSesionId: number,
+  ): Promise<void> {
+    const uniqueIds = normalizeContactoIds(contactoIds);
+
+    if (uniqueIds.length === 0) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_CONTACTOS_REQUERIDOS,
+        'Debe vincular al menos un contacto del cliente al proceso',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    for (const contactoId of uniqueIds) {
+      const contacto = await this.contactosService.getContactoActivoOrFail(
+        contactoId,
+        paisSesionId,
+      );
+
+      if (Number(contacto.clienteId) !== Number(empresaClienteId)) {
+        throw new BusinessException(
+          ErrorCode.CONTACTO_NO_PERTENECE_CLIENTE,
+          `El contacto ${contactoId} no pertenece al cliente del proceso`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    await manager.delete(ProcesoContacto, { procesoId });
+
+    for (const contactoId of uniqueIds) {
+      await manager.save(
+        manager.create(ProcesoContacto, {
+          procesoId,
+          contactoId,
+        }),
+      );
+    }
+  }
+
   private validateExperiencia(experiencia: boolean, observacion?: string): void {
     if (experiencia && !observacion?.trim()) {
       throw new BusinessException(
@@ -1323,21 +1565,12 @@ export class ProcesosService {
     }
   }
 
-  private validateIndicadoresCompletos(
+  private async validateIndicadoresCompletos(
+    paisSesionId: number,
     indicadores: ProcesoIndicadorInputDto[],
-  ): void {
+  ): Promise<void> {
     const codigos = indicadores.map((item) => item.indicadorCodigo);
-    const faltantes = INDICADORES_FINANCIEROS.filter(
-      (codigo) => !codigos.includes(codigo),
-    );
-
-    if (faltantes.length > 0 || indicadores.length !== INDICADORES_FINANCIEROS.length) {
-      throw new BusinessException(
-        ErrorCode.PROCESO_INDICADORES_INCOMPLETOS,
-        'Debe registrar los 8 indicadores financieros del proceso',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    await this.catalogoPaisService.assertIndicadoresCompletos(paisSesionId, codigos);
   }
 
   private async loadCalculosProcesos(
@@ -1434,10 +1667,7 @@ export class ProcesosService {
       cumple: CumpleIndicador | null;
     }> = [];
 
-    const margenConfig = await this.configuracionService
-      .findByClave('indicador_margen_casi_pct')
-      .catch(() => null);
-    const margenPct = resolveMargenCasiPct(margenConfig?.valor);
+    const margenPct = await this.paisConfigService.getMargenCasiPct(paisSesionId);
 
     for (const item of indicadores) {
       if (item.valorRequerido === undefined || item.valorRequerido === null) {
@@ -1561,6 +1791,7 @@ export class ProcesosService {
     proceso: Proceso,
     indicadores?: ProcesoIndicador[],
     calculos?: Record<string, unknown>,
+    contactos?: ProcesoContactoResponseDto[],
   ): ProcesoResponseDto {
     return {
       id: proceso.id,
@@ -1571,6 +1802,11 @@ export class ProcesosService {
       paisId: proceso.paisId,
       ubicacionId: proceso.ubicacionId,
       portalOrigen: proceso.portalOrigen,
+      portalOrigenOtro: proceso.portalOrigenOtro,
+      portalOrigenMostrar: portalOrigenMostrar(
+        proceso.portalOrigen,
+        proceso.portalOrigenOtro,
+      ),
       link: proceso.link,
       objeto: proceso.objeto,
       cuantia: proceso.cuantia,
@@ -1624,6 +1860,7 @@ export class ProcesosService {
       facturacionEstimadaAnioReporte:
         (calculos?.facturacionEstimadaAnioReporte as string | undefined) ?? null,
       indicadores: indicadores?.map((item) => this.toIndicadorResponse(item)),
+      contactos,
     };
   }
 
@@ -1637,11 +1874,26 @@ export class ProcesosService {
     };
   }
 
-  toTareaResponse(tarea: ProcesoTarea): TareaResponseDto {
+  private async buildNombresTareaMap(
+    paisId: number,
+  ): Promise<Map<string, string>> {
+    const plantilla = await this.paisConfigService.findPlantillaTareas(
+      paisId,
+      false,
+    );
+
+    return new Map(plantilla.map((item) => [item.codigo, item.nombre]));
+  }
+
+  toTareaResponse(
+    tarea: ProcesoTarea,
+    nombresTarea?: Map<string, string>,
+  ): TareaResponseDto {
     return {
       id: tarea.id,
       procesoId: tarea.procesoId,
       tareaCodigo: tarea.tareaCodigo,
+      tareaNombre: nombresTarea?.get(tarea.tareaCodigo) ?? null,
       aplica: tarea.aplica,
       evidencia: tarea.evidencia,
       evidenciaArchivoNombre: tarea.evidenciaArchivoNombre,

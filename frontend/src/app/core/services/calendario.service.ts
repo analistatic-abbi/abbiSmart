@@ -3,7 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export type CalendarioEventoTipo = 'proyeccion' | 'proceso' | 'relacionamiento';
+export type CalendarioEventoTipo =
+  | 'proyeccion'
+  | 'proceso'
+  | 'relacionamiento'
+  | 'kam'
+  | 'reunion_aclaratoria';
 
 export interface CalendarioEvento {
   id: number;
@@ -16,6 +21,8 @@ export interface CalendarioEvento {
   valor?: string | null;
   estado: string;
   icono: string;
+  kamId?: number;
+  detalle?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

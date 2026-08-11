@@ -5,3 +5,17 @@
   color: var(--color-primary);
   font-weight: 600;
 }
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+}
+
+.table-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+}

@@ -8,6 +8,10 @@ import { Proceso, ProcesoTarea } from '../../../../core/models/proceso.model';
 import { Rol } from '../../../../core/models/rol.enum';
 import { labelTarea } from '../../../../core/constants/tarea-labels';
 import { formatCuantiaConMoneda } from '../../../../core/utils/currency.util';
+import { mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarAccion } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-validacion-revision',
@@ -22,6 +26,8 @@ export class ValidacionRevisionComponent implements OnInit {
   private readonly validacion = inject(ValidacionService);
   private readonly procesos = inject(ProcesosService);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly proceso = signal<Proceso | null>(null);
   protected readonly tareas = signal<ProcesoTarea[]>([]);
@@ -93,15 +99,27 @@ export class ValidacionRevisionComponent implements OnInit {
       return;
     }
 
-    this.saving.set(true);
-    this.validacion
-      .registrarVeredicto(this.validacionId, this.veredicto(), this.comentario() || undefined)
-      .subscribe({
-        next: () => void this.router.navigate(['/validacion']),
-        error: () => {
-          this.error.set('No fue posible registrar el veredicto.');
-          this.saving.set(false);
-        },
-      });
+    const veredicto = this.veredicto();
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar veredicto',
+      message: `¿Desea registrar el veredicto «${veredicto}» para este proceso?`,
+      confirmLabel: 'Registrar veredicto',
+    }).then((ok) => {
+      if (!ok) return;
+
+      this.saving.set(true);
+      this.validacion
+        .registrarVeredicto(this.validacionId, veredicto, this.comentario() || undefined)
+        .subscribe({
+          next: (r) => {
+            this.toast.success(mensajeExitoApi(r, 'Veredicto registrado correctamente.'));
+            void this.router.navigate(['/validacion']);
+          },
+          error: () => {
+            this.error.set('No fue posible registrar el veredicto.');
+            this.saving.set(false);
+          },
+        });
+    });
   }
 }

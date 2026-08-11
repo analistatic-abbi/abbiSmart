@@ -2,6 +2,8 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { CatalogosService } from '../../../core/services/catalogos.service';
+import { ContactosService } from '../../../core/services/contactos.service';
 import { ProcesosService, ProcesoComentario } from '../../../core/services/procesos.service';
 import { ProyeccionesService } from '../../../core/services/proyecciones.service';
 import { SolicitudesEliminacionService } from '../../../core/services/solicitudes-eliminacion.service';
@@ -12,6 +14,7 @@ import {
   MotivoPerdidaProceso,
   MOTIVOS_PERDIDA,
   Proceso,
+  ProcesoContacto,
   ProcesoTarea,
   ResultadoIndicador,
   requiereMotivoBackfill,
@@ -19,10 +22,16 @@ import {
   TipoProceso,
   TRANSICIONES_ESTADO,
 } from '../../../core/models/proceso.model';
+import { AuditLog } from '../../../core/models/admin.model';
+import { Contacto } from '../../../core/models/crm.model';
 import { labelTarea } from '../../../core/constants/tarea-labels';
-import { mensajeErrorApi } from '../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../core/utils/api-error.util';
 import { formatFechaHora } from '../../../core/utils/date.util';
+import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { confirmarGuardado } from '../../../core/utils/confirm-dialog.util';
 import { FormatosCalificacionService } from '../../../core/services/formatos-calificacion.service';
+import { KamService } from '../../../core/services/kam.service';
 import { ParametrosService } from '../../../core/services/parametros.service';
 import {
   FormatoCalificacionListItem,
@@ -32,6 +41,7 @@ import { IndicadorCodigo } from '../../../core/models/proceso.model';
 import { formatCuantiaConMoneda, formatCurrencyFull } from '../../../core/utils/currency.util';
 import { formatParametroValor, formatRangoIndicador, parametroValorTitle } from '../../../core/utils/parametro.util';
 import { FijarEntidadButtonComponent } from '../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
+import { AuditHistorialListComponent } from '../../../shared/components/audit-historial-list/audit-historial-list.component';
 
 type Tab = 'info' | 'fechas' | 'tareas' | 'comentarios';
 
@@ -47,14 +57,6 @@ interface FechasForm {
   fechaLimitacionMypymes: string;
 }
 
-interface FechaHistorialItem {
-  id: number;
-  campo: string | null;
-  valorAnterior: string | null;
-  valorNuevo: string | null;
-  fecha: string;
-}
-
 interface DependenciaItem {
   tipo: string;
   id: number;
@@ -64,7 +66,7 @@ interface DependenciaItem {
 @Component({
   selector: 'app-proceso-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, FijarEntidadButtonComponent],
+  imports: [FormsModule, RouterLink, FijarEntidadButtonComponent, AuditHistorialListComponent],
   templateUrl: './proceso-detail.component.html',
   styleUrl: './proceso-detail.component.scss',
 })
@@ -76,8 +78,13 @@ export class ProcesoDetailComponent implements OnInit {
   private readonly validacion = inject(ValidacionService);
   private readonly solicitudes = inject(SolicitudesEliminacionService);
   private readonly auth = inject(AuthService);
+  private readonly catalogos = inject(CatalogosService);
+  private readonly contactos = inject(ContactosService);
   private readonly formatosCalificacion = inject(FormatosCalificacionService);
+  private readonly kamService = inject(KamService);
   private readonly parametrosService = inject(ParametrosService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly proceso = signal<Proceso | null>(null);
   protected readonly tareas = signal<ProcesoTarea[]>([]);
@@ -87,6 +94,14 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly actionLoading = signal(false);
   protected readonly proyeccionRecienGeneradaId = signal<number | null>(null);
   protected readonly proyeccionAsociadaId = signal<number | null>(null);
+  protected readonly kamAsociadoId = signal<number | null>(null);
+
+  protected readonly contactosEditando = signal(false);
+  protected readonly contactosDisponibles = signal<Contacto[]>([]);
+  protected readonly contactosSeleccionados = signal<number[]>([]);
+  protected readonly contactosLoading = signal(false);
+  protected readonly contactosGuardando = signal(false);
+  protected readonly contactosError = signal<string | null>(null);
 
   protected readonly showEstadoModal = signal(false);
   protected readonly nuevoEstado = signal<EstadoProceso | null>(null);
@@ -102,7 +117,9 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
   protected readonly fechasError = signal<string | null>(null);
-  protected readonly historialFechas = signal<FechaHistorialItem[]>([]);
+  protected readonly historialFechas = signal<AuditLog[]>([]);
+  protected readonly historialFechasLoading = signal(false);
+  protected readonly historialFechasError = signal<string | null>(null);
 
   protected readonly comentarios = signal<ProcesoComentario[]>([]);
   protected readonly comentarioTexto = signal('');
@@ -115,11 +132,12 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly calificacionError = signal<string | null>(null);
   protected readonly calificacionExito = signal<string | null>(null);
   protected readonly formatosActivos = signal<FormatoCalificacionListItem[]>([]);
+  protected readonly calificacionPorPuntosHabilitada = signal(false);
   protected readonly formatoSeleccionadoId = signal<number | null>(null);
   protected readonly anioParametrosCalificacion = signal(new Date().getFullYear() - 1);
   protected readonly anioActual = new Date().getFullYear();
   protected readonly parametrosAbbiVivos = signal<
-    Record<number, Partial<Record<IndicadorCodigo, string>>>
+    Record<number, Record<string, string>>
   >({});
 
   protected readonly formatFechaHora = formatFechaHora;
@@ -158,11 +176,11 @@ export class ProcesoDetailComponent implements OnInit {
   }
 
   protected formatoValorAbbi(indicadorCodigo: string, valor: string | null): string {
-    return formatParametroValor(indicadorCodigo as IndicadorCodigo, valor);
+    return formatParametroValor(indicadorCodigo, valor);
   }
 
   protected formatoValorAbbiTitle(indicadorCodigo: string, valor: string | null): string {
-    return parametroValorTitle(indicadorCodigo as IndicadorCodigo, valor);
+    return parametroValorTitle(indicadorCodigo, valor);
   }
 
   protected valorAbbiVivo(
@@ -171,7 +189,7 @@ export class ProcesoDetailComponent implements OnInit {
     fallback: string | null,
   ): string | null {
     const vivo =
-      this.parametrosAbbiVivos()[anioParametros]?.[indicadorCodigo as IndicadorCodigo];
+      this.parametrosAbbiVivos()[anioParametros]?.[indicadorCodigo];
     return vivo ?? fallback;
   }
 
@@ -180,7 +198,7 @@ export class ProcesoDetailComponent implements OnInit {
     min: string | null,
     max: string | null,
   ): string {
-    return formatRangoIndicador(indicadorCodigo as IndicadorCodigo, min, max);
+    return formatRangoIndicador(indicadorCodigo, min, max);
   }
 
   protected evaluarCalificaciones(): void {
@@ -228,6 +246,10 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly rol = computed(() => this.auth.rol());
 
   protected readonly puedeEscribir = computed(() => this.auth.puedeEscribir());
+
+  protected readonly procesoTieneCliente = computed(() =>
+    Boolean(this.proceso()?.empresaClienteId),
+  );
 
   protected readonly puedeGestionarTareas = computed(() => {
     if (!this.puedeEscribir()) return false;
@@ -348,14 +370,24 @@ export class ProcesoDetailComponent implements OnInit {
     this.procesoId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadProceso();
     this.loadTareas();
-    this.loadCalificaciones();
-    this.loadFormatosActivos();
+    this.catalogos.getCapabilitiesSesion().subscribe({
+      next: (response) => {
+        const habilitada = response.data.calificacionPorPuntos;
+        this.calificacionPorPuntosHabilitada.set(habilitada);
+
+        if (habilitada) {
+          this.loadCalificaciones();
+          this.loadFormatosActivos();
+        }
+      },
+      error: () => this.calificacionPorPuntosHabilitada.set(false),
+    });
   }
 
   protected setTab(tab: Tab): void {
     this.tab.set(tab);
 
-    if (tab === 'info') {
+    if (tab === 'info' && this.calificacionPorPuntosHabilitada()) {
       this.refrescarResultadosParametros();
     }
 
@@ -364,9 +396,18 @@ export class ProcesoDetailComponent implements OnInit {
     }
 
     if (tab === 'fechas') {
+      this.historialFechasLoading.set(true);
+      this.historialFechasError.set(null);
       this.procesos.getFechasHistorial(this.procesoId).subscribe({
-        next: (r) => this.historialFechas.set(r.data),
-        error: () => this.historialFechas.set([]),
+        next: (r) => {
+          this.historialFechas.set(r.data);
+          this.historialFechasLoading.set(false);
+        },
+        error: () => {
+          this.historialFechas.set([]);
+          this.historialFechasLoading.set(false);
+          this.historialFechasError.set('No fue posible cargar el historial de fechas.');
+        },
       });
     }
 
@@ -375,22 +416,97 @@ export class ProcesoDetailComponent implements OnInit {
     }
   }
 
+  protected iniciarEdicionContactos(): void {
+    const proceso = this.proceso();
+    if (!proceso?.empresaClienteId) return;
+
+    this.contactosError.set(null);
+    this.contactosSeleccionados.set(
+      (proceso.contactos ?? []).map((item) => item.contactoId),
+    );
+    this.contactosEditando.set(true);
+    this.loadContactosDisponibles(proceso.empresaClienteId);
+  }
+
+  protected cancelarEdicionContactos(): void {
+    this.contactosEditando.set(false);
+    this.contactosError.set(null);
+    this.contactosDisponibles.set([]);
+    this.contactosSeleccionados.set([]);
+  }
+
+  protected toggleContactoDetalle(contactoId: number, checked: boolean): void {
+    this.contactosSeleccionados.update((current) => {
+      const next = new Set(current);
+      if (checked) {
+        next.add(contactoId);
+      } else {
+        next.delete(contactoId);
+      }
+      return [...next];
+    });
+  }
+
+  protected isContactoDetalleSelected(contactoId: number): boolean {
+    return this.contactosSeleccionados().includes(contactoId);
+  }
+
+  protected guardarContactos(): void {
+    if (!this.contactosSeleccionados().length) {
+      this.contactosError.set('Debe seleccionar al menos un contacto.');
+      return;
+    }
+
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea actualizar los contactos vinculados al proceso?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.contactosGuardando.set(true);
+      this.contactosError.set(null);
+
+      this.procesos.setContactos(this.procesoId, this.contactosSeleccionados()).subscribe({
+        next: (response) => {
+          this.contactosGuardando.set(false);
+          this.contactosEditando.set(false);
+          this.proceso.update((actual) =>
+            actual ? { ...actual, contactos: response.data } : actual,
+          );
+          this.toast.success('Contactos del proceso actualizados correctamente.');
+        },
+        error: (err) => {
+          this.contactosGuardando.set(false);
+          this.contactosError.set(mensajeErrorApi(err, 'No fue posible actualizar los contactos.'));
+        },
+      });
+    });
+  }
+
   protected guardarComentario(): void {
     const texto = this.comentarioTexto().trim();
     if (!texto || !this.puedeEscribir()) return;
 
-    this.comentarioLoading.set(true);
-    this.comentarioError.set(null);
-    this.procesos.crearComentario(this.procesoId, texto).subscribe({
-      next: (r) => {
-        this.comentarios.update((items) => [...items, r.comentario]);
-        this.comentarioTexto.set('');
-        this.comentarioLoading.set(false);
-      },
-      error: (err) => {
-        this.comentarioError.set(mensajeErrorApi(err, 'No fue posible guardar el comentario.'));
-        this.comentarioLoading.set(false);
-      },
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea publicar este comentario en la bitácora del proceso?',
+      'Publicar',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.comentarioLoading.set(true);
+      this.comentarioError.set(null);
+      this.procesos.crearComentario(this.procesoId, texto).subscribe({
+        next: (r) => {
+          this.comentarios.update((items) => [...items, r.comentario]);
+          this.comentarioTexto.set('');
+          this.comentarioLoading.set(false);
+        },
+        error: (err) => {
+          this.comentarioError.set(mensajeErrorApi(err, 'No fue posible guardar el comentario.'));
+          this.comentarioLoading.set(false);
+        },
+      });
     });
   }
 
@@ -515,6 +631,13 @@ export class ProcesoDetailComponent implements OnInit {
       });
   }
 
+  private cargarKamAsociado(): void {
+    this.kamService.getByProcesoId(this.procesoId).subscribe({
+      next: (r) => this.kamAsociadoId.set(r.data?.id ?? null),
+      error: () => this.kamAsociadoId.set(null),
+    });
+  }
+
   protected iniciarEdicionFechas(): void {
     const p = this.proceso();
     if (!p) return;
@@ -563,24 +686,31 @@ export class ProcesoDetailComponent implements OnInit {
       return;
     }
 
-    this.fechasError.set(null);
-    this.actionLoading.set(true);
-    this.procesos.updateFechas(this.procesoId, payload).subscribe({
-      next: (r) => {
-        this.proceso.set(r.proceso);
-        this.editandoFechas.set(false);
-        this.actionLoading.set(false);
-        this.loadTareas();
-      },
-      error: (err) => {
-        this.fechasError.set(
-          mensajeErrorApi(
-            err,
-            'No fue posible actualizar las fechas. Verifique que sean coherentes y estén dentro del rango de apertura y cierre.',
-          ),
-        );
-        this.actionLoading.set(false);
-      },
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea guardar los cambios en las fechas del proceso?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.fechasError.set(null);
+      this.actionLoading.set(true);
+      this.procesos.updateFechas(this.procesoId, payload).subscribe({
+        next: (r) => {
+          this.proceso.set(r.proceso);
+          this.editandoFechas.set(false);
+          this.actionLoading.set(false);
+          this.loadTareas();
+        },
+        error: (err) => {
+          this.fechasError.set(
+            mensajeErrorApi(
+              err,
+              'No fue posible actualizar las fechas. Verifique que sean coherentes y estén dentro del rango de apertura y cierre.',
+            ),
+          );
+          this.actionLoading.set(false);
+        },
+      });
     });
   }
 
@@ -658,12 +788,15 @@ export class ProcesoDetailComponent implements OnInit {
     if (this.puedeEliminarDirecto()) {
       this.actionLoading.set(true);
       this.procesos.eliminar(this.procesoId, this.confirmarDependientes()).subscribe({
-        next: () => {
+        next: (r) => {
           this.actionLoading.set(false);
+          this.toast.success(mensajeExitoApi(r, 'Proceso eliminado correctamente.'));
           void this.router.navigate(['/procesos']);
         },
         error: () => {
-          this.error.set('No fue posible eliminar el proceso.');
+          const mensaje = 'No fue posible eliminar el proceso.';
+          this.error.set(mensaje);
+          this.toast.error(mensaje);
           this.actionLoading.set(false);
         },
       });
@@ -675,12 +808,15 @@ export class ProcesoDetailComponent implements OnInit {
 
     this.actionLoading.set(true);
     this.solicitudes.solicitar('proceso', this.procesoId, motivo).subscribe({
-      next: () => {
+      next: (r) => {
         this.showEliminarModal.set(false);
         this.actionLoading.set(false);
+        this.toast.success(mensajeExitoApi(r, 'Solicitud de eliminación registrada.'));
       },
       error: () => {
-        this.error.set('No fue posible registrar la solicitud de eliminación.');
+        const mensaje = 'No fue posible registrar la solicitud de eliminación.';
+        this.error.set(mensaje);
+        this.toast.error(mensaje);
         this.actionLoading.set(false);
       },
     });
@@ -726,31 +862,39 @@ export class ProcesoDetailComponent implements OnInit {
       return;
     }
 
-    this.actionLoading.set(true);
-    this.error.set(null);
-    this.procesos.completarTarea(this.procesoId, tarea.id, evidencia, archivo).subscribe({
-      next: (r) => {
-        this.cerrarModalTarea();
-        this.actionLoading.set(false);
-        this.tareas.update((list) =>
-          list.map((item) => (item.id === tarea.id ? { ...item, ...r.tarea } : item)),
-        );
-        if (r.tarea.avancePorcentaje !== undefined) {
-          this.proceso.update((p) =>
-            p ? { ...p, avancePorcentaje: r.tarea.avancePorcentaje ?? p.avancePorcentaje } : p,
+    const mensaje = this.editandoTarea()
+      ? '¿Desea guardar los cambios de esta tarea?'
+      : '¿Desea marcar esta tarea como completada?';
+
+    void confirmarGuardado(this.confirmDialog, mensaje).then((ok) => {
+      if (!ok) return;
+
+      this.actionLoading.set(true);
+      this.error.set(null);
+      this.procesos.completarTarea(this.procesoId, tarea.id, evidencia, archivo).subscribe({
+        next: (r) => {
+          this.cerrarModalTarea();
+          this.actionLoading.set(false);
+          this.tareas.update((list) =>
+            list.map((item) => (item.id === tarea.id ? { ...item, ...r.tarea } : item)),
           );
-        }
-        this.loadTareas();
-        this.loadProceso();
-      },
-      error: () => {
-        this.error.set(
-          this.editandoTarea()
-            ? 'No fue posible actualizar la tarea.'
-            : 'No fue posible completar la tarea.',
-        );
-        this.actionLoading.set(false);
-      },
+          if (r.tarea.avancePorcentaje !== undefined) {
+            this.proceso.update((p) =>
+              p ? { ...p, avancePorcentaje: r.tarea.avancePorcentaje ?? p.avancePorcentaje } : p,
+            );
+          }
+          this.loadTareas();
+          this.loadProceso();
+        },
+        error: () => {
+          this.error.set(
+            this.editandoTarea()
+              ? 'No fue posible actualizar la tarea.'
+              : 'No fue posible completar la tarea.',
+          );
+          this.actionLoading.set(false);
+        },
+      });
     });
   }
 
@@ -764,6 +908,10 @@ export class ProcesoDetailComponent implements OnInit {
   }
 
   private loadCalificaciones(): void {
+    if (!this.calificacionPorPuntosHabilitada()) {
+      return;
+    }
+
     this.calificacionesLoading.set(true);
     this.formatosCalificacion.getCalificacionesProceso(this.procesoId).subscribe({
       next: (res) => {
@@ -790,7 +938,7 @@ export class ProcesoDetailComponent implements OnInit {
     for (const anio of unicos) {
       this.parametrosService.getPorAnio(anio).subscribe({
         next: (res) => {
-          const mapa: Partial<Record<IndicadorCodigo, string>> = {};
+          const mapa: Record<string, string> = {};
           for (const item of res.data.indicadores) {
             if (item.valor !== null) {
               mapa[item.indicadorCodigo] = item.valor;
@@ -803,9 +951,28 @@ export class ProcesoDetailComponent implements OnInit {
   }
 
   private loadFormatosActivos(): void {
+    if (!this.calificacionPorPuntosHabilitada()) {
+      return;
+    }
+
     this.formatosCalificacion.list(true).subscribe({
       next: (res) => this.formatosActivos.set(res.data),
       error: () => this.formatosActivos.set([]),
+    });
+  }
+
+  private loadContactosDisponibles(clienteId: number): void {
+    this.contactosLoading.set(true);
+    this.contactos.listByCliente(clienteId).subscribe({
+      next: (response) => {
+        this.contactosDisponibles.set(response.data);
+        this.contactosLoading.set(false);
+      },
+      error: () => {
+        this.contactosDisponibles.set([]);
+        this.contactosLoading.set(false);
+        this.contactosError.set('No fue posible cargar los contactos del cliente.');
+      },
     });
   }
 
@@ -824,6 +991,15 @@ export class ProcesoDetailComponent implements OnInit {
           this.cargarProyeccionAsociada();
         } else {
           this.proyeccionAsociadaId.set(null);
+        }
+
+        if (
+          r.proceso.estado === EstadoProceso.Adjudicado &&
+          r.proceso.empresaClienteId
+        ) {
+          this.cargarKamAsociado();
+        } else {
+          this.kamAsociadoId.set(null);
         }
       },
       error: () => {

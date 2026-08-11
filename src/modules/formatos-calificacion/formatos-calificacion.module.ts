@@ -6,6 +6,7 @@ import { ProcesoCalificacionDetalle } from '../../database/entities/proceso-cali
 import { ProcesoCalificacion } from '../../database/entities/proceso-calificacion.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { ParametrosModule } from '../parametros/parametros.module';
+import { CatalogosModule } from '../catalogos/catalogos.module';
 import {
   FormatosCalificacionController,
   ProcesoCalificacionesController,
@@ -21,6 +22,7 @@ import { FormatosCalificacionService } from './formatos-calificacion.service';
       ProcesoCalificacionDetalle,
       Proceso,
     ]),
+    CatalogosModule,
     ParametrosModule,
   ],
   controllers: [FormatosCalificacionController, ProcesoCalificacionesController],

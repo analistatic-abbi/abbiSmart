@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,20 +9,22 @@ import { LOGO_ABBI, LOGIN_HERO_EQUIPO, LOGIN_OPERADOR } from '../../../core/cons
 import { DEV_LOGIN_ACCOUNTS, DevLoginAccount } from '../../../core/constants/dev-login';
 import { environment } from '../../../../environments/environment';
 import { LOGIN_FAQ_ITEMS } from './login-faq';
-import { ThemeService } from '../../../core/services/theme.service';
+import { ThemeService, ThemeMode } from '../../../core/services/theme.service';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
+import { animateCountUp } from '../../../core/utils/count-up.util';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ScrollRevealDirective],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
-  protected readonly themeService = inject(ThemeService);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly logoUrl = LOGO_ABBI;
   protected readonly loginHeroEquipo = LOGIN_HERO_EQUIPO;
@@ -36,8 +38,18 @@ export class LoginComponent implements OnInit {
   protected readonly faqItems = LOGIN_FAQ_ITEMS;
   protected readonly expandedFaq = signal<string | null>(null);
   protected readonly faqOpen = signal(false);
+  protected readonly statYear = signal(2003);
+
+  private cancelCountUp: (() => void) | null = null;
+  private statCounterStarted = false;
+  private previousTheme: ThemeMode | null = null;
 
   ngOnInit(): void {
+    this.previousTheme = this.themeService.theme();
+    if (this.previousTheme === 'dark') {
+      this.themeService.set('light');
+    }
+
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'faq') {
         this.faqOpen.set(true);
@@ -64,6 +76,22 @@ export class LoginComponent implements OnInit {
 
   protected togglePassword(): void {
     this.showPassword.update((v) => !v);
+  }
+
+  protected onStatReveal(): void {
+    if (this.statCounterStarted) return;
+    this.statCounterStarted = true;
+
+    this.cancelCountUp?.();
+    this.cancelCountUp = animateCountUp(1995, 2003, 900, (value) => this.statYear.set(value));
+  }
+
+  ngOnDestroy(): void {
+    this.cancelCountUp?.();
+
+    if (this.previousTheme === 'dark') {
+      this.themeService.set('dark');
+    }
   }
 
   protected quickLogin(account: DevLoginAccount): void {

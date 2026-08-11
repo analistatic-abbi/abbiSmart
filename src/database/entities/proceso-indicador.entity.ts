@@ -7,7 +7,6 @@ import {
   Unique,
 } from 'typeorm';
 import { CumpleIndicador } from '../../common/enums/cumple-indicador.enum';
-import { IndicadorCodigo } from '../../common/enums/indicador-codigo.enum';
 import { ParametroFinanciero } from './parametro-financiero.entity';
 import { Proceso } from './proceso.entity';
 
@@ -22,10 +21,10 @@ export class ProcesoIndicador {
 
   @Column({
     name: 'indicador_codigo',
-    type: 'enum',
-    enum: IndicadorCodigo,
+    type: 'varchar',
+    length: 50,
   })
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
 
   @Column({
     name: 'valor_requerido',

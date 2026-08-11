@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { IndicadorCodigo } from '../models/proceso.model';
+import { AuditLog } from '../models/admin.model';
 
 export interface ParametroFinanciero {
   id: number;
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   anio: number;
   valor: string;
   reglaCumplimiento: string;
@@ -14,13 +14,13 @@ export interface ParametroFinanciero {
 }
 
 export interface ParametroPorAnioItem {
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   valor: number;
   reglaCumplimiento: string;
 }
 
 export interface ParametroPorAnioResponseItem {
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
   id: number | null;
   valor: string | null;
   reglaCumplimiento: string | null;
@@ -48,7 +48,7 @@ export class ParametrosService {
     page?: number;
     limit?: number;
     search?: string;
-    indicadorCodigo?: IndicadorCodigo;
+    indicadorCodigo?: string;
     anio?: number;
   } = {}): Observable<{ data: ParametroFinanciero[]; total: number }> {
     const query: Record<string, string | number> = {
@@ -76,7 +76,7 @@ export class ParametrosService {
   }
 
   create(payload: {
-    indicadorCodigo: IndicadorCodigo;
+    indicadorCodigo: string;
     anio: number;
     valor: number;
     reglaCumplimiento: string;
@@ -95,16 +95,7 @@ export class ParametrosService {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`);
   }
 
-  getHistorial(id: number): Observable<{ data: ParametroHistorial[] }> {
-    return this.http.get<{ data: ParametroHistorial[] }>(`${this.base}/${id}/historial`);
+  getHistorial(id: number): Observable<{ data: AuditLog[] }> {
+    return this.http.get<{ data: AuditLog[] }>(`${this.base}/${id}/historial`);
   }
-}
-
-export interface ParametroHistorial {
-  id: number;
-  campo: string | null;
-  valorAnterior: string | null;
-  valorNuevo: string | null;
-  usuarioId: number | null;
-  fecha: string;
 }

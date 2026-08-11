@@ -1,0 +1,126 @@
+.loading {
+  color: var(--color-on-surface-variant);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.month-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: calc(var(--radius-prime) + 2px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  &--empty {
+    opacity: 0.75;
+  }
+}
+
+.month-column__header {
+  padding: 8px 12px;
+  text-align: center;
+  background: var(--color-surface-container-low);
+  border-bottom: 1px solid var(--color-outline-variant);
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-on-surface);
+  }
+}
+
+.month-column__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.month-column__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+}
+
+.calendar-card {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid;
+  border-radius: var(--radius-prime);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+}
+
+.calendar-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.calendar-card__empresa {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-secondary);
+  line-height: 1.3;
+}
+
+.calendar-card__dia {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.calendar-card__objeto {
+  font-size: 11px;
+  color: var(--color-on-surface-variant);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.calendar-card__urgencia {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.calendar-card__estado {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}

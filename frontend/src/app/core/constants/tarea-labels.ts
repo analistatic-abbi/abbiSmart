@@ -14,6 +14,10 @@ export const TAREA_LABELS: Record<string, string> = {
   Envio_Propuesta: 'Envío de propuesta',
 };
 
-export function labelTarea(codigo: string): string {
+export function labelTarea(codigo: string, nombre?: string | null): string {
+  if (nombre?.trim()) {
+    return nombre.trim();
+  }
+
   return TAREA_LABELS[codigo] ?? codigo.replaceAll('_', ' ');
 }

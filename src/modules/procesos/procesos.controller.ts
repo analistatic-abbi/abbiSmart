@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   Res,
   UploadedFile,
@@ -30,6 +31,7 @@ import {
   ProcesosQueryDto,
   CreateProcesoComentarioDto,
   RegistrarMotivoPerdidaDto,
+  UpdateProcesoContactosDto,
   UpdateProcesoDto,
   UpdateProcesoFechasDto,
 } from './dto/proceso.dto';
@@ -131,6 +133,43 @@ export class ProcesosController {
 
     return {
       message: 'Comentarios del proceso obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Get(':id/contactos')
+  @ApiOperation({ summary: 'Listar contactos vinculados al proceso' })
+  async findContactos(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    await this.procesosService.getProcesoActivoOrFail(id, user.paisSesionId!);
+    const data = await this.procesosService.findContactosProceso(id);
+
+    return {
+      message: 'Contactos del proceso obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Put(':id/contactos')
+  @RequireWriteAccess()
+  @ApiOperation({ summary: 'Actualizar contactos vinculados al proceso' })
+  async setContactos(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProcesoContactosDto,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const data = await this.procesosService.setContactosProceso(
+      id,
+      dto,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol as Rol,
+    );
+
+    return {
+      message: 'Contactos del proceso actualizados correctamente',
       data,
     };
   }

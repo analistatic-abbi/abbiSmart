@@ -2,6 +2,10 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { confirmarGuardado } from '../../../core/utils/confirm-dialog.util';
+import { mensajeExitoApi } from '../../../core/utils/api-error.util';
 import { ConfiguracionItem } from '../../../core/models/admin.model';
 
 type ConfigFieldType = 'text' | 'number' | 'boolean';
@@ -29,6 +33,8 @@ const CONFIG_META: Record<string, ConfigMeta> = {
 })
 export class ConfiguracionComponent implements OnInit {
   private readonly configuracion = inject(ConfiguracionService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly items = signal<ConfiguracionItem[]>([]);
   protected readonly valores = signal<Record<string, string>>({});
@@ -73,13 +79,23 @@ export class ConfiguracionComponent implements OnInit {
   }
 
   protected guardar(clave: string): void {
-    this.saving.set(clave);
-    this.configuracion.update(clave, this.valores()[clave]).subscribe({
-      next: () => this.saving.set(null),
-      error: () => {
-        this.error.set(`No fue posible actualizar ${this.titulo(clave)}.`);
-        this.saving.set(null);
-      },
+    void confirmarGuardado(
+      this.confirmDialog,
+      `¿Desea guardar los cambios en «${this.titulo(clave)}»?`,
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.saving.set(clave);
+      this.configuracion.update(clave, this.valores()[clave]).subscribe({
+        next: (r) => {
+          this.saving.set(null);
+          this.toast.success(mensajeExitoApi(r, `${this.titulo(clave)} actualizado correctamente.`));
+        },
+        error: () => {
+          this.error.set(`No fue posible actualizar ${this.titulo(clave)}.`);
+          this.saving.set(null);
+        },
+      });
     });
   }
 }
