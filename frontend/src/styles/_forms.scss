@@ -241,6 +241,34 @@
     }
   }
 
+  .filters__dates {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+
+    > label {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-emphasis);
+      white-space: nowrap;
+
+      input:not([type='checkbox']):not([type='radio']) {
+        @include abbi-text-field($full-width: false);
+        width: 112px;
+        min-width: 112px;
+        min-height: 40px;
+        padding: 8px 12px;
+      }
+    }
+  }
+
   > .btn-primary,
   > .btn-secondary,
   > button[type='button'] {
@@ -412,4 +440,19 @@ label:has(> .form-field-error) {
   input[type='checkbox'] {
     @include abbi-checkbox;
   }
+}
+
+// Selects y campos en formularios fuera de .form-grid
+label > select,
+.abbi-modal__body select,
+.panel label > select,
+.panel select:not(.actions-menu__trigger) {
+  @include abbi-select;
+}
+
+.filters select,
+.lista-toolbar select,
+.table-pagination select {
+  @include abbi-select($full-width: false);
+  min-width: 160px;
 }

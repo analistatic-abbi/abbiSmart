@@ -1,0 +1,647 @@
+<section class="page">
+
+  <header class="page__header">
+
+    <div>
+
+      <a routerLink="/admin/paises" class="back-link">← Volver a países</a>
+
+      @if (pais(); as p) {
+
+        <div class="pais-title">
+
+          <img [src]="flagUrl(p)" [alt]="p.nombre" />
+
+          <div>
+
+            <h1>Configuración — {{ p.nombre }}</h1>
+
+            <p>ISO {{ p.codigoIso }} · Moneda {{ p.codigoMoneda }}</p>
+
+          </div>
+
+        </div>
+
+      } @else {
+
+        <h1>Configuración del país</h1>
+
+      }
+
+    </div>
+
+  </header>
+
+
+
+  <nav class="tabs">
+
+    <button type="button" [class.active]="tab() === 'general'" (click)="setTab('general')">
+
+      General
+
+    </button>
+
+    <button type="button" [class.active]="tab() === 'tareas'" (click)="setTab('tareas')">
+
+      Tareas
+
+    </button>
+
+    <button type="button" [class.active]="tab() === 'reglas'" (click)="setTab('reglas')">
+
+      Reglas
+
+    </button>
+
+    <button type="button" [class.active]="tab() === 'catalogos'" (click)="setTab('catalogos')">
+
+      Catálogos
+
+    </button>
+
+  </nav>
+
+
+
+  @if (loading()) {
+
+    <p>Cargando configuración...</p>
+
+  } @else if (tab() === 'general') {
+
+    <section class="card">
+
+      <h2>Resumen operativo</h2>
+
+      @if (pais(); as p) {
+
+        <ul class="checklist">
+
+          <li [class.ok]="(p.ubicacionesCount ?? 0) > 0">
+
+            Ubicaciones geográficas: {{ p.ubicacionesCount ?? 0 }}
+
+          </li>
+
+          <li [class.ok]="(p.plantillaTareasCount ?? 0) > 0">
+
+            Plantilla de tareas: {{ p.plantillaTareasCount ?? 0 }}
+
+          </li>
+
+          <li [class.ok]="(p.catalogosActivosCount ?? 0) > 0">
+
+            Catálogos de negocio: {{ p.catalogosActivosCount ?? 0 }}
+
+          </li>
+
+          <li [class.ok]="p.listoOperacion">
+
+            Estado: {{ p.listoOperacion ? 'Listo para operar' : 'Pendiente de configuración' }}
+
+          </li>
+
+        </ul>
+
+        @if (p.advertencias?.length) {
+
+          <div class="advertencias">
+
+            <strong>Advertencias:</strong>
+
+            <ul>
+
+              @for (adv of p.advertencias; track adv) {
+
+                <li>{{ adv }}</li>
+
+              }
+
+            </ul>
+
+          </div>
+
+        }
+
+      }
+
+      <section class="admin-tools" aria-labelledby="herramientas-pais-heading">
+        <h3 id="herramientas-pais-heading">Herramientas</h3>
+        <p class="admin-tools__intro">
+          Acciones de mantenimiento para completar o copiar la configuración inicial del país.
+        </p>
+
+        <div class="tool-card">
+          <div class="tool-card__content">
+            <strong class="tool-card__title">Re-sincronizar onboarding parcial</strong>
+            <p class="tool-card__desc">
+              Completa automáticamente lo que falte: ubicaciones geográficas, plantilla de tareas,
+              reglas por defecto, catálogos de negocio y parámetros financieros (solo si aún no existen).
+              No borra configuración ya definida.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-secondary tool-card__action"
+            [disabled]="saving()"
+            (click)="resyncOnboarding()"
+          >
+            Re-sincronizar
+          </button>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-card__content">
+            <strong class="tool-card__title">Clonar configuración desde otro país</strong>
+            <p class="tool-card__desc">
+              Copia catálogos, plantilla de tareas y reglas desde un país ya configurado hacia este país.
+              Útil al dar de alta un país nuevo tomando como base Colombia u otro país operativo.
+            </p>
+          </div>
+          <div class="tool-card__actions">
+            <select
+              class="tool-card__select"
+              [ngModel]="clonarOrigenId()"
+              (ngModelChange)="clonarOrigenId.set($event)"
+            >
+              <option [ngValue]="null">Seleccione país origen...</option>
+              @for (paisOrigen of paisesDisponibles(); track paisOrigen.id) {
+                <option [ngValue]="paisOrigen.id">{{ paisOrigen.nombre }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn-primary tool-card__action"
+              [disabled]="saving() || !clonarOrigenId()"
+              (click)="clonarConfiguracion()"
+            >
+              Clonar
+            </button>
+          </div>
+        </div>
+
+        <p class="tool-note">
+          La calificación por puntos y los formatos de rúbrica solo aplican cuando está habilitada
+          para el país (por defecto solo Colombia). Puede activarla en la pestaña <strong>Reglas</strong>.
+        </p>
+      </section>
+
+    </section>
+
+  } @else if (tab() === 'tareas') {
+
+    <section class="card">
+
+      <h2>Plantilla de tareas de seguimiento</h2>
+
+      <p class="hint">
+
+        Defina las tareas que se crearán automáticamente en cada proceso nuevo del país.
+
+      </p>
+
+
+
+      <form class="tarea-form" (ngSubmit)="agregarTarea()">
+
+        <div class="tarea-form__grid">
+
+          <label class="field">
+
+            <span>Nombre de la tarea</span>
+
+            <input
+
+              type="text"
+
+              name="nuevaTareaNombre"
+
+              [(ngModel)]="nuevaTareaNombre"
+
+              placeholder="Ej. Revisión legal preliminar"
+
+              maxlength="150"
+
+            />
+
+          </label>
+
+
+
+          <label class="field">
+
+            <span>Orden</span>
+
+            <input
+
+              type="number"
+
+              name="nuevaTareaOrden"
+
+              min="1"
+
+              [(ngModel)]="nuevaTareaOrden"
+
+              [placeholder]="siguienteOrdenTarea()"
+
+            />
+
+          </label>
+
+        </div>
+
+
+
+        <div class="tarea-form__opciones">
+
+          <label class="filter-toggle">
+
+            <input type="checkbox" name="nuevaTareaAplicaRfi" [(ngModel)]="nuevaTareaAplicaRfi" />
+
+            Aplica solo para procesos RFI
+
+          </label>
+
+          <label class="filter-toggle">
+
+            <input
+
+              type="checkbox"
+
+              name="nuevaTareaRequiereFecha"
+
+              [(ngModel)]="nuevaTareaRequiereFecha"
+
+            />
+
+            Requiere fecha de adquisición del derecho
+
+          </label>
+
+        </div>
+
+
+
+        <button type="submit" class="btn-primary" [disabled]="saving()">Agregar tarea</button>
+
+      </form>
+
+
+
+      @if (!plantilla().length) {
+
+        <p class="empty-state">Aún no hay tareas configuradas para este país.</p>
+
+      } @else {
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>Orden</th>
+
+                <th>Nombre</th>
+
+                <th>RFI</th>
+
+                <th>Req. fecha adquisición</th>
+
+                <th>Estado</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @for (tarea of plantilla(); track tarea.id) {
+
+                <tr [class.inactiva]="!tarea.activo">
+
+                  <td class="col-orden">
+
+                    <input
+
+                      type="number"
+
+                      min="1"
+
+                      class="input-orden"
+
+                      [ngModel]="tarea.orden"
+                      (blur)="guardarOrdenTarea(tarea, $any($event.target).value)"
+
+                    />
+
+                  </td>
+
+                  <td>
+
+                    <input
+
+                      type="text"
+
+                      class="input-nombre"
+
+                      [ngModel]="tarea.nombre"
+
+                      (blur)="guardarNombreTarea(tarea, $any($event.target).value)"
+
+                      maxlength="150"
+
+                    />
+
+                  </td>
+
+                  <td>
+
+                    <label class="filter-toggle" (mousedown)="$event.preventDefault()">
+
+                      <input
+
+                        type="checkbox"
+
+                        [ngModel]="tarea.aplicaRfi"
+
+                        (ngModelChange)="guardarTarea(tarea, { aplicaRfi: $event })"
+
+                      />
+
+                      {{ tarea.aplicaRfi ? 'Sí' : 'No' }}
+
+                    </label>
+
+                  </td>
+
+                  <td>
+
+                    <label class="filter-toggle" (mousedown)="$event.preventDefault()">
+
+                      <input
+
+                        type="checkbox"
+
+                        [ngModel]="tarea.requiereFechaAdquisicion"
+
+                        (ngModelChange)="guardarTarea(tarea, { requiereFechaAdquisicion: $event })"
+
+                      />
+
+                      {{ tarea.requiereFechaAdquisicion ? 'Sí' : 'No' }}
+
+                    </label>
+
+                  </td>
+
+                  <td>
+
+                    <button
+
+                      type="button"
+
+                      class="estado-badge"
+                      (mousedown)="$event.preventDefault()"
+                      [class.estado-badge--activa]="tarea.activo"
+                      (click)="alternarTareaActiva(tarea)"
+
+                    >
+
+                      {{ tarea.activo ? 'Activa' : 'Inactiva' }}
+
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      }
+
+    </section>
+
+  } @else if (tab() === 'reglas') {
+
+    <section class="card">
+
+      <h2>Reglas del país</h2>
+
+
+
+      <label class="field">
+
+        <span>Calificación por puntos</span>
+
+        <button
+
+          type="button"
+
+          class="btn-secondary"
+
+          [disabled]="saving()"
+
+          (click)="alternarCalificacionPorPuntos()"
+
+        >
+
+          {{ calificacionPorPuntos() ? 'Habilitada — desactivar' : 'Deshabilitada — activar' }}
+
+        </button>
+
+      </label>
+
+
+
+      <label class="field">
+
+        <span>Margen % Casi Aprobado / Casi Desaprobado</span>
+
+        <div class="field-inline">
+
+          <input
+
+            type="number"
+
+            min="0"
+
+            max="100"
+
+            step="0.1"
+
+            [ngModel]="margenCasi()"
+
+            #margenInput="ngModel"
+
+            name="margenCasi"
+
+          />
+
+          <button
+
+            type="button"
+
+            class="btn-primary"
+
+            [disabled]="saving()"
+
+            (click)="guardarMargen(margenInput.value)"
+
+          >
+
+            Guardar
+
+          </button>
+
+        </div>
+
+      </label>
+
+    </section>
+
+  } @else {
+
+    <section class="card">
+
+      <h2>Catálogos de negocio</h2>
+
+      <p class="hint">Agregue segmentos de proceso, segmentos de cliente e indicadores financieros.</p>
+
+      <form class="catalogo-form" (ngSubmit)="agregarCatalogo()">
+        <div class="catalogo-form__grid">
+          <label class="field">
+            <span>Tipo</span>
+            <select name="nuevoCatalogoTipo" [(ngModel)]="nuevoCatalogoTipo">
+              @for (tipo of catalogoTiposCreables; track tipo) {
+                <option [ngValue]="tipo">{{ etiquetaTipoCatalogo(tipo) }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Nombre</span>
+            <input
+              type="text"
+              name="nuevoCatalogoEtiqueta"
+              [(ngModel)]="nuevoCatalogoEtiqueta"
+              placeholder="Ej. Servicios petroleros"
+              maxlength="150"
+            />
+          </label>
+
+          <label class="field">
+            <span>Orden</span>
+            <input
+              type="number"
+              name="nuevoCatalogoOrden"
+              min="1"
+              [(ngModel)]="nuevoCatalogoOrden"
+              [placeholder]="siguienteOrdenCatalogo()"
+            />
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="saving()">Agregar al catálogo</button>
+      </form>
+
+      <label class="field">
+
+        <span>Filtrar por tipo</span>
+
+        <select [ngModel]="catalogoTipoFiltro()" (ngModelChange)="catalogoTipoFiltro.set($event)">
+
+          <option value="todos">Todos</option>
+
+          <option value="segmento_proceso">Segmentos de proceso</option>
+
+          <option value="segmento_cliente">Segmentos de cliente</option>
+
+          <option value="indicador">Indicadores</option>
+
+          <option value="portal_origen">Portales de origen</option>
+
+          <option value="etiqueta_geo_nivel1">Etiqueta geográfica nivel 1</option>
+
+          <option value="etiqueta_geo_nivel2">Etiqueta geográfica nivel 2</option>
+
+        </select>
+
+      </label>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Tipo</th>
+
+              <th>Etiqueta</th>
+
+              <th>Orden</th>
+
+              <th>Estado</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            @for (item of catalogosFiltrados(); track item.id) {
+
+              <tr [class.inactiva]="!item.activo">
+
+                <td>{{ etiquetaTipoCatalogo(item.tipo) }}</td>
+
+                <td>{{ item.etiqueta }}</td>
+
+                <td>{{ item.orden }}</td>
+
+                <td>
+
+                  <button
+
+                    type="button"
+
+                    class="estado-badge"
+                    (mousedown)="$event.preventDefault()"
+                    [class.estado-badge--activa]="item.activo"
+                    (click)="alternarCatalogoActivo(item)"
+
+                  >
+
+                    {{ item.activo ? 'Activo' : 'Inactivo' }}
+
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  }
+
+</section>
+

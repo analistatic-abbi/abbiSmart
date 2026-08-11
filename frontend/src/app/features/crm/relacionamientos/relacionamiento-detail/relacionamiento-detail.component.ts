@@ -10,6 +10,8 @@ import {
   ResultadoRelacionamiento,
 } from '../../../../core/models/crm.model';
 import { FijarEntidadButtonComponent } from '../../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-relacionamiento-detail',
@@ -23,6 +25,7 @@ export class RelacionamientoDetailComponent implements OnInit {
   private readonly relacionamientos = inject(RelacionamientosService);
   private readonly catalogos = inject(CatalogosService);
   private readonly auth = inject(AuthService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
 
@@ -101,9 +104,6 @@ export class RelacionamientoDetailComponent implements OnInit {
       return;
     }
 
-    this.saving.set(true);
-    this.error.set(null);
-
     const payload = {
       canal: this.canal(),
       mensaje: this.mensaje(),
@@ -129,15 +129,25 @@ export class RelacionamientoDetailComponent implements OnInit {
         : {}),
     };
 
-    this.relacionamientos.update(this.relacionamientoId, payload).subscribe({
-      next: (r) => {
-        this.item.set(r.relacionamiento);
-        this.saving.set(false);
-      },
-      error: () => {
-        this.error.set('No fue posible actualizar el relacionamiento.');
-        this.saving.set(false);
-      },
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea guardar los cambios del relacionamiento?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.saving.set(true);
+      this.error.set(null);
+
+      this.relacionamientos.update(this.relacionamientoId, payload).subscribe({
+        next: (r) => {
+          this.item.set(r.relacionamiento);
+          this.saving.set(false);
+        },
+        error: () => {
+          this.error.set('No fue posible actualizar el relacionamiento.');
+          this.saving.set(false);
+        },
+      });
     });
   }
 

@@ -1,7 +1,31 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CargaMasivaService, CargaMasivaLog } from '../../../core/services/carga-masiva.service';
-import { mensajeErrorApi } from '../../../core/utils/api-error.util';
+import { RouterLink } from '@angular/router';
+import { CargaMasivaService } from '../../../core/services/carga-masiva.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { Rol } from '../../../core/models/rol.enum';
+import {
+  AvisoCargaMasivaTipo,
+  CargaMasivaDetalleCreado,
+  CargaMasivaFilaError,
+  CargaMasivaLog,
+  LogPanelExpandido,
+} from '../../../core/models/carga-masiva.model';
+import {
+  mensajeResumenCargaMasiva,
+  sugerenciaLocalCargaMasiva,
+  tituloAvisoCargaMasiva,
+} from '../../../core/utils/carga-masiva-error.util';
+import {
+  etiquetaEntidadCarga,
+  requiereConfirmacionDependientes,
+  rutaRegistroCreado,
+} from '../../../core/utils/carga-masiva-navigation.util';
+import { esErrorCodigo, mensajeErrorApi, mensajeExitoApi } from '../../../core/utils/api-error.util';
+import { formatFechaHora } from '../../../core/utils/date.util';
+import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { confirmarAccion } from '../../../core/utils/confirm-dialog.util';
 
 type Entidad = 'clientes' | 'contactos' | 'proyecciones';
 
@@ -18,6 +42,17 @@ interface GuiaCargaMasiva {
   columnas: ColumnaGuia[];
   notas: string[];
 }
+
+interface ResumenCarga {
+  filasExitosas: number;
+  filasRechazadas: number;
+}
+
+const ENTIDAD_API: Record<Entidad, string> = {
+  clientes: 'cliente',
+  contactos: 'contacto',
+  proyecciones: 'proyeccion',
+};
 
 const GUIAS_CARGA_MASIVA: Record<Entidad, GuiaCargaMasiva> = {
   clientes: {
@@ -40,12 +75,14 @@ const GUIAS_CARGA_MASIVA: Record<Entidad, GuiaCargaMasiva> = {
       {
         nombre: 'departamento',
         obligatoria: false,
-        descripcion: 'Departamento o región. También acepta la columna region. Vacío = ubicación genérica del país.',
+        descripcion:
+          'Departamento o región. También acepta la columna region. Vacío = ubicación genérica del país.',
       },
       {
         nombre: 'municipio',
         obligatoria: false,
-        descripcion: 'Municipio o ciudad para precisar la ubicación.',
+        descripcion:
+          'Municipio o ciudad. Para Bogotá use departamento "Cundinamarca" y municipio "Bogotá".',
       },
       {
         nombre: 'segmento_otro',
@@ -55,6 +92,7 @@ const GUIAS_CARGA_MASIVA: Record<Entidad, GuiaCargaMasiva> = {
     ],
     notas: [
       'Ejemplo con solo país: empresa y segmento obligatorios; pais con valor; departamento y municipio vacíos.',
+      'Para Bogotá use departamento "Cundinamarca" y municipio "Bogotá".',
     ],
   },
   contactos: {
@@ -81,7 +119,9 @@ const GUIAS_CARGA_MASIVA: Record<Entidad, GuiaCargaMasiva> = {
         descripcion: 'Nombre de otro contacto del mismo cliente que lo refirió.',
       },
     ],
-    notas: [],
+    notas: [
+      'Para Bogotá use departamento "Cundinamarca" y municipio "Bogotá".',
+    ],
   },
   proyecciones: {
     titulo: 'Proyecciones',
@@ -134,24 +174,105 @@ const GUIAS_CARGA_MASIVA: Record<Entidad, GuiaCargaMasiva> = {
 @Component({
   selector: 'app-carga-masiva',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './carga-masiva.component.html',
   styleUrl: './carga-masiva.component.scss',
 })
 export class CargaMasivaComponent implements OnInit {
   private readonly cargaMasiva = inject(CargaMasivaService);
+  private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly logs = signal<CargaMasivaLog[]>([]);
   protected readonly entidad = signal<Entidad>('clientes');
   protected readonly archivo = signal<File | null>(null);
-  protected readonly resultado = signal<string | null>(null);
-  protected readonly erroresDetalle = signal<Array<{ fila: number; error: string }>>([]);
+  protected readonly resumen = signal<ResumenCarga | null>(null);
+  protected readonly errorGeneral = signal<string | null>(null);
+  protected readonly erroresDetalle = signal<CargaMasivaFilaError[]>([]);
+  protected readonly detalleCreados = signal<CargaMasivaDetalleCreado[]>([]);
+  protected readonly logIdActual = signal<number | null>(null);
+  protected readonly entidadTipoActual = signal<string | null>(null);
   protected readonly loading = signal(false);
+  protected readonly logExpandido = signal<{ id: number; panel: LogPanelExpandido } | null>(null);
+  protected readonly revertModalLog = signal<CargaMasivaLog | null>(null);
+  protected readonly revertConfirmDependientes = signal(false);
+  protected readonly revertLoading = signal(false);
+  protected readonly revertError = signal<string | null>(null);
+  protected readonly revertExito = signal<string | null>(null);
+  protected readonly formatFecha = formatFechaHora;
+
+  protected readonly puedeRevertir = computed(
+    () => this.auth.rol() === Rol.Administrador,
+  );
 
   protected readonly guia = computed(() => GUIAS_CARGA_MASIVA[this.entidad()]);
 
+  protected readonly avisoTipo = computed((): AvisoCargaMasivaTipo | null => {
+    const resumen = this.resumen();
+    if (!resumen) {
+      return null;
+    }
+
+    if (resumen.filasRechazadas === 0) {
+      return 'success';
+    }
+
+    if (resumen.filasExitosas === 0) {
+      return 'error';
+    }
+
+    return 'warning';
+  });
+
+  protected readonly avisoTitulo = computed(() => {
+    const resumen = this.resumen();
+    if (!resumen) {
+      return '';
+    }
+
+    return tituloAvisoCargaMasiva(resumen.filasExitosas, resumen.filasRechazadas);
+  });
+
+  protected readonly avisoMensaje = computed(() => {
+    const resumen = this.resumen();
+    if (!resumen) {
+      return '';
+    }
+
+    return mensajeResumenCargaMasiva(resumen.filasExitosas, resumen.filasRechazadas);
+  });
+
   ngOnInit(): void {
-    this.cargaMasiva.getLogs().subscribe((r) => this.logs.set(r.data));
+    this.cargaMasiva.getLogs().subscribe((r) => this.logs.set(this.normalizarLogs(r.data)));
+  }
+
+  protected erroresLog(log: CargaMasivaLog): CargaMasivaFilaError[] {
+    return this.normalizarDetalle<CargaMasivaFilaError>(log.detalleErrores);
+  }
+
+  protected creadosLog(log: CargaMasivaLog): CargaMasivaDetalleCreado[] {
+    return this.normalizarDetalle<CargaMasivaDetalleCreado>(log.detalleCreados);
+  }
+
+  protected tieneErroresDetalle(log: CargaMasivaLog): boolean {
+    return log.filasRechazadas > 0;
+  }
+
+  protected tieneCreadosDetalle(log: CargaMasivaLog): boolean {
+    return this.creadosLog(log).length > 0;
+  }
+
+  protected descargarPlantilla(): void {
+    const encabezado = this.guia().encabezado;
+    const contenido = `${encabezado}\n`;
+    const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `plantilla-${this.entidad()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   protected onFileSelected(event: Event): void {
@@ -159,34 +280,189 @@ export class CargaMasivaComponent implements OnInit {
     this.archivo.set(input.files?.[0] ?? null);
   }
 
+  protected sugerenciaFila(error: CargaMasivaFilaError): string | null {
+    return sugerenciaLocalCargaMasiva(error);
+  }
+
+  protected entidadEtiqueta(tipo: string): string {
+    return etiquetaEntidadCarga(tipo);
+  }
+
+  protected rutaCreado(
+    entidadTipo: string,
+    item: CargaMasivaDetalleCreado,
+  ): string | null {
+    return rutaRegistroCreado(entidadTipo, item);
+  }
+
+  protected requiereConfirmDependientes(entidadTipo: string): boolean {
+    return requiereConfirmacionDependientes(entidadTipo);
+  }
+
+  protected isLogPanelOpen(logId: number, panel: LogPanelExpandido): boolean {
+    const current = this.logExpandido();
+    return current?.id === logId && current.panel === panel;
+  }
+
+  protected toggleLogPanel(logId: number, panel: LogPanelExpandido): void {
+    this.logExpandido.update((current) =>
+      current?.id === logId && current.panel === panel
+        ? null
+        : { id: logId, panel },
+    );
+  }
+
+  protected abrirRevertir(log: CargaMasivaLog): void {
+    this.revertModalLog.set(log);
+    this.revertConfirmDependientes.set(false);
+    this.revertError.set(null);
+  }
+
+  protected abrirRevertirActual(): void {
+    const logId = this.logIdActual();
+    if (!logId) {
+      return;
+    }
+
+    this.abrirRevertir({
+      id: logId,
+      entidadTipo: this.entidadTipoActual() ?? ENTIDAD_API[this.entidad()],
+      archivoNombre: this.archivo()?.name ?? 'Archivo importado',
+      filasExitosas: this.detalleCreados().length,
+      filasRechazadas: this.erroresDetalle().length,
+      fechaCarga: new Date().toISOString(),
+      detalleCreados: this.detalleCreados(),
+      revertida: false,
+    });
+  }
+
+  protected cerrarRevertir(): void {
+    if (this.revertLoading()) {
+      return;
+    }
+
+    this.revertModalLog.set(null);
+    this.revertConfirmDependientes.set(false);
+    this.revertError.set(null);
+  }
+
+  protected confirmarRevertir(): void {
+    const log = this.revertModalLog();
+    if (!log) {
+      return;
+    }
+
+    this.revertLoading.set(true);
+    this.revertError.set(null);
+
+    this.cargaMasiva
+      .revertirCarga(log.id, this.revertConfirmDependientes())
+      .subscribe({
+        next: (r) => {
+          const mensaje = `${mensajeExitoApi(r, 'Carga masiva procesada.')}: ${r.eliminados} registro(s) eliminado(s).`;
+          this.revertExito.set(mensaje);
+          this.toast.success(mensaje);
+          this.revertLoading.set(false);
+          this.revertModalLog.set(null);
+          this.detalleCreados.set([]);
+          this.logIdActual.set(null);
+          this.cargaMasiva.getLogs().subscribe((res) => this.logs.set(this.normalizarLogs(res.data)));
+        },
+        error: (err) => {
+          this.revertError.set(
+            mensajeErrorApi(err, 'No se pudo revertir la carga masiva.'),
+          );
+          if (esErrorCodigo(err, 'ELIMINACION_CON_DEPENDENCIAS')) {
+            this.revertConfirmDependientes.set(true);
+          }
+          this.revertLoading.set(false);
+        },
+      });
+  }
+
   protected subir(): void {
     const file = this.archivo();
     if (!file) return;
 
-    this.loading.set(true);
-    this.resultado.set(null);
-    this.erroresDetalle.set([]);
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar carga masiva',
+      message: `¿Desea procesar el archivo «${file.name}» para ${etiquetaEntidadCarga(this.entidad())}?`,
+      confirmLabel: 'Procesar archivo',
+    }).then((ok) => {
+      if (!ok) return;
 
-    const req =
-      this.entidad() === 'clientes'
-        ? this.cargaMasiva.importClientes(file)
-        : this.entidad() === 'contactos'
-          ? this.cargaMasiva.importContactos(file)
-          : this.cargaMasiva.importProyecciones(file);
+      this.loading.set(true);
+      this.resumen.set(null);
+      this.errorGeneral.set(null);
+      this.erroresDetalle.set([]);
+      this.detalleCreados.set([]);
+      this.logIdActual.set(null);
+      this.entidadTipoActual.set(null);
+      this.revertExito.set(null);
 
-    req.subscribe({
-      next: (r) => {
-        this.resultado.set(
-          `${r.message}: ${r.filasExitosas} exitosas, ${r.filasRechazadas} rechazadas.`,
-        );
-        this.erroresDetalle.set(r.detalleErrores ?? []);
-        this.loading.set(false);
-        this.cargaMasiva.getLogs().subscribe((res) => this.logs.set(res.data));
-      },
-      error: (err) => {
-        this.resultado.set(mensajeErrorApi(err, 'Error al procesar el archivo.'));
-        this.loading.set(false);
-      },
+      const req =
+        this.entidad() === 'clientes'
+          ? this.cargaMasiva.importClientes(file)
+          : this.entidad() === 'contactos'
+            ? this.cargaMasiva.importContactos(file)
+            : this.cargaMasiva.importProyecciones(file);
+
+      req.subscribe({
+        next: (r) => {
+          this.resumen.set({
+            filasExitosas: r.filasExitosas,
+            filasRechazadas: r.filasRechazadas,
+          });
+          this.erroresDetalle.set(r.detalleErrores ?? []);
+          this.detalleCreados.set(r.detalleCreados ?? []);
+          this.logIdActual.set(r.logId ?? null);
+          this.entidadTipoActual.set(ENTIDAD_API[this.entidad()]);
+          this.toast.success(
+            mensajeExitoApi(
+              r,
+              r.filasRechazadas > 0
+                ? `Carga completada: ${r.filasExitosas} fila(s) importada(s), ${r.filasRechazadas} rechazada(s).`
+                : `Carga completada: ${r.filasExitosas} fila(s) importada(s).`,
+            ),
+          );
+          this.loading.set(false);
+          this.cargaMasiva.getLogs().subscribe((res) => this.logs.set(this.normalizarLogs(res.data)));
+        },
+        error: (err) => {
+          this.errorGeneral.set(mensajeErrorApi(err, 'No fue posible procesar el archivo.'));
+          this.toast.error(mensajeErrorApi(err, 'No fue posible procesar el archivo.'));
+          this.loading.set(false);
+        },
+      });
     });
+  }
+
+  private normalizarLogs(logs: CargaMasivaLog[]): CargaMasivaLog[] {
+    return logs.map((log) => ({
+      ...log,
+      detalleErrores: this.normalizarDetalle<CargaMasivaFilaError>(log.detalleErrores),
+      detalleCreados: this.normalizarDetalle<CargaMasivaDetalleCreado>(log.detalleCreados),
+    }));
+  }
+
+  private normalizarDetalle<T>(value: unknown): T[] {
+    if (!value) {
+      return [];
+    }
+
+    if (Array.isArray(value)) {
+      return value as T[];
+    }
+
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value) as unknown;
+        return Array.isArray(parsed) ? (parsed as T[]) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
   }
 }

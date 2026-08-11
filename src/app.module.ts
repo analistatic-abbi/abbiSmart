@@ -28,6 +28,8 @@ import { UsersModule } from './modules/users/users.module';
 import { FormatosCalificacionModule } from './modules/formatos-calificacion/formatos-calificacion.module';
 import { SoporteModule } from './modules/soporte/soporte.module';
 import { BandejaPersonalModule } from './modules/bandeja-personal/bandeja-personal.module';
+import { KamModule } from './modules/kam/kam.module';
+import { FormatosEncuestaModule } from './modules/formatos-encuesta/formatos-encuesta.module';
 
 @Module({
   imports: [
@@ -90,6 +92,8 @@ import { BandejaPersonalModule } from './modules/bandeja-personal/bandeja-person
     FormatosCalificacionModule,
     SoporteModule,
     BandejaPersonalModule,
+    KamModule,
+    FormatosEncuestaModule,
   ],
 })
 export class AppModule {}

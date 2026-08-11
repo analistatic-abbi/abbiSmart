@@ -1,0 +1,25 @@
+@if (open()) {
+  <div class="abbi-modal__backdrop" (click)="onBackdropClick($event)">
+    <div class="abbi-modal" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+      <header class="abbi-modal__header">
+        <h2>{{ title() }}</h2>
+        <button type="button" class="abbi-modal__close" aria-label="Cerrar" (click)="cancel.emit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+      <div class="abbi-modal__body">
+        <ng-content />
+      </div>
+      @if (showActions()) {
+        <footer class="abbi-modal__footer">
+          <button type="button" class="btn-secondary" [disabled]="loading()" (click)="cancel.emit()">
+            {{ cancelLabel() }}
+          </button>
+          <button type="button" class="btn-primary" [disabled]="loading()" (click)="confirm.emit()">
+            {{ confirmLabel() }}
+          </button>
+        </footer>
+      }
+    </div>
+  </div>
+}

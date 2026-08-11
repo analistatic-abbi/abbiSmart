@@ -1,0 +1,410 @@
+@if (loading()) {
+  <p>Cargando KAM...</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (kam()) {
+  <section class="page detail">
+    <header class="detail__header">
+      <div>
+        <a routerLink="/kam" class="back">← Volver a KAM</a>
+        <h1>{{ kam()!.procesoCodigo ?? kam()!.procesoIdDigitado }}</h1>
+        @if (kam()!.procesoObjeto) {
+          <p class="detail__objeto">{{ kam()!.procesoObjeto }}</p>
+        }
+        <p class="detail__cliente">
+          {{ kam()!.empresaMostrar }} · <a [routerLink]="['/procesos', kam()!.procesoId]">Ver proceso</a>
+        </p>
+      </div>
+      @if (puedeEscribir()) {
+        <button type="button" class="btn-secondary" [disabled]="actionLoading()" (click)="crearRonda()">
+          Nueva ronda
+        </button>
+      }
+    </header>
+
+    <section class="panel">
+      <h2>Contactos del proceso</h2>
+      @if (!kam()!.contactosProceso.length) {
+        <p>No hay contactos asignados al proceso. Asigne contactos en el detalle del proceso para poder crear encuestas.</p>
+      } @else {
+        <ul class="contactos-list">
+          @for (c of kam()!.contactosProceso; track c.contactoId) {
+            <li>
+              <strong>{{ c.nombre }}</strong>
+              @if (c.cargo) { · {{ c.cargo }} }
+              @if (c.correo) { · {{ c.correo }} }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="panel">
+      <h2>Rondas</h2>
+      @if (!rondasOrdenadas().length) {
+        <p>No hay rondas disponibles.</p>
+      } @else {
+        <div class="accordion">
+          @for (ronda of rondasOrdenadas(); track ronda.id) {
+            <article class="accordion__item">
+              <button type="button" class="accordion__header" (click)="toggleRonda(ronda.id)">
+                <div class="ronda-header">
+                  <div class="ronda-header__row">
+                    <strong class="ronda-header__titulo">Ronda {{ ronda.numero }}</strong>
+                    <span [class]="badgeClass(ronda.estado)">{{ ronda.estado }}</span>
+                  </div>
+                  @if (ronda.fechaReunionSocializacion) {
+                    <span class="ronda-header__meta">
+                      Reunión fin de ronda: {{ ronda.fechaReunionSocializacion }}
+                    </span>
+                  }
+                </div>
+                <span class="material-symbols-outlined accordion__chevron">
+                  {{ rondaExpandidaEs(ronda.id) ? 'expand_less' : 'expand_more' }}
+                </span>
+              </button>
+
+              @if (rondaExpandidaEs(ronda.id)) {
+                <div class="accordion__body">
+                  <div class="ronda-section">
+                    <header class="ronda-section__header">
+                      <h3 class="section-title">Bitácora</h3>
+                      <p class="ronda-section__hint">Registre notas, acuerdos o seguimiento de la ronda.</p>
+                    </header>
+                    <div class="ronda-section__content">
+                      @if (puedeEscribir()) {
+                        <div class="comentario-form">
+                          <label>Nuevo comentario
+                            <textarea
+                              rows="3"
+                              placeholder="Escriba una nota interna sobre esta ronda..."
+                              [ngModel]="bitacora()[ronda.id]"
+                              (ngModelChange)="setBitacora(ronda.id, $event)"
+                            ></textarea>
+                          </label>
+                          <button
+                            type="button"
+                            class="btn-primary"
+                            [disabled]="actionLoading() || !(bitacora()[ronda.id] ?? '').trim()"
+                            (click)="guardarBitacora(ronda)"
+                          >
+                            {{ actionLoading() ? 'Guardando...' : 'Agregar comentario' }}
+                          </button>
+                        </div>
+                      }
+
+                      <table>
+                        <thead>
+                          <tr><th>Usuario</th><th>Comentario</th><th>Fecha</th></tr>
+                        </thead>
+                        <tbody>
+                          @for (c of ronda.bitacoraEntradas ?? []; track c.id) {
+                            <tr>
+                              <td>{{ c.usuarioNombre }}</td>
+                              <td class="comentario-texto">{{ c.texto }}</td>
+                              <td>{{ formatFechaHora(c.fechaCreacion) }}</td>
+                            </tr>
+                          } @empty {
+                            <tr><td colspan="3">Sin comentarios registrados.</td></tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="ronda-section" [class.ronda-section--readonly]="!rondaEditable(ronda)">
+                    <header class="ronda-section__header">
+                      <h3 class="section-title">Correspondencia</h3>
+                      <p class="ronda-section__hint">
+                        Adjunte uno o varios documentos o correos relacionados con la ronda.
+                      </p>
+                    </header>
+                    <div class="ronda-section__content">
+                      @if (archivosCorrespondencia(ronda).length) {
+                        <ul class="correspondencia-lista">
+                          @for (archivo of archivosCorrespondencia(ronda); track archivo.id || archivo.nombre) {
+                            <li class="archivo-actual">
+                              <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                              <span>{{ archivo.nombre }}</span>
+                              <button
+                                type="button"
+                                class="link"
+                                (click)="descargarCorrespondencia(ronda, archivo)"
+                              >
+                                Descargar
+                              </button>
+                              @if (rondaEditable(ronda) && archivo.id) {
+                                <button
+                                  type="button"
+                                  class="link link--danger"
+                                  (click)="eliminarCorrespondencia(ronda, archivo.id)"
+                                >
+                                  Eliminar
+                                </button>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      } @else if (!rondaEditable(ronda)) {
+                        <p class="ronda-section__empty">Sin correspondencia adjunta.</p>
+                      }
+
+                      @if (rondaEditable(ronda)) {
+                        <label>
+                          Archivos
+                          <input
+                            type="file"
+                            multiple
+                            (change)="onArchivoCorrespondencia(ronda.id, $event)"
+                          />
+                        </label>
+                        @if ((archivoCorrespondencia()[ronda.id] ?? []).length) {
+                          <p class="ronda-section__hint">
+                            {{ (archivoCorrespondencia()[ronda.id] ?? []).length }} archivo(s) seleccionado(s)
+                          </p>
+                        }
+                        <div class="form-actions form-actions--section">
+                          <button
+                            type="button"
+                            class="btn-secondary"
+                            [disabled]="actionLoading()"
+                            (click)="subirCorrespondencia(ronda)"
+                          >
+                            Subir archivos
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="ronda-section ronda-section--encuestas">
+                    <header class="ronda-section__header">
+                      <h3 class="section-title">Encuestas</h3>
+                      <p class="ronda-section__hint">
+                        Asigne un formato de encuesta a cada contacto y complete las respuestas a su ritmo.
+                      </p>
+                    </header>
+                    <div class="ronda-section__content">
+                      @if (ronda.encuestas.length) {
+                        <div class="table-wrap">
+                          <table class="encuestas-table">
+                            <thead>
+                              <tr>
+                                <th>Contacto</th>
+                                <th>Formato</th>
+                                <th>Estado</th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (encuesta of ronda.encuestas; track encuesta.id) {
+                                @if (contactoEncuesta(encuesta); as contacto) {
+                                  <tr>
+                                    <td>{{ contacto.nombre }}</td>
+                                    <td>{{ encuesta.formatoNombre }}</td>
+                                    <td>
+                                      <span [class]="estadoEncuestaClass(contacto.completo)">
+                                        {{ estadoEncuestaLabel(contacto.completo) }}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <a
+                                        class="table-action"
+                                        [routerLink]="['/kam', kamId, 'rondas', ronda.id, 'encuestas', encuesta.id]"
+                                      >
+                                        {{ contacto.completo ? 'Ver' : 'Responder' }}
+                                      </a>
+                                    </td>
+                                  </tr>
+                                }
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      } @else {
+                        <p class="ronda-section__empty">Aún no hay encuestas asignadas en esta ronda.</p>
+                      }
+
+                      @if (rondaEditable(ronda)) {
+                        <div class="form-actions form-actions--section">
+                          <button type="button" class="btn-secondary" [disabled]="actionLoading()" (click)="abrirModalAsignar(ronda)">
+                            Asignar formato a contacto
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  @if (ronda.resumen; as resumen) {
+                    <div class="ronda-section">
+                      <header class="ronda-section__header">
+                        <h3 class="section-title">Resumen de ronda</h3>
+                        <p class="ronda-section__hint">
+                          Puntajes agregados de las encuestas de la ronda.
+                          Categoría: <strong>{{ resumen.categoria }}</strong>
+                          · Global: <strong>{{ formatPorcentaje(resumen.porcentajeGlobal) }}</strong>
+                          ({{ resumen.puntosObtenidos }} / {{ resumen.puntosPosibles }} pts)
+                        </p>
+                      </header>
+                      <div class="ronda-section__content">
+                        <div class="table-wrap">
+                          <table class="encuestas-table">
+                            <thead>
+                              <tr>
+                                <th>Sección</th>
+                                <th>Etiqueta</th>
+                                <th>Puntos</th>
+                                <th>%</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (sec of resumen.secciones; track sec.seccionId) {
+                                <tr>
+                                  <td>{{ sec.titulo }}</td>
+                                  <td>{{ sec.etiqueta }}</td>
+                                  <td>{{ sec.puntosObtenidos }} / {{ sec.puntosPosibles }}</td>
+                                  <td>{{ formatPorcentaje(sec.porcentaje) }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <label class="veredicto-label">
+                          Veredicto de la ronda
+                          @if (ronda.veredictoEditado) {
+                            <span class="badge">Editado</span>
+                          }
+                          <textarea
+                            rows="3"
+                            placeholder="Veredicto agregado de la ronda"
+                            [ngModel]="veredictoRonda()[ronda.id]"
+                            (ngModelChange)="setVeredictoRonda(ronda.id, $event)"
+                            [readonly]="!puedeEscribir()"
+                          ></textarea>
+                        </label>
+                        @if (puedeEscribir()) {
+                          <div class="form-actions form-actions--section">
+                            <button
+                              type="button"
+                              class="btn-secondary"
+                              [disabled]="savingVeredictoRondaId() === ronda.id"
+                              (click)="guardarVeredictoRonda(ronda)"
+                            >
+                              {{ savingVeredictoRondaId() === ronda.id ? 'Guardando...' : 'Guardar veredicto' }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  } @else if (ronda.veredicto) {
+                    <div class="ronda-section">
+                      <header class="ronda-section__header">
+                        <h3 class="section-title">Veredicto de ronda</h3>
+                      </header>
+                      <div class="ronda-section__content">
+                        <label class="veredicto-label">
+                          Veredicto
+                          @if (ronda.veredictoEditado) {
+                            <span class="badge">Editado</span>
+                          }
+                          <textarea
+                            rows="3"
+                            placeholder="Veredicto agregado de la ronda"
+                            [ngModel]="veredictoRonda()[ronda.id]"
+                            (ngModelChange)="setVeredictoRonda(ronda.id, $event)"
+                            [readonly]="!puedeEscribir()"
+                          ></textarea>
+                        </label>
+                        @if (puedeEscribir()) {
+                          <div class="form-actions form-actions--section">
+                            <button
+                              type="button"
+                              class="btn-secondary"
+                              [disabled]="savingVeredictoRondaId() === ronda.id"
+                              (click)="guardarVeredictoRonda(ronda)"
+                            >
+                              {{ savingVeredictoRondaId() === ronda.id ? 'Guardando...' : 'Guardar veredicto' }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (rondaEditable(ronda)) {
+                    <footer class="ronda-card__footer">
+                      <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="ejecutarRonda(ronda)">
+                        Marcar fase de encuestas como completa
+                      </button>
+                    </footer>
+                  }
+
+                  @if (puedeEscribir() && ronda.estado === estados.Ejecutado) {
+                    <div class="ronda-section">
+                      <header class="ronda-section__header">
+                        <h3 class="section-title">Reunión de fin de ronda</h3>
+                        <p class="ronda-section__hint">
+                          La fase de encuestas terminó. Agende la reunión de cierre y, cuando se realice, márquela como realizada.
+                        </p>
+                      </header>
+                      <div class="ronda-section__content">
+                        @if (ronda.fechaReunionSocializacion) {
+                          <p class="reunion-fecha">
+                            Reunión agendada para: <strong>{{ ronda.fechaReunionSocializacion }}</strong>
+                          </p>
+                          <div class="form-actions form-actions--section">
+                            <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="socializarRonda(ronda)">
+                              Marcar como realizada
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="form-actions form-actions--section">
+                            <button type="button" class="btn-primary" [disabled]="actionLoading()" (click)="abrirModalAgendar(ronda)">
+                              Agendar reunión
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (ronda.estado === estados.Socializado) {
+                    <div class="ronda-status-summary">
+                      <span [class]="badgeClass(ronda.estado)">{{ ronda.estado }}</span>
+                      <div class="ronda-status-summary__details">
+                        @if (ronda.fechaSocializado) {
+                          <span>Socializada el {{ ronda.fechaSocializado | date:'short' }}</span>
+                        }
+                        @if (ronda.fechaReunionSocializacion) {
+                          <span>Reunión: {{ ronda.fechaReunionSocializacion }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </section>
+
+  <app-asignar-formato-modal
+    [open]="modalAsignarAbierto()"
+    [loading]="actionLoading()"
+    [contactos]="kam()!.contactosProceso"
+    [formatos]="formatosActivos()"
+    (confirm)="confirmarAsignar($event)"
+    (cancel)="cerrarModalAsignar()"
+  />
+
+  <app-agendar-reunion-modal
+    [open]="modalAgendarAbierto()"
+    [loading]="actionLoading()"
+    [fechaInicial]="rondaModal()?.fechaReunionSocializacion ?? ''"
+    (confirm)="confirmarAgendar($event)"
+    (cancel)="cerrarModalAgendar()"
+  />
+}

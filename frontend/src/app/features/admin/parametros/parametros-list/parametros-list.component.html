@@ -115,27 +115,17 @@
 
   @if (showHistorial()) {
     <div class="modal-backdrop">
-      <div class="modal panel">
+      <div class="modal panel historial-modal">
         <h3>Historial de cambios — {{ historialIndicador() }}</h3>
-        <div class="table-wrap">
-          <table class="historial-table">
-            <thead>
-              <tr><th>Campo</th><th>Valor anterior</th><th>Valor nuevo</th><th>Fecha</th></tr>
-            </thead>
-            <tbody>
-              @for (h of historialItems(); track h.id) {
-                <tr>
-                  <td>{{ h.campo ?? '—' }}</td>
-                  <td>{{ formatHistorialValor(h.campo, h.valorAnterior) }}</td>
-                  <td>{{ formatHistorialValor(h.campo, h.valorNuevo) }}</td>
-                  <td>{{ formatFecha(h.fecha) }}</td>
-                </tr>
-              } @empty {
-                <tr><td colspan="4">Sin historial registrado.</td></tr>
-              }
-            </tbody>
-          </table>
-        </div>
+
+        <app-audit-historial-list
+          [items]="historialItems()"
+          [loading]="historialLoading()"
+          [error]="historialError()"
+          [indicador]="historialIndicador()"
+          emptyMessage="Este indicador aún no tiene cambios registrados."
+        />
+
         <div class="form-actions">
           <button type="button" class="btn-secondary" (click)="showHistorial.set(false)">Cerrar</button>
         </div>

@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { IndicadorCodigo } from '../../common/enums/indicador-codigo.enum';
 import { FormatoCalificacionRango } from './formato-calificacion-rango.entity';
 import { ParametroFinanciero } from './parametro-financiero.entity';
 import { ProcesoCalificacion } from './proceso-calificacion.entity';
@@ -25,10 +24,10 @@ export class ProcesoCalificacionDetalle {
 
   @Column({
     name: 'indicador_codigo',
-    type: 'enum',
-    enum: IndicadorCodigo,
+    type: 'varchar',
+    length: 50,
   })
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
 
   @Column({ name: 'parametro_financiero_id', type: 'bigint', unsigned: true })
   parametroFinancieroId: number;

@@ -1,8 +1,7 @@
 <div class="country-page">
   <div class="country-content">
     <header class="country-header">
-      <h2 class="country-header__brand">ABBI</h2>
-      <div class="country-header__accent" aria-hidden="true"></div>
+      <img class="country-header__logo" [src]="logoUrl" alt="abbi — construyendo progreso" />
       <h1>{{ title() }}</h1>
     </header>
 
@@ -15,7 +14,7 @@
     }
 
     <div class="country-grid">
-      @for (pais of paises; track pais.id) {
+      @for (pais of paises(); track pais.id) {
         <button
           type="button"
           class="country-option"

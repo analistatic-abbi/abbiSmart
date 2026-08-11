@@ -6,7 +6,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { SegmentoCliente } from '../../common/enums/segmento-cliente.enum';
 import { Pais } from './pais.entity';
 import { UbicacionGeografica } from './ubicacion-geografica.entity';
 import { Usuario } from './usuario.entity';
@@ -29,11 +28,8 @@ export class Cliente {
   @Column({ name: 'ubicacion_id', type: 'bigint', unsigned: true })
   ubicacionId: number;
 
-  @Column({
-    type: 'enum',
-    enum: SegmentoCliente,
-  })
-  segmento: SegmentoCliente;
+  @Column({ type: 'varchar', length: 100 })
+  segmento: string;
 
   @Column({ name: 'segmento_otro', type: 'varchar', length: 255, nullable: true })
   segmentoOtro: string | null;

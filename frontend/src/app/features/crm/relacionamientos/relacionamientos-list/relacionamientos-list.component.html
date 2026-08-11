@@ -16,8 +16,24 @@
     <button type="button" class="btn-secondary" [class.active]="vista() === 'vencidos'" (click)="setVista('vencidos')">Vencidos</button>
   </div>
 
-  @if (vista() === 'todos') {
-    <div class="filters">
+  <div class="filters">
+    <label>
+      {{ vista() === 'vencidos' ? 'Límite desde' : 'Mensaje desde' }}
+      <input
+        type="date"
+        [ngModel]="fechaMensajeDesde()"
+        (ngModelChange)="fechaMensajeDesde.set($event)"
+      />
+    </label>
+    <label>
+      {{ vista() === 'vencidos' ? 'Límite hasta' : 'Mensaje hasta' }}
+      <input
+        type="date"
+        [ngModel]="fechaMensajeHasta()"
+        (ngModelChange)="fechaMensajeHasta.set($event)"
+      />
+    </label>
+    @if (vista() === 'todos') {
       <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
       <select [ngModel]="canal()" (ngModelChange)="canal.set($event); onFilter()">
         <option value="">Todos los canales</option>
@@ -27,8 +43,15 @@
         <option value="">Todos los resultados</option>
         @for (r of resultados; track r) { <option [value]="r">{{ r }}</option> }
       </select>
-      <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
-    </div>
+    }
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
   }
 
   @if (loading()) {
@@ -45,15 +68,15 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of vencidos(); track item.id) {
+          @for (item of vencidosFiltrados(); track item.id) {
             <tr>
               <td>{{ contactoLabel(item.contactoId) }}</td>
               <td>{{ item.canal }}</td>
               <td>{{ item.mensaje }}</td>
-              <td>{{ item.fechaLimiteRespuesta }}</td>
+              <td>{{ formatFecha(item.fechaLimiteRespuesta) }}</td>
             </tr>
           } @empty {
-            <tr><td colspan="4">No hay relacionamientos vencidos.</td></tr>
+            <tr><td colspan="4">No hay relacionamientos vencidos con los filtros seleccionados.</td></tr>
           }
         </tbody>
       </table>
@@ -77,15 +100,24 @@
               <td>{{ contactoLabel(item.contactoId) }}</td>
               <td>{{ item.canal }}</td>
               <td>{{ item.mensaje }}</td>
-              <td>{{ item.fechaMensaje }}</td>
+              <td>{{ formatFecha(item.fechaMensaje) }}</td>
               <td>{{ item.resultado }}</td>
               <td><a [routerLink]="['/crm/relacionamientos', item.id]">Ver / responder</a></td>
             </tr>
           } @empty {
-            <tr><td colspan="6">No hay relacionamientos registrados.</td></tr>
+            <tr><td colspan="6">
+              @if (tieneFiltrosActivos()) {
+                No se encontraron relacionamientos con los filtros seleccionados.
+              } @else {
+                No hay relacionamientos registrados.
+              }
+            </td></tr>
           }
         </tbody>
       </table>
     </div>
+    @if (total() > items().length) {
+      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} relacionamientos.</p>
+    }
   }
 </section>

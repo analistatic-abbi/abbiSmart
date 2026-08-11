@@ -34,7 +34,7 @@ export interface LoginPendingCountryResult {
   requiresCountrySelection: true;
   preAuthToken: string;
   usuario: LoginUsuarioInfo;
-  paises: Pick<Pais, 'id' | 'nombre'>[];
+  paises: Array<Pick<Pais, 'id' | 'nombre' | 'codigoIso' | 'codigoMoneda'>>;
 }
 
 export type LoginResult = LoginWithSessionResult | LoginPendingCountryResult;
@@ -46,7 +46,7 @@ export interface SelectCountryResult {
 
 export interface PrepareCountryChangeResult {
   preAuthToken: string;
-  paises: Pick<Pais, 'id' | 'nombre'>[];
+  paises: Array<Pick<Pais, 'id' | 'nombre' | 'codigoIso' | 'codigoMoneda'>>;
 }
 
 @Injectable()
@@ -173,7 +173,12 @@ export class LoginService {
       requiresCountrySelection: true,
       preAuthToken,
       usuario: usuarioInfo,
-      paises: paises.map((p) => ({ id: p.id, nombre: p.nombre })),
+      paises: paises.map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        codigoIso: p.codigoIso,
+        codigoMoneda: p.codigoMoneda,
+      })),
     };
   }
 
@@ -282,7 +287,12 @@ export class LoginService {
 
     return {
       preAuthToken,
-      paises: paises.map((p) => ({ id: p.id, nombre: p.nombre })),
+      paises: paises.map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        codigoIso: p.codigoIso,
+        codigoMoneda: p.codigoMoneda,
+      })),
     };
   }
 

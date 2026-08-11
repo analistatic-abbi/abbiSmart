@@ -5,6 +5,8 @@ import { UsuariosService } from '../../../../core/services/usuarios.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { Usuario } from '../../../../core/models/admin.model';
 import { Rol } from '../../../../core/models/rol.enum';
+import { ToastService } from '../../../../core/services/toast.service';
+import { mensajeExitoApi } from '../../../../core/utils/api-error.util';
 
 type AccionUsuario = 'reset' | 'reenviar' | 'desbloquear' | 'desactivar';
 
@@ -23,6 +25,7 @@ interface ConfirmacionAccion {
 export class UsuariosListComponent implements OnInit {
   private readonly usuarios = inject(UsuariosService);
   private readonly catalogos = inject(CatalogosService);
+  private readonly toast = inject(ToastService);
 
   protected readonly items = signal<Usuario[]>([]);
   protected readonly paises = signal<Array<{ id: number; nombre: string }>>([]);
@@ -101,6 +104,7 @@ export class UsuariosListComponent implements OnInit {
       this.actionLoading.set(false);
       this.confirmacion.set(null);
       this.feedback.set(message);
+      this.toast.success(message);
       if (reload) {
         this.load();
       }
@@ -108,6 +112,7 @@ export class UsuariosListComponent implements OnInit {
     const onError = (message: string): void => {
       this.actionLoading.set(false);
       this.feedback.set(message);
+      this.toast.error(message);
     };
 
     switch (accion) {

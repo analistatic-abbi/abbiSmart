@@ -12,7 +12,11 @@ import {
 import { Rol } from '../../../../core/models/rol.enum';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ClienteHistorialComponent } from '../cliente-historial/cliente-historial.component';
-import { formatCurrencyFull, formatCuantiaConMoneda } from '../../../../core/utils/currency.util';
+import { formatCurrencyFull, formatCuantiaConMoneda, formatMonedaAbreviada, tituloMonedaCompleta } from '../../../../core/utils/currency.util';
+import { mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarAccion } from '../../../../core/utils/confirm-dialog.util';
 
 type ClienteTab = 'resumen' | 'procesos' | 'proyecciones' | 'relacionamientos' | 'contactos' | 'historial';
 
@@ -30,6 +34,8 @@ export class ClienteDetailComponent implements OnInit {
   private readonly contactos = inject(ContactosService);
   private readonly solicitudes = inject(SolicitudesEliminacionService);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly vista360 = signal<ClienteVista360 | null>(null);
   protected readonly contactosList = signal<Contacto[]>([]);
@@ -68,7 +74,10 @@ export class ClienteDetailComponent implements OnInit {
   protected readonly relacionamientos = computed(() => this.vista360()?.relacionamientos ?? []);
 
   protected readonly formatCuantia = formatCuantiaConMoneda;
-  protected readonly formatCurrency = formatCurrencyFull;
+  protected readonly formatValor = formatMonedaAbreviada;
+  protected readonly tituloValor = tituloMonedaCompleta;
+  protected readonly formatCuantiaTitle = (value: string | number | null | undefined) =>
+    formatCurrencyFull(value, 2);
 
   protected readonly cuantiaResumenLabel = computed(() => {
     const resumen = this.resumen();
@@ -112,7 +121,10 @@ export class ClienteDetailComponent implements OnInit {
   protected confirmarEliminacion(): void {
     if (this.puedeEliminarDirecto()) {
       this.clientes.eliminar(this.clienteId, this.confirmarDependientes()).subscribe({
-        next: () => void this.router.navigate(['/crm/clientes']),
+        next: (r) => {
+          this.toast.success(mensajeExitoApi(r, 'Cliente eliminado correctamente.'));
+          void this.router.navigate(['/crm/clientes']);
+        },
         error: () => this.error.set('No fue posible eliminar el cliente.'),
       });
       return;
@@ -122,7 +134,10 @@ export class ClienteDetailComponent implements OnInit {
     if (motivo.length < 5) return;
 
     this.solicitudes.solicitar('cliente', this.clienteId, motivo).subscribe({
-      next: () => this.showEliminarModal.set(false),
+      next: (r) => {
+        this.showEliminarModal.set(false);
+        this.toast.success(mensajeExitoApi(r, 'Solicitud de eliminación registrada.'));
+      },
       error: () => this.error.set('No fue posible registrar la solicitud.'),
     });
   }
@@ -143,9 +158,21 @@ export class ClienteDetailComponent implements OnInit {
     const destinoId = this.nuevoClienteId();
     if (!destinoId) return;
 
-    this.clientes.reasignarProcesos(this.clienteId, destinoId).subscribe({
-      next: () => this.showReasignarModal.set(false),
-      error: () => this.error.set('No fue posible reasignar los procesos.'),
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar reasignación',
+      message: '¿Desea reasignar los procesos de este cliente al cliente seleccionado?',
+      confirmLabel: 'Reasignar',
+    }).then((ok) => {
+      if (!ok) return;
+
+      this.clientes.reasignarProcesos(this.clienteId, destinoId).subscribe({
+        next: (r) => {
+          this.showReasignarModal.set(false);
+          this.toast.success(mensajeExitoApi(r, 'Procesos reasignados correctamente.'));
+          this.load();
+        },
+        error: () => this.error.set('No fue posible reasignar los procesos.'),
+      });
     });
   }
 

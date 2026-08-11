@@ -4,7 +4,10 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -32,6 +35,32 @@ export class CargaMasivaController {
     return {
       message: 'Historial de cargas masivas obtenido correctamente',
       data,
+    };
+  }
+
+  @Post('logs/:id/revertir')
+  @RequireWriteAccess()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Revertir una carga masiva eliminando todos los registros creados en ese archivo (solo Administrador)',
+  })
+  async revertir(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('confirmarDependientes') confirmarDependientes: string | undefined,
+    @CurrentUser() actor: AuthUserPayload,
+  ) {
+    const result = await this.cargaMasivaService.revertirCarga(
+      id,
+      actor.userId,
+      actor.paisSesionId!,
+      actor.rol,
+      confirmarDependientes === 'true',
+    );
+
+    return {
+      message: 'Carga masiva revertida correctamente',
+      ...result,
     };
   }
 

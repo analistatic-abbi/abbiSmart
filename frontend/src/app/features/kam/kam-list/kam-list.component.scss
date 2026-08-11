@@ -1,0 +1,16 @@
+@use '../shared/kam-page';
+@use '../estado-kam-badges';
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.col-objeto {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

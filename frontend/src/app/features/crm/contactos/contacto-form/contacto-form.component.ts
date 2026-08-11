@@ -10,7 +10,10 @@ import {
   DuplicadoAlertaComponent,
   DuplicadoSugerencia,
 } from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarCreacion, confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-contacto-form',
@@ -25,6 +28,8 @@ export class ContactoFormComponent implements OnInit {
   private readonly contactos = inject(ContactosService);
   private readonly clientes = inject(ClientesService);
   private readonly catalogos = inject(CatalogosService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly nombre = signal('');
   protected readonly cargo = signal('');
@@ -162,17 +167,33 @@ export class ContactoFormComponent implements OnInit {
       correo: this.correo().trim() || undefined,
     };
 
-    this.loading.set(true);
-    const req = this.isEdit()
-      ? this.contactos.update(this.contactoId, payload)
-      : this.contactos.create(clienteId, payload);
+    const confirm = this.isEdit()
+      ? confirmarGuardado(this.confirmDialog, '¿Desea guardar los cambios del contacto?')
+      : confirmarCreacion(this.confirmDialog, '¿Desea crear el contacto?');
 
-    req.subscribe({
-      next: () => void this.router.navigate(['/crm/contactos']),
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible guardar el contacto.'));
-        this.loading.set(false);
-      },
+    void confirm.then((ok) => {
+      if (!ok) return;
+
+      this.loading.set(true);
+      const req = this.isEdit()
+        ? this.contactos.update(this.contactoId, payload)
+        : this.contactos.create(clienteId, payload);
+
+      req.subscribe({
+        next: (r) => {
+          this.toast.success(
+            mensajeExitoApi(
+              r,
+              this.isEdit() ? 'Contacto actualizado correctamente.' : 'Contacto creado correctamente.',
+            ),
+          );
+          void this.router.navigate(['/crm/contactos']);
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible guardar el contacto.'));
+          this.loading.set(false);
+        },
+      });
     });
   }
 }

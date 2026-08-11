@@ -31,9 +31,9 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
 
   protected readonly paisLabel = () => this.auth.paisNombre() ?? 'País';
   protected readonly paisCodigo = () =>
-    countryIsoCode(this.auth.paisNombre(), this.auth.session()?.paisSesionId);
+    countryIsoCode(this.auth.paisNombre(), this.auth.session()?.paisSesionId, this.auth.paisCodigoIso());
   protected readonly flagUrl = () =>
-    countryFlagUrl(this.auth.paisNombre(), this.auth.session()?.paisSesionId);
+    countryFlagUrl(this.auth.paisNombre(), this.auth.session()?.paisSesionId, this.auth.paisCodigoIso());
   protected readonly unreadCount = () => this.notifs().filter((n) => !n.leida).length;
   protected readonly canChangeCountry = () => this.auth.canChangeCountry();
   protected readonly tipoLabel = (tipo: string) => etiquetaTipoNotificacion(tipo);

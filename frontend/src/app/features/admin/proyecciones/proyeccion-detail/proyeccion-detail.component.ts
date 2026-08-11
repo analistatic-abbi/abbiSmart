@@ -6,8 +6,12 @@ import { ProcesosService } from '../../../../core/services/procesos.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { Proyeccion } from '../../../../core/models/admin.model';
-import { ProcesoListItem, SegmentoProceso } from '../../../../core/models/proceso.model';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { ProcesoListItem } from '../../../../core/models/proceso.model';
+import { CatalogoPaisItem } from '../../../../core/models/pais-config.model';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarAccion, confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 import { claseBadgeEstadoProyeccion } from '../../../../core/utils/proyeccion-ui.util';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { FijarEntidadButtonComponent } from '../../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
@@ -25,8 +29,10 @@ export class ProyeccionDetailComponent implements OnInit {
   private readonly procesos = inject(ProcesosService);
   private readonly catalogos = inject(CatalogosService);
   protected readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
-  protected readonly segmentos = Object.values(SegmentoProceso);
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
   protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
   protected readonly clienteOptions = computed(() =>
     this.clientes().map((cliente) => ({
@@ -52,7 +58,7 @@ export class ProyeccionDetailComponent implements OnInit {
   protected readonly usarEmpresaOtro = signal(false);
   protected readonly empresaClienteId = signal<number | null>(null);
   protected readonly empresaOtro = signal('');
-  protected readonly segmento = signal<SegmentoProceso>(SegmentoProceso.GasNatural);
+  protected readonly segmento = signal('');
   protected readonly objeto = signal('');
 
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
@@ -77,6 +83,9 @@ export class ProyeccionDetailComponent implements OnInit {
   ngOnInit(): void {
     this.proyeccionId = Number(this.route.snapshot.paramMap.get('id'));
     this.catalogos.getClientes().subscribe((r) => this.clientes.set(r.data));
+    this.catalogos.getCatalogoSesion('segmento_proceso').subscribe((r) =>
+      this.segmentos.set(r.data),
+    );
     this.cargar();
   }
 
@@ -94,7 +103,7 @@ export class ProyeccionDetailComponent implements OnInit {
         this.usarEmpresaOtro.set(Boolean(p.empresaOtro));
         this.empresaClienteId.set(p.empresaClienteId ?? null);
         this.empresaOtro.set(p.empresaOtro ?? '');
-        this.segmento.set((p.segmento as SegmentoProceso) ?? SegmentoProceso.GasNatural);
+        this.segmento.set(p.segmento ?? '');
         this.objeto.set(p.objeto ?? '');
         this.loading.set(false);
       },
@@ -107,9 +116,6 @@ export class ProyeccionDetailComponent implements OnInit {
 
   protected guardar(): void {
     if (!this.puedeEscribir()) return;
-
-    this.saving.set(true);
-    this.error.set(null);
 
     const payload: Record<string, unknown> = {
       anioProyectado: this.anioProyectado(),
@@ -130,26 +136,49 @@ export class ProyeccionDetailComponent implements OnInit {
       }
     }
 
-    this.proyecciones.update(this.proyeccionId, payload).subscribe({
-      next: (r) => {
-        this.proyeccion.set(r.proyeccion);
-        this.saving.set(false);
-      },
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible actualizar.'));
-        this.saving.set(false);
-      },
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea guardar los cambios de la proyección?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.saving.set(true);
+      this.error.set(null);
+
+      this.proyecciones.update(this.proyeccionId, payload).subscribe({
+        next: (r) => {
+          this.proyeccion.set(r.proyeccion);
+          this.saving.set(false);
+          this.toast.success(mensajeExitoApi(r, 'Proyección actualizada correctamente.'));
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible actualizar.'));
+          this.saving.set(false);
+        },
+      });
     });
   }
 
   protected cerrar(): void {
     if (!this.puedeCerrar()) return;
 
-    this.error.set(null);
-    this.proyecciones.cerrar(this.proyeccionId).subscribe({
-      next: (r) => this.proyeccion.set(r.proyeccion),
-      error: (err) =>
-        this.error.set(mensajeErrorApi(err, 'No fue posible cerrar la proyección.')),
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar cierre',
+      message: '¿Desea cerrar esta proyección? Esta acción no se puede deshacer.',
+      confirmLabel: 'Cerrar proyección',
+      variant: 'danger',
+    }).then((ok) => {
+      if (!ok) return;
+
+      this.error.set(null);
+      this.proyecciones.cerrar(this.proyeccionId).subscribe({
+        next: (r) => {
+          this.proyeccion.set(r.proyeccion);
+          this.toast.success(mensajeExitoApi(r, 'Proyección cerrada correctamente.'));
+        },
+        error: (err) =>
+          this.error.set(mensajeErrorApi(err, 'No fue posible cerrar la proyección.')),
+      });
     });
   }
 
@@ -188,14 +217,23 @@ export class ProyeccionDetailComponent implements OnInit {
     const procesoId = this.procesoResultanteId();
     if (!procesoId || !this.puedeVincular()) return;
 
-    this.error.set(null);
-    this.proyecciones.vincularProceso(this.proyeccionId, procesoId).subscribe({
-      next: (r) => {
-        this.proyeccion.set(r.proyeccion);
-        this.showVincularModal.set(false);
-      },
-      error: (err) =>
-        this.error.set(mensajeErrorApi(err, 'No fue posible vincular el proceso.')),
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar vinculación',
+      message: '¿Desea vincular el proceso seleccionado a esta proyección?',
+      confirmLabel: 'Vincular',
+    }).then((ok) => {
+      if (!ok) return;
+
+      this.error.set(null);
+      this.proyecciones.vincularProceso(this.proyeccionId, procesoId).subscribe({
+        next: (r) => {
+          this.proyeccion.set(r.proyeccion);
+          this.showVincularModal.set(false);
+          this.toast.success(mensajeExitoApi(r, 'Proceso vinculado correctamente.'));
+        },
+        error: (err) =>
+          this.error.set(mensajeErrorApi(err, 'No fue posible vincular el proceso.')),
+      });
     });
   }
 }

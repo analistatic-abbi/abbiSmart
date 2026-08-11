@@ -83,6 +83,9 @@ const CAMPO_LABELS: Record<string, string> = {
   mercado: 'Mercado',
   motivoPerdida: 'Motivo de pérdida',
   valorRequerido: 'Valor requerido',
+  valor: 'Valor',
+  reglaCumplimiento: 'Regla de cumplimiento',
+  anio: 'Año',
   pais_sesion: 'País de sesión',
   cambio_pais_sesion: 'Cambio de país de sesión',
   pais_id: 'País',
@@ -154,6 +157,88 @@ export function labelCampoAuditoria(campo: string | null | undefined): string | 
   return CAMPO_LABELS[normalized] ?? CAMPO_LABELS[campo] ?? campo.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
 }
 
+function parseJsonObject(raw?: string | null): Record<string, unknown> | null {
+  if (!raw?.trim() || !raw.trim().startsWith('{')) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function isParametroSnapshot(snapshot: Record<string, unknown> | null): boolean {
+  if (!snapshot) {
+    return false;
+  }
+
+  return (
+    typeof snapshot.indicadorCodigo === 'string'
+    || (Object.hasOwn(snapshot, 'valor') && Object.hasOwn(snapshot, 'reglaCumplimiento'))
+  );
+}
+
+function formatParametroCampo(value: unknown): string {
+  if (value === null || value === undefined || value === '') {
+    return '—';
+  }
+
+  return String(value);
+}
+
+function formatParametroHistorialDetalle(
+  valorAnterior?: string | null,
+  valorNuevo?: string | null,
+): string | null {
+  const anterior = parseJsonObject(valorAnterior);
+  const nuevo = parseJsonObject(valorNuevo);
+
+  if (!isParametroSnapshot(anterior) && !isParametroSnapshot(nuevo)) {
+    return null;
+  }
+
+  const campos: Array<[string, string]> = [
+    ['valor', 'Valor'],
+    ['reglaCumplimiento', 'Regla'],
+    ['anio', 'Año'],
+  ];
+
+  if (anterior && nuevo) {
+    const cambios = campos
+      .filter(([campo]) => String(anterior[campo] ?? '') !== String(nuevo[campo] ?? ''))
+      .map(
+        ([campo, label]) =>
+          `${label}: ${formatParametroCampo(anterior[campo])} → ${formatParametroCampo(nuevo[campo])}`,
+      );
+
+    return cambios.length ? cambios.join(' · ') : 'Parámetro actualizado';
+  }
+
+  if (nuevo && !anterior) {
+    const partes = campos
+      .map(([campo, label]) => {
+        const valor = nuevo[campo];
+        if (valor === null || valor === undefined || valor === '') {
+          return null;
+        }
+
+        return `${label}: ${formatParametroCampo(valor)}`;
+      })
+      .filter((parte): parte is string => Boolean(parte));
+
+    return partes.length ? partes.join(' · ') : 'Parámetro creado';
+  }
+
+  if (anterior && !nuevo) {
+    return `Valor eliminado: ${formatParametroCampo(anterior.valor)}`;
+  }
+
+  return null;
+}
+
 export function formatDetalleAuditoria(
   input: {
     accion: string;
@@ -163,6 +248,14 @@ export function formatDetalleAuditoria(
   },
   paisNombres?: Record<string, string>,
 ): string | null {
+  const parametroDetalle = formatParametroHistorialDetalle(
+    input.valorAnterior,
+    input.valorNuevo,
+  );
+  if (parametroDetalle) {
+    return parametroDetalle;
+  }
+
   const campoLabel = labelCampoAuditoria(input.campo);
   const formatOptions = { campo: input.campo, paisNombres };
 

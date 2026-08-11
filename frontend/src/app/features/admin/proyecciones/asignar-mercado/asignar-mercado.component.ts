@@ -8,7 +8,10 @@ import { ProyeccionesService } from '../../../../core/services/proyecciones.serv
 
 import { MercadoProyeccion, Proyeccion } from '../../../../core/models/admin.model';
 
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 
 
@@ -43,6 +46,8 @@ interface AsignacionRow {
 export class AsignarMercadoComponent implements OnInit {
 
   private readonly proyecciones = inject(ProyeccionesService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
 
 
@@ -124,29 +129,45 @@ export class AsignarMercadoComponent implements OnInit {
 
 
 
-    this.saving.set(true);
+    void confirmarGuardado(
 
-    this.error.set(null);
+      this.confirmDialog,
 
-    this.proyecciones.asignarMercado(this.anio(), asignaciones).subscribe({
+      `¿Desea guardar ${asignaciones.length} asignación(es) de mercado?`,
 
-      next: (r) => {
+    ).then((ok) => {
 
-        this.message.set(r.message);
+      if (!ok) return;
 
-        this.saving.set(false);
 
-        this.load();
 
-      },
+      this.saving.set(true);
 
-      error: (err) => {
+      this.error.set(null);
 
-        this.error.set(mensajeErrorApi(err, 'No fue posible guardar las asignaciones.'));
+      this.proyecciones.asignarMercado(this.anio(), asignaciones).subscribe({
 
-        this.saving.set(false);
+        next: (r) => {
 
-      },
+          this.message.set(r.message);
+
+          this.toast.success(mensajeExitoApi(r, 'Mercado asignado correctamente.'));
+
+          this.saving.set(false);
+
+          this.load();
+
+        },
+
+        error: (err) => {
+
+          this.error.set(mensajeErrorApi(err, 'No fue posible guardar las asignaciones.'));
+
+          this.saving.set(false);
+
+        },
+
+      });
 
     });
 

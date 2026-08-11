@@ -34,7 +34,7 @@
           <article class="evidencia-card">
             <header class="evidencia-card__head">
               <div>
-                <h3>{{ labelTarea(t.tareaCodigo) }}</h3>
+                <h3>{{ labelTarea(t.tareaCodigo, t.tareaNombre) }}</h3>
                 <span class="badge badge--ok">Completada</span>
               </div>
               @if (t.evidenciaArchivoNombre) {
@@ -72,7 +72,7 @@
         <tbody>
           @for (t of tareas(); track t.id) {
             <tr [class.row-na]="!t.aplica">
-              <td>{{ labelTarea(t.tareaCodigo) }}</td>
+              <td>{{ labelTarea(t.tareaCodigo, t.tareaNombre) }}</td>
               <td>{{ estadoTarea(t) }}</td>
               <td class="evidencia-cell">
                 @if (t.evidenciaArchivoNombre) {

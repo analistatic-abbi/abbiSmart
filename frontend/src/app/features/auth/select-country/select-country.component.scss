@@ -23,24 +23,17 @@
   text-align: center;
   gap: 12px;
 
-  &__brand {
-    margin: 0;
-    font-size: 40px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    color: var(--color-emphasis);
-    line-height: 1;
-  }
-
-  &__accent {
-    width: 48px;
-    height: 4px;
-    border-radius: 999px;
-    background: var(--color-link);
+  &__logo {
+    height: 72px;
+    max-width: 240px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    background: transparent;
   }
 
   h1 {
-    margin: 8px 0 0;
+    margin: 0;
     max-width: 520px;
     font-size: clamp(22px, 4vw, 30px);
     font-weight: 700;

@@ -6,6 +6,8 @@ export enum CalendarioEventoTipo {
   PROYECCION = 'proyeccion',
   PROCESO = 'proceso',
   RELACIONAMIENTO = 'relacionamiento',
+  KAM = 'kam',
+  REUNION_ACLARATORIA = 'reunion_aclaratoria',
 }
 
 export class CalendarioEventosQueryDto {
@@ -16,8 +18,9 @@ export class CalendarioEventosQueryDto {
   anio: number;
 
   @ApiPropertyOptional({
-    description: 'Tipos separados por coma: proyeccion,proceso,relacionamiento',
-    example: 'proyeccion,proceso,relacionamiento',
+    description:
+      'Tipos separados por coma: proyeccion,proceso,relacionamiento,kam,reunion_aclaratoria',
+    example: 'proyeccion,proceso,relacionamiento,kam,reunion_aclaratoria',
   })
   @IsOptional()
   @Transform(({ value }) => {
@@ -46,4 +49,6 @@ export class CalendarioEventoDto {
   valor?: string | null;
   estado: string;
   icono: string;
+  kamId?: number;
+  detalle?: string | null;
 }

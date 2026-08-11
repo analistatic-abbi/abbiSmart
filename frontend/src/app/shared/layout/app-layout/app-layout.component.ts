@@ -3,13 +3,22 @@ import { RouterOutlet } from '@angular/router';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 import { SupportCenterComponent } from '../../components/support-center/support-center.component';
+import { AppToastComponent } from '../../components/app-toast/app-toast.component';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { CatalogosService } from '../../../core/services/catalogos.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, AppHeaderComponent, AppSidebarComponent, SupportCenterComponent],
+  imports: [
+    RouterOutlet,
+    AppHeaderComponent,
+    AppSidebarComponent,
+    SupportCenterComponent,
+    AppToastComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './app-layout.component.html',
   styleUrl: './app-layout.component.scss',
 })
@@ -25,7 +34,12 @@ export class AppLayoutComponent implements OnInit {
           const pais = r.data.find(
             (p) => Number(p.id) === Number(session.paisSesionId),
           );
-          if (pais) this.auth.setPaisNombre(pais.nombre);
+          if (pais) {
+            this.auth.setPaisNombre(pais.nombre, pais.codigoIso ?? null);
+            if (pais.codigoIso) {
+              this.auth.setPaisCodigoIso(pais.codigoIso);
+            }
+          }
         },
       });
     }

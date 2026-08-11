@@ -1,0 +1,181 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Países</h1>
+      <p>Habilite países del catálogo mundial para que aparezcan al iniciar sesión.</p>
+    </div>
+  </header>
+
+  <div class="pais-note">
+    Al habilitar un país se cargan automáticamente sus divisiones geográficas
+    (departamentos/provincias y municipios) para crear procesos y clientes.
+  </div>
+
+  <section class="pais-picker card">
+    <h2>Habilitar país</h2>
+    <p class="pais-picker__hint">Busque en el catálogo mundial y seleccione el país que desea activar.</p>
+
+    <label class="pais-picker__search">
+      Buscar país
+      <input
+        type="search"
+        placeholder="Nombre, código ISO o moneda..."
+        [ngModel]="busqueda()"
+        (ngModelChange)="busqueda.set($event); seleccionIso.set('')"
+        name="busquedaPais"
+      />
+    </label>
+
+    @if (referenciaLoading()) {
+      <p class="pais-picker__status">Cargando catálogo mundial...</p>
+    } @else if (referenciaFiltrada().length === 0) {
+      <p class="pais-picker__status">No hay países disponibles con ese criterio o ya están habilitados.</p>
+    } @else {
+      <div class="pais-picker__results">
+        @for (pais of referenciaFiltrada(); track pais.iso) {
+          <button
+            type="button"
+            class="pais-picker__option"
+            [class.pais-picker__option--selected]="seleccionIso() === pais.iso"
+            (click)="seleccionarReferencia(pais)"
+          >
+            <img [src]="flagUrl({ nombre: pais.nombre, codigoIso: pais.iso })" [alt]="pais.nombre" />
+            <span class="pais-picker__option-text">
+              <strong>{{ pais.nombre }}</strong>
+              <small>{{ pais.iso }} · {{ pais.codigoMoneda }}</small>
+            </span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (paisSeleccionado(); as seleccionado) {
+      <div class="pais-picker__preview">
+        <img [src]="flagUrl({ nombre: seleccionado.nombre, codigoIso: seleccionado.iso })" [alt]="seleccionado.nombre" />
+        <div>
+          <strong>{{ seleccionado.nombre }}</strong>
+          <p>ISO {{ seleccionado.iso }} · Moneda {{ seleccionado.codigoMoneda }}</p>
+          @if (seleccionado.codigoMonedaNombre) {
+            <p class="pais-picker__preview-meta">{{ seleccionado.codigoMonedaNombre }}</p>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="pais-picker__actions">
+      @if (seleccionIso()) {
+        <button type="button" class="btn-secondary" (click)="limpiarSeleccion()">Limpiar</button>
+      }
+      <button type="button" class="btn-primary" [disabled]="!paisSeleccionado() || saving()" (click)="habilitarPais()">
+        {{ saving() ? 'Habilitando país...' : 'Habilitar país' }}
+      </button>
+    </div>
+  </section>
+
+  <div class="filters">
+    <select [ngModel]="filtroActivo()" (ngModelChange)="filtroActivo.set($event)">
+      <option value="todos">Todos</option>
+      <option value="activos">Activos</option>
+      <option value="inactivos">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando países habilitados...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>País</th>
+            <th>ISO</th>
+            <th>Moneda</th>
+            <th>Ubicaciones</th>
+            <th>Tareas</th>
+            <th>Listo</th>
+            <th>Estado</th>
+            <th class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pais of itemsFiltrados(); track pais.id) {
+            <tr>
+              <td>
+                <div class="pais-cell">
+                  <img [src]="flagUrl(pais)" [alt]="'Bandera de ' + pais.nombre" class="pais-cell__flag" />
+                  <span>{{ pais.nombre }}</span>
+                </div>
+              </td>
+              <td>{{ pais.codigoIso || '—' }}</td>
+              <td>{{ pais.codigoMoneda || '—' }}</td>
+              <td>
+                @if ((pais.ubicacionesCount ?? 0) > 0) {
+                  <span class="badge badge--ubicaciones">{{ pais.ubicacionesCount }}</span>
+                } @else {
+                  <span class="badge badge--inactive">Sin cargar</span>
+                }
+              </td>
+              <td>
+                @if ((pais.plantillaTareasCount ?? 0) > 0) {
+                  <span class="badge badge--ubicaciones">{{ pais.plantillaTareasCount }}</span>
+                } @else {
+                  <span class="badge badge--inactive">Sin plantilla</span>
+                }
+              </td>
+              <td>
+                <span class="badge" [class.badge--ubicaciones]="pais.listoOperacion" [class.badge--inactive]="!pais.listoOperacion">
+                  {{ pais.listoOperacion ? 'Listo' : 'Pendiente' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [class.badge--inactive]="!pais.activo">
+                  {{ pais.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <div class="actions-menu" [class.actions-menu--open]="menuAbierto(pais.id)">
+                  <button
+                    type="button"
+                    class="actions-menu__trigger"
+                    [attr.aria-expanded]="menuAbierto(pais.id)"
+                    aria-haspopup="menu"
+                    (click)="toggleMenu(pais.id, $event)"
+                  >
+                    Acciones
+                    <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                  </button>
+
+                  @if (menuAbierto(pais.id)) {
+                    <div class="actions-menu__panel" role="menu" (click)="$event.stopPropagation()">
+                      <a
+                        class="actions-menu__item"
+                        role="menuitem"
+                        [routerLink]="['/admin/paises', pais.id, 'config']"
+                        (click)="menuAbiertoId.set(null)"
+                      >
+                        Configurar país
+                      </a>
+                      @if ((pais.ubicacionesCount ?? 0) === 0) {
+                        <button
+                          type="button"
+                          class="actions-menu__item"
+                          role="menuitem"
+                          (click)="cargarUbicaciones(pais)"
+                        >
+                          Cargar ubicaciones
+                        </button>
+                      }
+                      <button type="button" class="actions-menu__item" role="menuitem" (click)="alternarEstado(pais)">
+                        {{ pais.activo ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

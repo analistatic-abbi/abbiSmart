@@ -8,6 +8,7 @@ import {
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { SegmentoCliente } from '../../common/enums/segmento-cliente.enum';
+import { CatalogoPaisTipo } from '../../common/enums/catalogo-pais-tipo.enum';
 import { Rol } from '../../common/enums/rol.enum';
 import { ClientesQueryDto } from '../../common/dto/pagination-query.dto';
 import { BusinessException } from '../../common/exceptions/business.exception';
@@ -28,6 +29,7 @@ import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
+import { CatalogoPaisService } from '../catalogos/catalogo-pais.service';
 import { AuditService } from '../audit/audit.service';
 import { ClienteResponseDto } from './dto/cliente-response.dto';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -65,6 +67,7 @@ export class ClientesService {
     private readonly auditService: AuditService,
     private readonly eliminacionDependenciasService: EliminacionDependenciasService,
     private readonly permisosService: PermisosService,
+    private readonly catalogoPaisService: CatalogoPaisService,
   ) {}
 
   async findAll(
@@ -223,6 +226,12 @@ export class ClientesService {
     paisSesionId: number,
   ): Promise<ClienteResponseDto> {
     this.validateSegmentoOtro(dto.segmento, dto.segmentoOtro);
+    await this.catalogoPaisService.assertCodigoActivo(
+      paisSesionId,
+      CatalogoPaisTipo.SEGMENTO_CLIENTE,
+      dto.segmento,
+      'segmento',
+    );
     await this.validateUbicacionInPais(dto.ubicacionId, paisSesionId);
 
     const saved = await this.dataSource.transaction(async (manager) => {
@@ -233,7 +242,7 @@ export class ClientesService {
         ubicacionId: dto.ubicacionId,
         segmento: dto.segmento,
         segmentoOtro:
-          dto.segmento === SegmentoCliente.OTRO ? dto.segmentoOtro ?? null : null,
+          dto.segmento === 'Otro' ? dto.segmentoOtro ?? null : null,
         eliminado: false,
       });
 
@@ -283,6 +292,15 @@ export class ClientesService {
 
     this.validateSegmentoOtro(segmento, segmentoOtro ?? undefined);
 
+    if (dto.segmento !== undefined) {
+      await this.catalogoPaisService.assertCodigoActivo(
+        paisSesionId,
+        CatalogoPaisTipo.SEGMENTO_CLIENTE,
+        segmento,
+        'segmento',
+      );
+    }
+
     if (dto.ubicacionId !== undefined) {
       await this.validateUbicacionInPais(dto.ubicacionId, paisSesionId);
       cliente.ubicacionId = dto.ubicacionId;
@@ -295,7 +313,7 @@ export class ClientesService {
 
     cliente.segmento = segmento;
     cliente.segmentoOtro =
-      segmento === SegmentoCliente.OTRO ? segmentoOtro : null;
+      segmento === 'Otro' ? segmentoOtro : null;
 
     const saved = await this.clienteRepository.save(cliente);
 
@@ -462,10 +480,10 @@ export class ClientesService {
   }
 
   private validateSegmentoOtro(
-    segmento: SegmentoCliente,
+    segmento: string,
     segmentoOtro?: string,
   ): void {
-    if (segmento === SegmentoCliente.OTRO && !segmentoOtro?.trim()) {
+    if (segmento === 'Otro' && !segmentoOtro?.trim()) {
       throw new BusinessException(
         ErrorCode.SEGMENTO_OTRO_REQUERIDO,
         'Debe indicar el valor de segmento cuando selecciona Otro',

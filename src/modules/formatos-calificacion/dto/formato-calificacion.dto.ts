@@ -27,7 +27,7 @@ export class FormatoCalificacionRangoResponseDto {
   id: number;
 
   @ApiProperty({ enum: IndicadorCodigo })
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
 
   @ApiProperty()
   orden: number;
@@ -87,7 +87,7 @@ export class EvaluarCalificacionesDto {
 
 export class ProcesoCalificacionDetalleResponseDto {
   @ApiProperty({ enum: IndicadorCodigo })
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
 
   @ApiProperty()
   parametroFinancieroId: number;

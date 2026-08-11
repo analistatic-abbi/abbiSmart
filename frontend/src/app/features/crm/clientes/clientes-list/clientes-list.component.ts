@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Cliente, SegmentoCliente } from '../../../../core/models/crm.model';
+import { CatalogosService } from '../../../../core/services/catalogos.service';
+import { Cliente } from '../../../../core/models/crm.model';
+import { CatalogoPaisItem } from '../../../../core/models/pais-config.model';
 import {
   FILTRO_ELIMINADOS_OPCIONES,
   FiltroEliminados,
@@ -21,6 +23,7 @@ import { CrmTabsComponent } from '../../shared/crm-tabs.component';
 export class ClientesListComponent implements OnInit {
   private readonly clientes = inject(ClientesService);
   private readonly auth = inject(AuthService);
+  private readonly catalogos = inject(CatalogosService);
 
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
   protected readonly puedeVerEliminados = () => this.auth.puedeVerEliminados();
@@ -29,11 +32,14 @@ export class ClientesListComponent implements OnInit {
   protected readonly items = signal<Cliente[]>([]);
   protected readonly loading = signal(true);
   protected readonly search = signal('');
-  protected readonly segmento = signal<SegmentoCliente | ''>('');
+  protected readonly segmento = signal('');
   protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
-  protected readonly segmentos = Object.values(SegmentoCliente);
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
 
   ngOnInit(): void {
+    this.catalogos.getCatalogoSesion('segmento_cliente', false).subscribe((r) =>
+      this.segmentos.set(r.data),
+    );
     this.load();
   }
 

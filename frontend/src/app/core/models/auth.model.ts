@@ -18,6 +18,7 @@ export interface AuthState {
   usuario: UsuarioSesion | null;
   session: SessionInfo | null;
   paisNombre: string | null;
+  paisCodigoIso: string | null;
 }
 
 export interface LoginResponse {
@@ -25,7 +26,7 @@ export interface LoginResponse {
   requiresCountrySelection: boolean;
   preAuthToken?: string;
   usuario?: UsuarioSesion;
-  paises?: Array<{ id: number; nombre: string }>;
+  paises?: Array<{ id: number; nombre: string; codigoIso?: string | null; codigoMoneda?: string | null }>;
   accessToken?: string;
   expiresIn?: string;
   session?: SessionInfo;

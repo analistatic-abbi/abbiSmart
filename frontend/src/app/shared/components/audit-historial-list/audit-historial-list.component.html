@@ -1,0 +1,31 @@
+@if (loading()) {
+  <p class="audit-historial__status">Cargando historial...</p>
+} @else if (error()) {
+  <p class="audit-historial__status audit-historial__status--error">{{ error() }}</p>
+} @else {
+  <div class="audit-historial-lista">
+    @for (h of items(); track h.id) {
+      <article class="audit-historial-item">
+        <header class="audit-historial-item__header">
+          <div>
+            <strong>{{ accion(h) }}</strong>
+            <p class="audit-historial-item__meta">
+              {{ usuario(h) }} · {{ formatFecha(h.fechaHora) }}
+            </p>
+          </div>
+        </header>
+
+        <ul class="audit-historial-item__cambios">
+          @for (cambio of cambios(h); track cambio.label + cambio.texto) {
+            <li>
+              <span class="audit-historial-item__label">{{ cambio.label }}</span>
+              <span class="audit-historial-item__valor">{{ cambio.texto }}</span>
+            </li>
+          }
+        </ul>
+      </article>
+    } @empty {
+      <p class="audit-historial__empty">{{ emptyMessage() }}</p>
+    }
+  </div>
+}

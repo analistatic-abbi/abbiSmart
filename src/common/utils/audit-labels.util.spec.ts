@@ -39,4 +39,22 @@ describe('audit-labels.util', () => {
       ),
     ).toBe('País de sesión: — → Colombia');
   });
+
+  it('describe cambios de parámetro financiero en JSON', () => {
+    expect(
+      formatDetalleAuditoria({
+        accion: AuditAccion.PARAMETRO_EDITAR,
+        valorAnterior: JSON.stringify({
+          indicadorCodigo: 'RCI',
+          valor: '1.5',
+          reglaCumplimiento: 'Mayor o igual al requerido',
+        }),
+        valorNuevo: JSON.stringify({
+          indicadorCodigo: 'RCI',
+          valor: '2',
+          reglaCumplimiento: 'Mayor o igual al requerido',
+        }),
+      }),
+    ).toBe('Valor: 1.5 → 2');
+  });
 });

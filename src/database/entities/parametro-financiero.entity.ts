@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { IndicadorCodigo } from '../../common/enums/indicador-codigo.enum';
 import { ReglaCumplimiento } from '../../common/enums/regla-cumplimiento.enum';
 import { Pais } from './pais.entity';
 import { Usuario } from './usuario.entity';
@@ -22,10 +21,10 @@ export class ParametroFinanciero {
 
   @Column({
     name: 'indicador_codigo',
-    type: 'enum',
-    enum: IndicadorCodigo,
+    type: 'varchar',
+    length: 50,
   })
-  indicadorCodigo: IndicadorCodigo;
+  indicadorCodigo: string;
 
   @Column({ type: 'smallint', unsigned: true })
   anio: number;

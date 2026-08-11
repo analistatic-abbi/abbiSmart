@@ -8,7 +8,10 @@ import {
   Contacto,
 } from '../../../../core/models/crm.model';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarCreacion } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-relacionamiento-form',
@@ -21,6 +24,8 @@ export class RelacionamientoFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly relacionamientos = inject(RelacionamientosService);
   private readonly contactos = inject(ContactosService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly canales = Object.values(CanalRelacionamiento);
 
@@ -66,13 +71,23 @@ export class RelacionamientoFormComponent implements OnInit {
       fechaAlertaRespuesta: this.fechaAlertaRespuesta(),
     };
 
-    this.loading.set(true);
-    this.relacionamientos.create(payload).subscribe({
-      next: (r) => void this.router.navigate(['/crm/relacionamientos', r.relacionamiento.id]),
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible registrar el relacionamiento.'));
-        this.loading.set(false);
-      },
+    void confirmarCreacion(
+      this.confirmDialog,
+      '¿Desea registrar el relacionamiento?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.loading.set(true);
+      this.relacionamientos.create(payload).subscribe({
+        next: (r) => {
+          this.toast.success(mensajeExitoApi(r, 'Relacionamiento creado correctamente.'));
+          void this.router.navigate(['/crm/relacionamientos', r.relacionamiento.id]);
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible registrar el relacionamiento.'));
+          this.loading.set(false);
+        },
+      });
     });
   }
 }

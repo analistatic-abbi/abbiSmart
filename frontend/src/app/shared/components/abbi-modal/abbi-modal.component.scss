@@ -1,0 +1,96 @@
+.abbi-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--color-overlay);
+}
+
+.abbi-modal {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-prime);
+  box-shadow: 0 16px 40px var(--color-shadow-strong);
+}
+
+.abbi-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-outline-variant);
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-emphasis);
+  }
+}
+
+.abbi-modal__close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  padding: 4px;
+  border-radius: var(--radius-prime);
+
+  &:hover {
+    background: var(--color-surface-container-low);
+  }
+}
+
+.abbi-modal__body {
+  padding: 20px;
+  overflow: auto;
+}
+
+.abbi-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-prime);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--color-emphasis);
+  border: 1px solid #d1d5db;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

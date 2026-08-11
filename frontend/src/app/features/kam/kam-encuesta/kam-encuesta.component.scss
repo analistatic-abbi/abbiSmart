@@ -1,0 +1,279 @@
+@use '../shared/kam-page';
+@use '../estado-kam-badges';
+@use '../../../../styles/forms' as forms;
+
+.encuesta-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding-bottom: 88px;
+}
+
+.encuesta-page__header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 8px 0;
+    font-size: 24px;
+    color: var(--color-emphasis);
+  }
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--color-primary);
+}
+
+.encuesta-page__meta {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.encuesta-page__contacto {
+  margin: 12px 0 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.encuesta-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-on-surface-variant);
+    line-height: 1.5;
+  }
+}
+
+.secciones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.seccion-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__header {
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-emphasis);
+    }
+  }
+}
+
+.preguntas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pregunta-card {
+  padding: 18px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-prime);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__texto {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-emphasis);
+    font-weight: 600;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+
+    input,
+    textarea {
+      @include forms.abbi-text-field;
+    }
+
+    textarea {
+      min-height: 64px;
+      resize: vertical;
+    }
+  }
+
+  &__lectura {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--color-on-surface-variant);
+  }
+}
+
+.item-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &--nested {
+    padding: 12px;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-prime);
+    background: var(--color-surface-container-low);
+  }
+
+  &__subseccion {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-emphasis);
+  }
+}
+
+.resumen-panel {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    font-size: 13px;
+    color: var(--color-on-surface-variant);
+  }
+}
+
+.veredicto-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+
+    textarea {
+      @include forms.abbi-text-field;
+      min-height: 96px;
+      resize: vertical;
+    }
+  }
+
+  .badge--editado {
+    display: inline-flex;
+    margin-left: 8px;
+    background: var(--color-secondary-container);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.escala {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-emphasis);
+  }
+
+  &__botones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-prime);
+    background: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-emphasis);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+    &--activo {
+      background: #2e8ec2;
+      border-color: #2e8ec2;
+      color: #fff;
+    }
+  }
+}
+
+.encuesta-barra {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 12px 24px;
+  background: #fff;
+  border-top: 1px solid #d1d5db;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+
+  &__inner {
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+.page-loading {
+  padding: 24px;
+}

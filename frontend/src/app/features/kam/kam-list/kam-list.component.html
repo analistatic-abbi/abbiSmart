@@ -1,0 +1,92 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>KAM</h1>
+      <p>Gestión de Key Account Management para procesos adjudicados con cliente.</p>
+    </div>
+    <div class="header-actions">
+      <app-kam-vista-toggle vistaActual="tabla" />
+      <a class="btn-secondary" routerLink="/admin/formatos-encuesta">Formatos de encuesta</a>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input
+      type="search"
+      placeholder="Buscar proceso, objeto o cliente..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      (keyup.enter)="onFilter()"
+      aria-label="Buscar KAM"
+    />
+    <select
+      [ngModel]="estado()"
+      (ngModelChange)="estado.set($event); onFilter()"
+      aria-label="Filtrar por estado de ronda"
+    >
+      <option value="">Todos los estados de ronda</option>
+      @for (e of estados; track e) {
+        <option [value]="e">{{ e }}</option>
+      }
+    </select>
+    <button
+      type="button"
+      class="filter-alert"
+      [class.filter-alert--active]="sinReunionAgendada()"
+      (click)="toggleAlerta()"
+    >
+      Adjudicados sin reunión agendada
+      @if (alertaCount() > 0) {
+        <span class="filter-alert__count">{{ alertaCount() }}</span>
+      }
+    </button>
+    <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Proceso</th>
+            <th>Objeto</th>
+            <th>Cliente</th>
+            <th>Ronda actual</th>
+            <th>Estado ronda</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (k of items(); track k.id) {
+            <tr>
+              <td>{{ k.procesoCodigo ?? k.procesoIdDigitado }}</td>
+              <td class="col-objeto">{{ k.procesoObjeto ?? '—' }}</td>
+              <td>{{ k.empresaMostrar }}</td>
+              <td>{{ k.rondaActualNumero ?? '—' }}</td>
+              <td>
+                @if (k.rondaActualEstado) {
+                  <span [class]="badgeClass(k.rondaActualEstado)">{{ k.rondaActualEstado }}</span>
+                } @else {
+                  —
+                }
+              </td>
+              <td><a class="table-action" [routerLink]="['/kam', k.id]">Ver detalle</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6">No hay KAMs registrados.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-table-pagination
+      [page]="page()"
+      [limit]="limit()"
+      [total]="total()"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)"
+    />
+  }
+</section>

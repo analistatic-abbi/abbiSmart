@@ -7,7 +7,10 @@ import {
   FormatoCalificacionListItem,
   PROMPT_IA_FORMATO_CALIFICACION,
 } from '../../../../core/models/formato-calificacion.model';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarAccion } from '../../../../core/utils/confirm-dialog.util';
 import { formatFechaHora } from '../../../../core/utils/date.util';
 import { IndicadorCodigo } from '../../../../core/models/proceso.model';
 import { formatRangoIndicador } from '../../../../core/utils/parametro.util';
@@ -21,6 +24,8 @@ import { formatRangoIndicador } from '../../../../core/utils/parametro.util';
 })
 export class FormatosCalificacionListComponent implements OnInit {
   private readonly formatosService = inject(FormatosCalificacionService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly formatos = signal<FormatoCalificacionListItem[]>([]);
   protected readonly detalle = signal<FormatoCalificacionDetail | null>(null);
@@ -100,24 +105,35 @@ export class FormatosCalificacionListComponent implements OnInit {
       return;
     }
 
-    this.uploadLoading.set(true);
-    this.error.set(null);
-    this.feedback.set(null);
+    void confirmarAccion(this.confirmDialog, {
+      title: 'Confirmar importación',
+      message: `¿Desea importar el formato «${nombre}»?`,
+      confirmLabel: 'Importar',
+    }).then((ok) => {
+      if (!ok) return;
 
-    this.formatosService.importFormato(nombre, puntaje, file).subscribe({
-      next: (res) => {
-        this.feedback.set(res.message);
-        this.nombre.set('');
-        this.puntajeMinimo.set(null);
-        this.archivo.set(null);
-        this.uploadLoading.set(false);
-        this.cargarFormatos();
-        this.verDetalle(res.data.id);
-      },
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible importar el formato.'));
-        this.uploadLoading.set(false);
-      },
+      this.uploadLoading.set(true);
+      this.error.set(null);
+      this.feedback.set(null);
+
+      this.formatosService.importFormato(nombre, puntaje, file).subscribe({
+        next: (res) => {
+          this.feedback.set(res.message);
+          this.toast.success(mensajeExitoApi(res, res.message));
+          this.nombre.set('');
+          this.puntajeMinimo.set(null);
+          this.archivo.set(null);
+          this.uploadLoading.set(false);
+          this.cargarFormatos();
+          this.verDetalle(res.data.id);
+        },
+        error: (err) => {
+          const mensaje = mensajeErrorApi(err, 'No fue posible importar el formato.');
+          this.error.set(mensaje);
+          this.toast.error(mensaje);
+          this.uploadLoading.set(false);
+        },
+      });
     });
   }
 
@@ -135,26 +151,42 @@ export class FormatosCalificacionListComponent implements OnInit {
 
   protected toggleActivo(formato: FormatoCalificacionListItem): void {
     this.menuAbiertoId.set(null);
-    this.actionLoading.set(true);
-    this.error.set(null);
+    const activar = !formato.activo;
 
-    const req = formato.activo
-      ? this.formatosService.desactivar(formato.id)
-      : this.formatosService.activar(formato.id);
+    void confirmarAccion(this.confirmDialog, {
+      title: activar ? 'Confirmar activación' : 'Confirmar desactivación',
+      message: activar
+        ? `¿Desea activar el formato «${formato.nombre}»?`
+        : `¿Desea desactivar el formato «${formato.nombre}»?`,
+      confirmLabel: activar ? 'Activar' : 'Desactivar',
+      variant: activar ? 'primary' : 'danger',
+    }).then((ok) => {
+      if (!ok) return;
 
-    req.subscribe({
-      next: (res) => {
-        this.feedback.set(res.message);
-        this.actionLoading.set(false);
-        this.cargarFormatos();
-        if (this.detalle()?.id === formato.id) {
-          this.verDetalle(formato.id);
-        }
-      },
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible actualizar el formato.'));
-        this.actionLoading.set(false);
-      },
+      this.actionLoading.set(true);
+      this.error.set(null);
+
+      const req = formato.activo
+        ? this.formatosService.desactivar(formato.id)
+        : this.formatosService.activar(formato.id);
+
+      req.subscribe({
+        next: (res) => {
+          this.feedback.set(res.message);
+          this.toast.success(mensajeExitoApi(res, res.message));
+          this.actionLoading.set(false);
+          this.cargarFormatos();
+          if (this.detalle()?.id === formato.id) {
+            this.verDetalle(formato.id);
+          }
+        },
+        error: (err) => {
+          const mensaje = mensajeErrorApi(err, 'No fue posible actualizar el formato.');
+          this.error.set(mensaje);
+          this.toast.error(mensaje);
+          this.actionLoading.set(false);
+        },
+      });
     });
   }
 

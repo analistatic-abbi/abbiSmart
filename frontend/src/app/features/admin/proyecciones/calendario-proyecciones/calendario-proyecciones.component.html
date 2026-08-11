@@ -47,13 +47,17 @@
                 >
                   <div class="proyeccion-card__top">
                     <span class="proyeccion-card__empresa">{{ empresaLabel(p) }}</span>
-                    <span class="material-symbols-outlined proyeccion-card__icon" [style.color]="style.text">open_in_new</span>
+                    <span class="proyeccion-card__dia">{{ formatFechaCorta(p.fechaEstimadaPublicacion) }}</span>
                   </div>
                   @if (p.objeto) {
                     <div class="proyeccion-card__objeto">{{ p.objeto }}</div>
                   }
-                  <div class="proyeccion-card__valor">{{ formatValor(p.valorVenta) }}</div>
-                  <div class="proyeccion-card__estado" [style.color]="style.text">{{ style.label }}</div>
+                  <div class="proyeccion-card__valor" [title]="tituloValor(p.valorVenta)">
+                    {{ formatValor(p.valorVenta) }}
+                  </div>
+                  <div class="proyeccion-card__estado" [style.color]="style.text">
+                    {{ formatFechaCorta(p.fechaEstimadaPublicacion) }} · {{ style.label }}
+                  </div>
                 </button>
               }
             }

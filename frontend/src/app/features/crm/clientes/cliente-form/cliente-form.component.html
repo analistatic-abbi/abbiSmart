@@ -32,7 +32,7 @@
       />
     }
 
-    <label>Departamento
+    <label>{{ etiquetaGeoNivel1() }}
       <select [ngModel]="departamento()" (ngModelChange)="onDepartamentoChange($event)">
         <option value="">Seleccione...</option>
         @for (d of departamentos(); track d) {
@@ -41,7 +41,7 @@
       </select>
     </label>
 
-    <label>Municipio
+    <label>{{ etiquetaGeoNivel2() }}
       <select [ngModel]="ubicacionId()" (ngModelChange)="ubicacionId.set(+$event || null)">
         <option [ngValue]="null">Seleccione...</option>
         @for (m of municipios(); track m.id) {
@@ -52,8 +52,8 @@
 
     <label>Segmento
       <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event)">
-        @for (s of segmentos; track s) {
-          <option [value]="s">{{ s }}</option>
+        @for (s of segmentos(); track s.codigo) {
+          <option [value]="s.codigo">{{ s.etiqueta }}</option>
         }
       </select>
     </label>

@@ -17,6 +17,8 @@ const TIPOS_DEFAULT: CalendarioEventoTipo[] = [
   CalendarioEventoTipo.PROYECCION,
   CalendarioEventoTipo.PROCESO,
   CalendarioEventoTipo.RELACIONAMIENTO,
+  CalendarioEventoTipo.KAM,
+  CalendarioEventoTipo.REUNION_ACLARATORIA,
 ];
 
 @Injectable()
@@ -48,6 +50,14 @@ export class CalendarioService {
 
     if (tipos.includes(CalendarioEventoTipo.RELACIONAMIENTO)) {
       eventos.push(...(await this.getRelacionamientos(query.anio, paisSesionId)));
+    }
+
+    if (tipos.includes(CalendarioEventoTipo.KAM)) {
+      eventos.push(...(await this.getKamReuniones(query.anio, paisSesionId)));
+    }
+
+    if (tipos.includes(CalendarioEventoTipo.REUNION_ACLARATORIA)) {
+      eventos.push(...(await this.getReunionesAclaratorias(query.anio, paisSesionId)));
     }
 
     return eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -124,8 +134,8 @@ export class CalendarioService {
   ): Promise<CalendarioEventoDto[]> {
     const rows = await this.relacionamientoRepository
       .createQueryBuilder('r')
-      .innerJoin('r.contacto', 'co')
-      .innerJoin('co.cliente', 'cl')
+      .innerJoinAndSelect('r.contacto', 'co')
+      .innerJoinAndSelect('co.cliente', 'cl')
       .where('r.eliminado = false')
       .andWhere('cl.pais_id = :paisSesionId', { paisSesionId })
       .andWhere('r.resultado = :resultado', {
@@ -137,14 +147,112 @@ export class CalendarioService {
       .take(500)
       .getMany();
 
-    return rows.map((row) => ({
-      id: Number(row.id),
-      tipo: CalendarioEventoTipo.RELACIONAMIENTO,
-      fecha: row.fechaReunion!,
-      titulo: row.canal,
-      subtitulo: row.mensaje.slice(0, 80),
-      estado: row.resultado,
-      icono: 'handshake',
-    }));
+    return rows.map((row) => {
+      const empresa = row.contacto.cliente.empresa;
+      const contacto = row.contacto.nombre;
+      const cargo = row.contacto.cargo?.trim() || null;
+
+      return {
+        id: Number(row.id),
+        tipo: CalendarioEventoTipo.RELACIONAMIENTO,
+        fecha: row.fechaReunion!,
+        titulo: contacto,
+        subtitulo: empresa,
+        detalle: cargo,
+        empresa,
+        estado: row.resultado,
+        icono: 'handshake',
+      };
+    });
+  }
+
+  private async getKamReuniones(
+    anio: number,
+    paisSesionId: number,
+  ): Promise<CalendarioEventoDto[]> {
+    const rows = await this.dataSource.query(
+      `SELECT k.id AS kamId,
+              r.id AS rondaId,
+              r.numero AS rondaNumero,
+              p.codigo AS procesoCodigo,
+              p.objeto AS procesoObjeto,
+              c.empresa AS empresaMostrar,
+              r.estado,
+              r.fecha_reunion_socializacion AS fecha
+       FROM kam_rondas r
+       INNER JOIN kams k ON k.id = r.kam_id
+       INNER JOIN procesos p ON p.id = k.proceso_id
+       INNER JOIN clientes c ON c.id = k.empresa_cliente_id
+       WHERE k.pais_id = ?
+         AND r.fecha_reunion_socializacion IS NOT NULL
+         AND YEAR(r.fecha_reunion_socializacion) = ?
+       ORDER BY r.fecha_reunion_socializacion ASC
+       LIMIT 500`,
+      [paisSesionId, anio],
+    );
+
+    return (rows as Array<Record<string, unknown>>).map((row) => {
+      const empresa = String(row.empresaMostrar);
+      const procesoCodigo = row.procesoCodigo ? String(row.procesoCodigo) : null;
+      const procesoObjeto = row.procesoObjeto ? String(row.procesoObjeto).trim() : null;
+      const rondaNumero = Number(row.rondaNumero);
+      const estado = String(row.estado);
+      const detallePartes = [
+        `Ronda ${rondaNumero}`,
+        procesoObjeto ? this.recortarTexto(procesoObjeto, 60) : null,
+      ].filter(Boolean);
+
+      return {
+        id: Number(row.rondaId),
+        kamId: Number(row.kamId),
+        tipo: CalendarioEventoTipo.KAM,
+        fecha: normalizarFechaDesdeBd(row.fecha as string | Date).fecha,
+        titulo: empresa,
+        subtitulo: procesoCodigo ?? `Ronda ${rondaNumero}`,
+        detalle: detallePartes.join(' · '),
+        empresa,
+        estado,
+        icono: 'groups',
+      };
+    });
+  }
+
+  private async getReunionesAclaratorias(
+    anio: number,
+    paisSesionId: number,
+  ): Promise<CalendarioEventoDto[]> {
+    const rows = await this.procesoRepository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.empresaCliente', 'c')
+      .where('p.eliminado = false')
+      .andWhere('p.pais_id = :paisSesionId', { paisSesionId })
+      .andWhere('p.fecha_reunion_aclaratoria IS NOT NULL')
+      .andWhere('YEAR(p.fecha_reunion_aclaratoria) = :anio', { anio })
+      .orderBy('p.fecha_reunion_aclaratoria', 'ASC')
+      .take(500)
+      .getMany();
+
+    return rows.map((row) => {
+      const empresa = row.empresaCliente?.empresa ?? row.empresaOtro ?? 'Sin empresa';
+      const proceso = row.codigo ?? row.idDigitado;
+      const objeto = row.objeto?.trim() || null;
+
+      return {
+        id: Number(row.id),
+        tipo: CalendarioEventoTipo.REUNION_ACLARATORIA,
+        fecha: row.fechaReunionAclaratoria!,
+        titulo: empresa,
+        subtitulo: proceso,
+        detalle: objeto ? this.recortarTexto(objeto, 80) : null,
+        empresa: row.empresaCliente?.empresa ?? row.empresaOtro ?? null,
+        estado: row.estado,
+        icono: 'forum',
+      };
+    });
+  }
+
+  private recortarTexto(texto: string, max: number): string {
+    if (texto.length <= max) return texto;
+    return `${texto.slice(0, max - 1).trimEnd()}…`;
   }
 }

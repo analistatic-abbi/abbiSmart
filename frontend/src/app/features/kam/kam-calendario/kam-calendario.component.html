@@ -1,0 +1,89 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Calendario KAM</h1>
+      <p>Reuniones de fin de ronda agendadas.</p>
+    </div>
+    <div class="header-actions">
+      <app-kam-vista-toggle vistaActual="calendario" [anio]="anio()" />
+      <a class="btn-secondary" routerLink="/admin/formatos-encuesta">Formatos de encuesta</a>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <app-year-selector
+      [anio]="anio()"
+      (anterior)="anioAnterior()"
+      (siguiente)="anioSiguiente()"
+    />
+    @if (!loading() && !error()) {
+      <span class="toolbar__count">{{ totalEventos() }} reunión(es) en {{ anio() }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="loading">Cargando...</p>
+  } @else if (error()) {
+    <div class="calendario-empty">
+      <p class="error">{{ error() }}</p>
+      <button type="button" class="btn-secondary" (click)="recargar()">Reintentar</button>
+    </div>
+  } @else if (!totalEventos()) {
+    <div class="calendario-empty">
+      <h2>Sin reuniones en {{ anio() }}</h2>
+      <p>
+        El calendario solo muestra reuniones de fin de ronda ya <strong>agendadas</strong>.
+        Para que aparezca un evento:
+      </p>
+      <ol>
+        <li>Entre al detalle del KAM.</li>
+        <li>Cierre la fase de encuestas (ronda en estado Ejecutado).</li>
+        <li>Use <strong>Agendar reunión</strong> y elija la fecha.</li>
+        <li>Verifique que el año del calendario coincida con la fecha agendada.</li>
+      </ol>
+      <a class="btn-primary" routerLink="/kam">Ir a lista KAM</a>
+    </div>
+  } @else {
+    <div class="calendar-grid">
+      @for (mes of mesesAgrupados(); track mes.mesIndex) {
+        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
+          <div class="month-column__header">
+            <h3>{{ mes.nombre }}</h3>
+          </div>
+          <div class="month-column__body">
+            @if (mes.items.length === 0) {
+              <p class="month-column__empty">Sin eventos</p>
+            } @else {
+              @for (e of mes.items; track e.rondaId + e.fecha) {
+                @let style = estadoStyle(e.estado);
+                <button
+                  type="button"
+                  class="calendar-card"
+                  [style.background]="style.bg"
+                  [style.borderColor]="style.border"
+                  (click)="navigateToDetail(e.kamId)"
+                >
+                  <div class="calendar-card__top">
+                    <span class="calendar-card__empresa">{{ e.empresaMostrar }}</span>
+                    <span class="calendar-card__dia">{{ formatFechaCorta(e.fecha) }}</span>
+                  </div>
+                  @if (e.procesoObjeto) {
+                    <div class="calendar-card__objeto">{{ e.procesoObjeto }}</div>
+                  } @else if (e.procesoCodigo) {
+                    <div class="calendar-card__objeto">{{ e.procesoCodigo }}</div>
+                  }
+                  <div [class]="claseUrgenciaDias(dias(e))">
+                    {{ labelDiasRestantes(dias(e)) }}
+                  </div>
+                  <div class="calendar-card__estado" [style.color]="style.text">
+                    {{ formatFechaCorta(e.fecha) }} · {{ style.label }}
+                  </div>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

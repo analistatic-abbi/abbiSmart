@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { CanalRelacionamiento } from '../../../common/enums/canal-relacionamiento.enum';
 import { ResultadoRelacionamiento } from '../../../common/enums/resultado-relacionamiento.enum';
@@ -28,6 +28,16 @@ export class RelacionamientosQueryDto extends PaginationQueryDto {
   @IsString()
   @MaxLength(255)
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Filtro fecha mensaje desde (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaMensajeDesde?: string;
+
+  @ApiPropertyOptional({ description: 'Filtro fecha mensaje hasta (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsDateString()
+  fechaMensajeHasta?: string;
 }
 
 export class RelacionamientoResponseDto {

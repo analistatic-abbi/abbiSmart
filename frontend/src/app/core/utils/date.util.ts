@@ -50,3 +50,11 @@ export function formatTiempoRelativo(iso: string | null | undefined): string {
     year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
   });
 }
+
+export function formatFechaCorta(iso: string): string {
+  const date = parseIsoDateLocal(iso);
+  return date.toLocaleDateString('es-CO', {
+    day: 'numeric',
+    month: 'short',
+  });
+}

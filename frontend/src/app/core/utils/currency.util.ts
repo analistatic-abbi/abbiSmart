@@ -1,3 +1,8 @@
+/**
+ * Formato monetario del sistema:
+ * - En tablas/tarjetas: abreviado ($800 mill., $900 mil) sin redondear el valor real.
+ * - Al pasar el mouse (title): monto completo con separadores ($800.000.000,00).
+ */
 function formatScaledUnit(
   amount: number,
   divisor: number,
@@ -78,4 +83,14 @@ export function formatCurrencyAbbreviated(value: string | number): string {
   }
 
   return `${sign}$${amount.toLocaleString('es-CO', { maximumFractionDigits: 2 })}`;
+}
+
+/** Alias explícito para celdas compactas (tablas, tarjetas). */
+export const formatMonedaAbreviada = formatCurrencyAbbreviated;
+
+/** Texto completo para tooltip/title sobre montos abreviados. */
+export function tituloMonedaCompleta(
+  value: string | number | null | undefined,
+): string {
+  return formatCurrencyFull(value, 2);
 }

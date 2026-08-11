@@ -4,8 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
-import { SegmentoProceso } from '../../../../core/models/proceso.model';
-import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { CatalogoPaisItem } from '../../../../core/models/pais-config.model';
+import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
+import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { confirmarCreacion } from '../../../../core/utils/confirm-dialog.util';
 import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 
 @Component({
@@ -20,8 +23,10 @@ export class ProyeccionFormComponent implements OnInit {
   private readonly proyecciones = inject(ProyeccionesService);
   private readonly catalogos = inject(CatalogosService);
   protected readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
-  protected readonly segmentos = Object.values(SegmentoProceso);
+  protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
   protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
   protected readonly clienteOptions = computed(() =>
     this.clientes().map((cliente) => ({
@@ -38,7 +43,7 @@ export class ProyeccionFormComponent implements OnInit {
   protected readonly usarEmpresaOtro = signal(false);
   protected readonly empresaClienteId = signal<number | null>(null);
   protected readonly empresaOtro = signal('');
-  protected readonly segmento = signal<SegmentoProceso>(SegmentoProceso.GasNatural);
+  protected readonly segmento = signal('');
   protected readonly objeto = signal('');
 
   protected readonly loading = signal(false);
@@ -46,6 +51,14 @@ export class ProyeccionFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.catalogos.getClientes().subscribe((r) => this.clientes.set(r.data));
+    this.catalogos.getCatalogoSesion('segmento_proceso').subscribe({
+      next: (r) => {
+        this.segmentos.set(r.data);
+        if (r.data.length) {
+          this.segmento.set(r.data[0].codigo);
+        }
+      },
+    });
   }
 
   protected guardar(): void {
@@ -71,9 +84,6 @@ export class ProyeccionFormComponent implements OnInit {
       }
     }
 
-    this.loading.set(true);
-    this.error.set(null);
-
     const payload = {
       anioProyectado: this.anioProyectado(),
       fechaEstimadaPublicacion: this.fechaEstimadaPublicacion(),
@@ -91,12 +101,22 @@ export class ProyeccionFormComponent implements OnInit {
       ...(this.objeto().trim() ? { objeto: this.objeto().trim() } : {}),
     };
 
-    this.proyecciones.create(payload).subscribe({
-      next: (r) => void this.router.navigate(['/proyecciones', r.proyeccion.id]),
-      error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible crear la proyección.'));
-        this.loading.set(false);
-      },
+    void confirmarCreacion(this.confirmDialog, '¿Desea crear la proyección?').then((ok) => {
+      if (!ok) return;
+
+      this.loading.set(true);
+      this.error.set(null);
+
+      this.proyecciones.create(payload).subscribe({
+        next: (r) => {
+          this.toast.success(mensajeExitoApi(r, 'Proyección creada correctamente.'));
+          void this.router.navigate(['/proyecciones', r.proyeccion.id]);
+        },
+        error: (err) => {
+          this.error.set(mensajeErrorApi(err, 'No fue posible crear la proyección.'));
+          this.loading.set(false);
+        },
+      });
     });
   }
 }

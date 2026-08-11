@@ -1,0 +1,223 @@
+@forward '../../crm/shared/crm-page';
+@use '../../../../styles/forms' as forms;
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-prime);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.btn-secondary {
+  background: var(--color-surface-container-lowest);
+  color: var(--color-emphasis);
+  border-color: var(--color-outline-variant);
+
+  &:hover {
+    background: var(--color-surface-container-low);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.btn-secondary--sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.table-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-prime);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-primary);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--color-surface-container-low);
+    border-color: var(--color-primary);
+  }
+}
+
+.empty-state {
+  max-width: 480px;
+  margin: 24px auto;
+  padding: 24px;
+  text-align: center;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-prime);
+
+  .error {
+    margin: 0 0 16px;
+    font-size: 15px;
+  }
+
+  .form-actions {
+    justify-content: center;
+    margin-top: 0;
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+
+  input[type='search'] {
+    @include forms.abbi-text-field($full-width: false);
+    min-width: 200px;
+  }
+
+  select {
+    @include forms.abbi-select($full-width: false);
+    min-width: 200px;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-prime);
+  border: 1px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, white);
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+
+  &--active {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 11px;
+  }
+}
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accordion__item {
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-prime);
+  background: #fff;
+  overflow: hidden;
+}
+
+.accordion__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  background: var(--color-surface-container-low);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.ronda-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+
+  &__titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-emphasis);
+  }
+
+  &__meta {
+    display: block;
+    font-size: 13px;
+    color: var(--color-on-surface-variant);
+    line-height: 1.4;
+    padding-left: 2px;
+  }
+}
+
+.accordion__chevron {
+  flex-shrink: 0;
+  color: var(--color-on-surface-variant);
+}
+
+.accordion__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-emphasis);
+}

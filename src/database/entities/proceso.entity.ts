@@ -8,12 +8,11 @@ import {
 } from 'typeorm';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { MotivoPerdidaProceso } from '../../common/enums/motivo-perdida-proceso.enum';
-import { Moneda } from '../../common/enums/moneda.enum';
-import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
 import { TipoInstrumento } from '../../common/enums/tipo-instrumento.enum';
 import { TipoProceso } from '../../common/enums/tipo-proceso.enum';
 import { Cliente } from './cliente.entity';
 import { Pais } from './pais.entity';
+import { ProcesoContacto } from './proceso-contacto.entity';
 import { ProcesoIndicador } from './proceso-indicador.entity';
 import { ProcesoTarea } from './proceso-tarea.entity';
 import { UbicacionGeografica } from './ubicacion-geografica.entity';
@@ -46,6 +45,9 @@ export class Proceso {
   @Column({ name: 'portal_origen', type: 'varchar', length: 255, nullable: true })
   portalOrigen: string | null;
 
+  @Column({ name: 'portal_origen_otro', type: 'varchar', length: 255, nullable: true })
+  portalOrigenOtro: string | null;
+
   @Column({ type: 'varchar', length: 500, nullable: true })
   link: string | null;
 
@@ -55,11 +57,11 @@ export class Proceso {
   @Column({ type: 'decimal', precision: 18, scale: 2 })
   cuantia: string;
 
-  @Column({ type: 'enum', enum: Moneda })
-  moneda: Moneda;
+  @Column({ type: 'varchar', length: 3 })
+  moneda: string;
 
-  @Column({ type: 'enum', enum: SegmentoProceso })
-  segmento: SegmentoProceso;
+  @Column({ type: 'varchar', length: 100 })
+  segmento: string;
 
   @Column({ name: 'tipo_proceso', type: 'enum', enum: TipoProceso })
   tipoProceso: TipoProceso;
@@ -203,6 +205,9 @@ export class Proceso {
   @ManyToOne(() => Usuario, { nullable: true })
   @JoinColumn({ name: 'eliminado_por_id' })
   eliminadoPor: Usuario | null;
+
+  @OneToMany(() => ProcesoContacto, (item) => item.proceso)
+  procesoContactos: ProcesoContacto[];
 
   @OneToMany(() => ProcesoIndicador, (indicador) => indicador.proceso)
   indicadores: ProcesoIndicador[];

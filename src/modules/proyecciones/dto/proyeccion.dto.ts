@@ -104,10 +104,11 @@ export class CreateProyeccionDto {
   @MaxLength(255)
   empresaOtro?: string;
 
-  @ApiPropertyOptional({ enum: SegmentoProceso, description: 'Obligatorio en proyección manual' })
+  @ApiPropertyOptional({ description: 'Obligatorio en proyección manual' })
   @ValidateIf((dto: CreateProyeccionDto) => !dto.procesoOrigenId)
-  @IsEnum(SegmentoProceso)
-  segmento?: SegmentoProceso;
+  @IsString()
+  @MaxLength(100)
+  segmento?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -152,10 +153,11 @@ export class UpdateProyeccionDto {
   @MaxLength(255)
   empresaOtro?: string | null;
 
-  @ApiPropertyOptional({ enum: SegmentoProceso })
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(SegmentoProceso)
-  segmento?: SegmentoProceso | null;
+  @IsString()
+  @MaxLength(100)
+  segmento?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()

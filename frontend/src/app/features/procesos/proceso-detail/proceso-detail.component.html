@@ -32,6 +32,10 @@
 
         <app-fijar-entidad-button entidadTipo="proceso" [entidadId]="p.id" />
 
+        @if (kamAsociadoId(); as kamId) {
+          <a class="btn-secondary" [routerLink]="['/kam', kamId]">Ver KAM</a>
+        }
+
         @if (puedeEscribir()) {
 
         @if (puedeAsignarValidadores()) {
@@ -127,6 +131,10 @@
 
         <div><span>Tipo proceso</span><strong>{{ p.tipoProceso }}</strong></div>
 
+        @if (p.portalOrigenMostrar) {
+          <div><span>Portal de origen</span><strong>{{ p.portalOrigenMostrar }}</strong></div>
+        }
+
         <div><span>Instrumento</span><strong>{{ p.tipoInstrumento }}</strong></div>
 
         <div><span>Cuantía</span><strong [title]="formatCuantiaTitle(p.cuantia)">{{ formatCuantia(p.cuantia, p.moneda) }}</strong></div>
@@ -176,6 +184,95 @@
 
 
 
+      @if (procesoTieneCliente()) {
+        <div class="panel">
+          <div class="panel__header">
+            <h3>Contactos del proceso</h3>
+            @if (puedeEscribir() && !contactosEditando()) {
+              <button type="button" class="btn-secondary btn-sm" (click)="iniciarEdicionContactos()">
+                Editar
+              </button>
+            }
+          </div>
+
+          <p class="panel-hint">Contactos del cliente vinculados para encuestas KAM.</p>
+
+          @if (contactosError()) {
+            <div class="alert">{{ contactosError() }}</div>
+          }
+
+          @if (contactosEditando()) {
+            @if (contactosLoading()) {
+              <p class="muted">Cargando contactos...</p>
+            } @else if (!contactosDisponibles().length) {
+              <p class="muted">Este cliente no tiene contactos registrados.</p>
+            } @else {
+              <ul class="contactos-list">
+                @for (contacto of contactosDisponibles(); track contacto.id) {
+                  <li>
+                    <label class="contacto-item">
+                      <input
+                        type="checkbox"
+                        [checked]="isContactoDetalleSelected(contacto.id)"
+                        (change)="toggleContactoDetalle(contacto.id, $any($event.target).checked)"
+                      />
+                      <span>
+                        <strong>{{ contacto.nombre }}</strong>
+                        @if (contacto.cargo) {
+                          <small class="muted">{{ contacto.cargo }}</small>
+                        }
+                        @if (contacto.correo) {
+                          <small class="muted">{{ contacto.correo }}</small>
+                        }
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+
+            <div class="panel__actions">
+              <button type="button" class="btn-secondary" (click)="cancelarEdicionContactos()">
+                Cancelar
+              </button>
+              <button
+                type="button"
+                class="btn-primary"
+                [disabled]="contactosGuardando()"
+                (click)="guardarContactos()"
+              >
+                {{ contactosGuardando() ? 'Guardando...' : 'Guardar contactos' }}
+              </button>
+            </div>
+          } @else if (p.contactos?.length) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Cargo</th>
+                  <th>Correo</th>
+                  <th>Teléfono</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (contacto of p.contactos; track contacto.contactoId) {
+                  <tr>
+                    <td>{{ contacto.nombre }}</td>
+                    <td>{{ contacto.cargo || '—' }}</td>
+                    <td>{{ contacto.correo || '—' }}</td>
+                    <td>{{ contacto.telefono || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="muted">No hay contactos vinculados a este proceso.</p>
+          }
+        </div>
+      }
+
+
+
       @if (p.indicadores?.length) {
 
         <div class="panel">
@@ -218,6 +315,7 @@
 
       }
 
+      @if (calificacionPorPuntosHabilitada()) {
       <div class="panel panel--calificacion">
         <h3>Calificación por puntos</h3>
         <p class="panel-hint">
@@ -355,6 +453,7 @@
           }
         }
       </div>
+      }
 
     }
 
@@ -448,21 +547,12 @@
 
       <div class="panel">
         <h3>Historial de cambios</h3>
-        <table>
-          <thead><tr><th>Campo</th><th>Valor anterior</th><th>Valor nuevo</th><th>Fecha</th></tr></thead>
-          <tbody>
-            @for (h of historialFechas(); track h.id) {
-              <tr>
-                <td>{{ h.campo ?? '—' }}</td>
-                <td>{{ h.valorAnterior ?? '—' }}</td>
-                <td>{{ h.valorNuevo ?? '—' }}</td>
-                <td>{{ h.fecha }}</td>
-              </tr>
-            } @empty {
-              <tr><td colspan="4">Sin historial de fechas.</td></tr>
-            }
-          </tbody>
-        </table>
+        <app-audit-historial-list
+          [items]="historialFechas()"
+          [loading]="historialFechasLoading()"
+          [error]="historialFechasError()"
+          emptyMessage="No se han modificado fechas de este proceso."
+        />
       </div>
 
     }
@@ -491,7 +581,7 @@
 
               <tr [class.tarea--na]="!t.aplica">
 
-                <td>{{ labelTarea(t.tareaCodigo) }}</td>
+                <td>{{ labelTarea(t.tareaCodigo, t.tareaNombre) }}</td>
 
                 <td>
                   <span
@@ -863,9 +953,9 @@
 
         <h3>
           @if (editandoTarea()) {
-            Editar tarea: {{ labelTarea(tarea.tareaCodigo) }}
+            Editar tarea: {{ labelTarea(tarea.tareaCodigo, tarea.tareaNombre) }}
           } @else {
-            Completar tarea: {{ labelTarea(tarea.tareaCodigo) }}
+            Completar tarea: {{ labelTarea(tarea.tareaCodigo, tarea.tareaNombre) }}
           }
         </h3>
 

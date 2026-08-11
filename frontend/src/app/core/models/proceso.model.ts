@@ -113,6 +113,15 @@ export interface ProcesoIndicador {
   cumple: string | null;
 }
 
+export interface ProcesoContacto {
+  contactoId: number;
+  nombre: string;
+  cargo: string | null;
+  correo: string | null;
+  telefono: string | null;
+  fechaAsociacion: string;
+}
+
 export interface Proceso {
   id: number;
   idDigitado: string;
@@ -122,11 +131,13 @@ export interface Proceso {
   empresaMostrar?: string | null;
   ubicacionId: number;
   portalOrigen: string | null;
+  portalOrigenOtro: string | null;
+  portalOrigenMostrar?: string | null;
   link: string | null;
   objeto: string | null;
   cuantia: string;
   moneda: string;
-  segmento: SegmentoProceso;
+  segmento: string;
   tipoProceso: TipoProceso;
   tipoInstrumento: TipoInstrumento;
   plazoEjecucionMeses: number;
@@ -155,16 +166,20 @@ export interface Proceso {
   comentarioDevolucionValidacion?: string | null;
   validadorDevolucionNombre?: string | null;
   fechaDevolucionValidacion?: string | null;
+  contactos?: ProcesoContacto[];
 }
 
 export interface ProcesoListItem {
   id: number;
   codigo: string | null;
+  objeto?: string | null;
   empresaMostrar: string;
   estado: EstadoProceso;
-  segmento: SegmentoProceso;
+  segmento: string;
   tipoProceso: TipoProceso;
   tipoInstrumento: TipoInstrumento;
+  cuantia?: string;
+  moneda?: string;
   devueltoValidacion?: boolean;
   comentarioDevolucionValidacion?: string | null;
   validadorDevolucionNombre?: string | null;
@@ -174,6 +189,7 @@ export interface ProcesoTarea {
   id: number;
   procesoId: number;
   tareaCodigo: string;
+  tareaNombre?: string | null;
   aplica: boolean;
   evidencia: string | null;
   evidenciaArchivoNombre?: string | null;
@@ -186,18 +202,20 @@ export interface CreateProcesoPayload {
   idDigitado: string;
   empresaClienteId?: number;
   empresaOtro?: string;
+  contactoIds?: number[];
   ubicacionId: number;
   portalOrigen?: string;
+  portalOrigenOtro?: string;
   link?: string;
   objeto?: string;
   cuantia: number;
-  segmento: SegmentoProceso;
+  segmento: string;
   tipoProceso: TipoProceso;
   tipoInstrumento: TipoInstrumento;
   plazoEjecucionMeses: number;
   experiencia: boolean;
   observacion?: string;
-  indicadores: Array<{ indicadorCodigo: IndicadorCodigo; valorRequerido: number | null }>;
+  indicadores: Array<{ indicadorCodigo: string; valorRequerido: number | null }>;
   anioParametros?: number;
   confirmarIndicadoresVacios?: boolean;
   fechaApertura: string;

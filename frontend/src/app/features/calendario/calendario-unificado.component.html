@@ -2,7 +2,7 @@
   <header class="page__header">
     <div>
       <h1>Calendario</h1>
-      <p>Proyecciones, procesos activos y reuniones programadas.</p>
+      <p>Proyecciones, procesos activos y todas las reuniones programadas.</p>
     </div>
   </header>
 
@@ -32,6 +32,22 @@
         />
         Relacionamientos
       </label>
+      <label class="filter-toggle">
+        <input
+          type="checkbox"
+          [checked]="filtroKam()"
+          (change)="toggleFiltro('kam')"
+        />
+        Reuniones KAM
+      </label>
+      <label class="filter-toggle">
+        <input
+          type="checkbox"
+          [checked]="filtroReunionAclaratoria()"
+          (change)="toggleFiltro('reunion_aclaratoria')"
+        />
+        Reunión aclaratoria
+      </label>
     </div>
 
     <app-year-selector
@@ -41,9 +57,13 @@
     />
   </div>
 
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
   @if (loading()) {
     <p class="loading">Cargando...</p>
-  } @else {
+  } @else if (!error()) {
     <div class="calendar-grid">
       @for (mes of mesesAgrupados(); track mes.mesIndex) {
         <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
@@ -64,12 +84,21 @@
                   (click)="navigateToEvento(evento)"
                 >
                   <div class="evento-card__top">
-                    <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
-                      {{ evento.icono }}
-                    </span>
-                    <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
+                    <div class="evento-card__top-main">
+                      <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
+                        {{ evento.icono }}
+                      </span>
+                      <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
+                    </div>
+                    <span class="evento-card__dia" [style.color]="style.text">{{ formatFechaCorta(evento.fecha) }}</span>
                   </div>
-                  <div class="evento-card__titulo">{{ evento.titulo }}</div>
+                  <div class="evento-card__titulo">
+                    @if (esReunion(evento.tipo)) {
+                      Con {{ evento.titulo }}
+                    } @else {
+                      {{ evento.titulo }}
+                    }
+                  </div>
                   @if (evento.tipo === 'proyeccion') {
                     @if (evento.empresa) {
                       <div class="evento-card__sub">{{ evento.empresa }}</div>
@@ -78,11 +107,19 @@
                       <div class="evento-card__objeto">{{ evento.objeto }}</div>
                     }
                     @if (evento.valor) {
-                      <div class="evento-card__valor">{{ formatValor(evento.valor) }}</div>
+                      <div class="evento-card__valor" [title]="tituloValor(evento.valor)">{{ formatValor(evento.valor) }}</div>
+                    }
+                  } @else if (esReunion(evento.tipo)) {
+                    @if (evento.subtitulo) {
+                      <div class="evento-card__sub evento-card__sub--strong">{{ evento.subtitulo }}</div>
+                    }
+                    @if (evento.detalle) {
+                      <div class="evento-card__detalle">{{ evento.detalle }}</div>
                     }
                   } @else if (evento.subtitulo) {
                     <div class="evento-card__sub">{{ evento.subtitulo }}</div>
                   }
+                  <div class="evento-card__meta">{{ metaEvento(evento) }}</div>
                 </button>
               }
             }

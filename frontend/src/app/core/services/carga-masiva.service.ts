@@ -1,22 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {
+  CargaMasivaLog,
+  CargaMasivaResult,
+  CargaMasivaRevertResult,
+} from '../models/carga-masiva.model';
 
-export interface CargaMasivaLog {
-  id: number;
-  entidad: string;
-  nombreArchivo: string;
-  filasExitosas: number;
-  filasRechazadas: number;
-  fechaCarga: string;
-}
-
-export interface CargaMasivaResult {
-  filasExitosas: number;
-  filasRechazadas: number;
-  detalleErrores?: Array<{ fila: number; error: string }> | null;
-}
+export type {
+  CargaMasivaLog,
+  CargaMasivaResult,
+  CargaMasivaFilaError,
+  CargaMasivaDetalleCreado,
+  CargaMasivaRevertResult,
+} from '../models/carga-masiva.model';
 
 @Injectable({ providedIn: 'root' })
 export class CargaMasivaService {
@@ -43,5 +41,21 @@ export class CargaMasivaService {
     const form = new FormData();
     form.append('file', file);
     return this.http.post<CargaMasivaResult & { message: string }>(`${this.base}/proyecciones`, form);
+  }
+
+  revertirCarga(
+    logId: number,
+    confirmarDependientes = false,
+  ): Observable<CargaMasivaRevertResult & { message: string }> {
+    let params = new HttpParams();
+    if (confirmarDependientes) {
+      params = params.set('confirmarDependientes', 'true');
+    }
+
+    return this.http.post<CargaMasivaRevertResult & { message: string }>(
+      `${this.base}/logs/${logId}/revertir`,
+      {},
+      { params },
+    );
   }
 }

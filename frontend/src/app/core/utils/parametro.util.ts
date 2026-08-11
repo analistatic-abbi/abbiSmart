@@ -13,11 +13,11 @@ const INDICADOR_UNIDAD: Record<IndicadorCodigo, IndicadorUnidad> = {
   [IndicadorCodigo.RCI]: 'ratio',
 };
 
-export function indicadorUnidad(codigo: IndicadorCodigo): IndicadorUnidad {
-  return INDICADOR_UNIDAD[codigo];
+export function indicadorUnidad(codigo: string): IndicadorUnidad {
+  return INDICADOR_UNIDAD[codigo as IndicadorCodigo] ?? 'ratio';
 }
 
-export function indicadorValorHint(codigo: IndicadorCodigo): string {
+export function indicadorValorHint(codigo: string): string {
   switch (indicadorUnidad(codigo)) {
     case 'millones':
       return 'En millones de pesos (ej. 1,5 = $1,5 millones de pesos)';
@@ -84,7 +84,7 @@ export function formatMillonesPesosEquivalente(
 }
 
 export function formatParametroValor(
-  indicador: IndicadorCodigo,
+  indicador: string,
   value: string | number | null | undefined,
 ): string {
   if (value === null || value === undefined || value === '') {
@@ -110,7 +110,7 @@ export function formatParametroValor(
 }
 
 export function formatRangoIndicador(
-  indicador: IndicadorCodigo,
+  indicador: string,
   min: string | null,
   max: string | null,
 ): string {
@@ -130,7 +130,7 @@ export function formatRangoIndicador(
 }
 
 export function parametroValorTitle(
-  indicador: IndicadorCodigo,
+  indicador: string,
   value: string | number | null | undefined,
 ): string {
   if (indicadorUnidad(indicador) === 'millones') {

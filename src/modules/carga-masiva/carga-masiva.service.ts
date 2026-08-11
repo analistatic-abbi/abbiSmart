@@ -1,32 +1,55 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
 } from '../../common/enums/audit-accion.enum';
-import { SegmentoCliente } from '../../common/enums/segmento-cliente.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { UbicacionGeografica } from '../../database/entities/ubicacion-geografica.entity';
 import { Pais } from '../../database/entities/pais.entity';
-import { CargaMasivaLog } from '../../database/entities/carga-masiva-log.entity';
+import {
+  CargaMasivaDetalleCreado,
+  CargaMasivaLog,
+} from '../../database/entities/carga-masiva-log.entity';
+import { Rol } from '../../common/enums/rol.enum';
+import { EliminacionDependenciasService } from '../../common/services/eliminacion-dependencias.service';
 import { AuditService } from '../audit/audit.service';
-import { ClientesService } from '../clientes/clientes.service';
 import { ContactosService } from '../contactos/contactos.service';
 import { ProyeccionesService } from '../proyecciones/proyecciones.service';
 import { CreateClienteDto } from '../clientes/dto/create-cliente.dto';
 import { CreateContactoDto } from '../contactos/dto/create-contacto.dto';
 import { CreateProyeccionDto } from '../proyecciones/dto/proyeccion.dto';
 import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
-import { SegmentoProceso } from '../../common/enums/segmento-proceso.enum';
 import { readSpreadsheet } from '../../common/utils/spreadsheet-reader';
+import {
+  CargaMasivaFilaError,
+  formatUbicacionCargaMasivaError,
+  sugerenciaPorCodigoError,
+} from '../../common/utils/carga-masiva-error.util';
+import {
+  bogotaMunicipioAliases,
+  normalizeColombiaUbicacionInput,
+} from '../../common/utils/ubicacion-colombia.util';
+import { ClientesService } from '../clientes/clientes.service';
 
 export interface CargaMasivaResult {
   filasExitosas: number;
   filasRechazadas: number;
-  detalleErrores: Array<{ fila: number; error: string }>;
+  detalleErrores: CargaMasivaFilaError[];
+  detalleCreados: CargaMasivaDetalleCreado[];
   logId: number;
+}
+
+export interface CargaMasivaRevertResult {
+  eliminados: number;
+  omitidos: number;
+  detalleOmitidos: Array<{
+    entidadId: number;
+    etiqueta: string;
+    motivo: string;
+  }>;
 }
 
 @Injectable()
@@ -42,6 +65,7 @@ export class CargaMasivaService {
     private readonly contactosService: ContactosService,
     private readonly proyeccionesService: ProyeccionesService,
     private readonly auditService: AuditService,
+    private readonly eliminacionDependenciasService: EliminacionDependenciasService,
   ) {}
 
   async findLogs(usuarioId?: number): Promise<CargaMasivaLog[]> {
@@ -54,6 +78,263 @@ export class CargaMasivaService {
     });
   }
 
+  async revertirCarga(
+    logId: number,
+    actorId: number,
+    paisSesionId: number,
+    rol: Rol,
+    confirmarDependientes = false,
+  ): Promise<CargaMasivaRevertResult> {
+    if (rol !== Rol.ADMINISTRADOR) {
+      throw new BusinessException(
+        ErrorCode.PERMISO_DENEGADO,
+        'Solo el Administrador puede revertir una carga masiva',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const log = await this.getLogOrFail(logId, actorId);
+    this.assertLogPuedeRevertirse(log);
+
+    const pendientes: CargaMasivaDetalleCreado[] = [];
+    const detalleOmitidos: CargaMasivaRevertResult['detalleOmitidos'] = [];
+
+    for (const item of log.detalleCreados ?? []) {
+      const evaluacion = await this.evaluarRegistroParaRevertir(
+        log.entidadTipo,
+        item,
+        paisSesionId,
+        confirmarDependientes,
+      );
+
+      if (evaluacion === 'eliminable') {
+        pendientes.push(item);
+        continue;
+      }
+
+      if (evaluacion.omitido) {
+        detalleOmitidos.push({
+          entidadId: item.entidadId,
+          etiqueta: item.etiqueta,
+          motivo: evaluacion.motivo,
+        });
+      }
+    }
+
+    let eliminados = 0;
+
+    for (const item of pendientes) {
+      await this.eliminarRegistroCarga(
+        log.entidadTipo,
+        item.entidadId,
+        actorId,
+        paisSesionId,
+        rol,
+        confirmarDependientes,
+      );
+      eliminados += 1;
+    }
+
+    if (eliminados === 0) {
+      throw new BusinessException(
+        ErrorCode.CARGA_MASIVA_SIN_REGISTROS,
+        detalleOmitidos.length
+          ? 'Los registros de esta carga ya no están disponibles para revertir'
+          : 'No hay registros activos para revertir en esta carga',
+        HttpStatus.BAD_REQUEST,
+        { detalleOmitidos },
+      );
+    }
+
+    log.revertida = true;
+    log.fechaReversion = new Date();
+    log.revertidaPorId = actorId;
+    await this.cargaLogRepository.save(log);
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.CARGA_MASIVA_REVERTIR,
+      entidadTipo: AuditEntidadTipo.CARGA_MASIVA,
+      entidadId: log.id,
+      valorNuevo: JSON.stringify({
+        eliminados,
+        omitidos: detalleOmitidos.length,
+        entidadTipo: log.entidadTipo,
+      }),
+    });
+
+    return {
+      eliminados,
+      omitidos: detalleOmitidos.length,
+      detalleOmitidos,
+    };
+  }
+
+  private async evaluarRegistroParaRevertir(
+    entidadTipo: string,
+    item: CargaMasivaDetalleCreado,
+    paisSesionId: number,
+    confirmarDependientes: boolean,
+  ): Promise<
+    | 'eliminable'
+    | { omitido: true; motivo: string }
+  > {
+    try {
+      switch (entidadTipo) {
+        case 'cliente': {
+          const dependencias = await this.clientesService.getDependencias(
+            item.entidadId,
+            paisSesionId,
+          );
+          this.eliminacionDependenciasService.assertPuedeEliminar(
+            dependencias,
+            confirmarDependientes,
+            true,
+          );
+          return 'eliminable';
+        }
+        case 'contacto':
+          await this.contactosService.getContactoActivoOrFail(
+            item.entidadId,
+            paisSesionId,
+          );
+          return 'eliminable';
+        case 'proyeccion': {
+          const dependencias = await this.proyeccionesService.getDependencias(
+            item.entidadId,
+            paisSesionId,
+          );
+          this.eliminacionDependenciasService.assertPuedeEliminar(
+            dependencias,
+            confirmarDependientes,
+            true,
+          );
+          return 'eliminable';
+        }
+        default:
+          return {
+            omitido: true,
+            motivo: `Tipo de entidad no soportado: ${entidadTipo}`,
+          };
+      }
+    } catch (error) {
+      if (error instanceof BusinessException) {
+        const response = error.getResponse();
+        const errorCode =
+          typeof response === 'object' &&
+          response !== null &&
+          'errorCode' in response
+            ? String(response.errorCode)
+            : '';
+
+        if (errorCode === ErrorCode.ELIMINACION_CON_DEPENDENCIAS) {
+          throw error;
+        }
+
+        if (
+          errorCode === ErrorCode.CLIENTE_NO_ENCONTRADO ||
+          errorCode === ErrorCode.CONTACTO_NO_ENCONTRADO ||
+          errorCode === ErrorCode.PROYECCION_NO_ENCONTRADA
+        ) {
+          return {
+            omitido: true,
+            motivo: 'El registro ya fue eliminado previamente',
+          };
+        }
+
+        if (error.getStatus() === HttpStatus.NOT_FOUND) {
+          return {
+            omitido: true,
+            motivo: 'El registro ya fue eliminado previamente',
+          };
+        }
+      }
+
+      throw error;
+    }
+  }
+
+  private async getLogOrFail(
+    logId: number,
+    actorId: number,
+  ): Promise<CargaMasivaLog> {
+    const log = await this.cargaLogRepository.findOne({
+      where: { id: logId, usuarioId: actorId },
+    });
+
+    if (!log) {
+      throw new BusinessException(
+        ErrorCode.CARGA_MASIVA_LOG_NO_ENCONTRADO,
+        'No se encontró el registro de carga masiva',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return log;
+  }
+
+  private assertLogPuedeRevertirse(log: CargaMasivaLog): void {
+    if (log.revertida) {
+      throw new BusinessException(
+        ErrorCode.CARGA_MASIVA_YA_REVERTIDA,
+        'Esta carga masiva ya fue revertida',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (!log.detalleCreados?.length) {
+      throw new BusinessException(
+        ErrorCode.CARGA_MASIVA_SIN_REGISTROS,
+        'Esta carga no tiene registros creados que se puedan revertir',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  private async eliminarRegistroCarga(
+    entidadTipo: string,
+    entidadId: number,
+    actorId: number,
+    paisSesionId: number,
+    rol: Rol,
+    confirmarDependientes: boolean,
+  ): Promise<void> {
+    switch (entidadTipo) {
+      case 'cliente':
+        await this.clientesService.softDelete(
+          entidadId,
+          actorId,
+          paisSesionId,
+          rol,
+          confirmarDependientes,
+        );
+        return;
+      case 'contacto':
+        await this.contactosService.softDelete(
+          entidadId,
+          actorId,
+          paisSesionId,
+          rol,
+        );
+        return;
+      case 'proyeccion':
+        await this.proyeccionesService.softDelete(
+          entidadId,
+          actorId,
+          paisSesionId,
+          rol,
+          confirmarDependientes,
+        );
+        return;
+      default:
+        throw new BusinessException(
+          ErrorCode.VALIDATION_ERROR,
+          `Tipo de entidad no soportado para reversión: ${entidadTipo}`,
+          HttpStatus.BAD_REQUEST,
+        );
+    }
+  }
+
   async importClientes(
     fileName: string,
     buffer: Buffer,
@@ -64,7 +345,8 @@ export class CargaMasivaService {
     const headers = this.normalizeHeaderMap(rows[0]);
     this.assertRequiredHeaders(headers, ['empresa', 'segmento']);
 
-    const detalleErrores: Array<{ fila: number; error: string }> = [];
+    const detalleErrores: CargaMasivaFilaError[] = [];
+    const detalleCreados: CargaMasivaDetalleCreado[] = [];
     let filasExitosas = 0;
 
     for (let index = 1; index < rows.length; index++) {
@@ -94,18 +376,20 @@ export class CargaMasivaService {
         const dto: CreateClienteDto = {
           empresa,
           ubicacionId,
-          segmento: this.getCell(headers, row, 'segmento') as SegmentoCliente,
+          segmento: this.getCell(headers, row, 'segmento'),
           segmentoOtro:
             this.getCell(headers, row, 'segmento_otro') || undefined,
         };
 
-        await this.clientesService.create(dto, actorId, paisSesionId);
+        const created = await this.clientesService.create(dto, actorId, paisSesionId);
+        detalleCreados.push({
+          fila,
+          entidadId: created.id,
+          etiqueta: created.empresa,
+        });
         filasExitosas += 1;
       } catch (error) {
-        detalleErrores.push({
-          fila,
-          error: this.extractErrorMessage(error),
-        });
+        detalleErrores.push(this.buildRowError(fila, error));
       }
     }
 
@@ -113,7 +397,7 @@ export class CargaMasivaService {
       'cliente',
       fileName,
       actorId,
-      filasExitosas,
+      detalleCreados,
       detalleErrores,
     );
   }
@@ -128,7 +412,8 @@ export class CargaMasivaService {
     const headers = this.normalizeHeaderMap(rows[0]);
     this.assertRequiredHeaders(headers, ['empresa', 'nombre']);
 
-    const detalleErrores: Array<{ fila: number; error: string }> = [];
+    const detalleErrores: CargaMasivaFilaError[] = [];
+    const detalleCreados: CargaMasivaDetalleCreado[] = [];
     let filasExitosas = 0;
 
     for (let index = 1; index < rows.length; index++) {
@@ -140,8 +425,9 @@ export class CargaMasivaService {
       }
 
       try {
+        const empresaNombre = this.getCell(headers, row, 'empresa');
         const clienteId = await this.clientesService.findClienteIdByEmpresa(
-          this.getCell(headers, row, 'empresa'),
+          empresaNombre,
           paisSesionId,
         );
 
@@ -175,18 +461,21 @@ export class CargaMasivaService {
           referidoPorContactoId,
         };
 
-        await this.contactosService.create(
+        const created = await this.contactosService.create(
           clienteId,
           dto,
           actorId,
           paisSesionId,
         );
+        detalleCreados.push({
+          fila,
+          entidadId: created.id,
+          etiqueta: `${created.nombre} (${empresaNombre})`,
+          clienteId,
+        });
         filasExitosas += 1;
       } catch (error) {
-        detalleErrores.push({
-          fila,
-          error: this.extractErrorMessage(error),
-        });
+        detalleErrores.push(this.buildRowError(fila, error));
       }
     }
 
@@ -194,7 +483,7 @@ export class CargaMasivaService {
       'contacto',
       fileName,
       actorId,
-      filasExitosas,
+      detalleCreados,
       detalleErrores,
     );
   }
@@ -237,7 +526,8 @@ export class CargaMasivaService {
       { name: 'segmento', aliases: ['segmento_proceso', 'segmento_proyeccion'] },
     ]);
 
-    const detalleErrores: Array<{ fila: number; error: string }> = [];
+    const detalleErrores: CargaMasivaFilaError[] = [];
+    const detalleCreados: CargaMasivaDetalleCreado[] = [];
     let filasExitosas = 0;
 
     for (let index = 1; index < rows.length; index++) {
@@ -305,7 +595,7 @@ export class CargaMasivaService {
             'segmento',
             'segmento_proceso',
             'segmento_proyeccion',
-          ) as SegmentoProceso,
+          ),
           objeto: this.getCell(headers, row, 'objeto') || undefined,
         };
 
@@ -323,12 +613,19 @@ export class CargaMasivaService {
           );
         }
 
+        const etiqueta =
+          created.empresa ??
+          created.empresaOtro ??
+          `Proyección ${created.anioProyectado}`;
+
+        detalleCreados.push({
+          fila,
+          entidadId: created.id,
+          etiqueta: `${etiqueta} (${created.anioProyectado})`,
+        });
         filasExitosas += 1;
       } catch (error) {
-        detalleErrores.push({
-          fila,
-          error: this.extractErrorMessage(error),
-        });
+        detalleErrores.push(this.buildRowError(fila, error));
       }
     }
 
@@ -336,7 +633,7 @@ export class CargaMasivaService {
       'proyeccion',
       fileName,
       actorId,
-      filasExitosas,
+      detalleCreados,
       detalleErrores,
     );
   }
@@ -441,16 +738,18 @@ export class CargaMasivaService {
     entidadTipo: string,
     fileName: string,
     actorId: number,
-    filasExitosas: number,
-    detalleErrores: Array<{ fila: number; error: string }>,
+    detalleCreados: CargaMasivaDetalleCreado[],
+    detalleErrores: CargaMasivaFilaError[],
   ): Promise<CargaMasivaResult> {
     const log = this.cargaLogRepository.create({
       entidadTipo,
       usuarioId: actorId,
       archivoNombre: fileName,
-      filasExitosas,
+      filasExitosas: detalleCreados.length,
       filasRechazadas: detalleErrores.length,
       detalleErrores: detalleErrores.length ? detalleErrores : null,
+      detalleCreados: detalleCreados.length ? detalleCreados : null,
+      revertida: false,
     });
 
     const saved = await this.cargaLogRepository.save(log);
@@ -462,15 +761,16 @@ export class CargaMasivaService {
       entidadId: saved.id,
       valorNuevo: JSON.stringify({
         entidadTipo,
-        filasExitosas,
+        filasExitosas: detalleCreados.length,
         filasRechazadas: detalleErrores.length,
       }),
     });
 
     return {
-      filasExitosas,
+      filasExitosas: detalleCreados.length,
       filasRechazadas: detalleErrores.length,
       detalleErrores,
+      detalleCreados,
       logId: saved.id,
     };
   }
@@ -550,8 +850,9 @@ export class CargaMasivaService {
     departamento: string,
     municipio: string,
   ): Promise<number> {
-    const dep = departamento.trim();
-    const mun = municipio.trim();
+    const normalizada = normalizeColombiaUbicacionInput(departamento, municipio);
+    const dep = normalizada.departamento.trim();
+    const mun = normalizada.municipioProvincia.trim();
 
     if (!dep && !mun) {
       const fallback = await this.ubicacionRepository.findOne({
@@ -571,19 +872,29 @@ export class CargaMasivaService {
     }
 
     if (!dep && mun) {
-      const ubicacion = await this.ubicacionRepository.findOne({
-        where: { paisId: paisSesionId, municipioProvincia: mun },
-      });
+      const municipiosBusqueda = new Set(
+        normalizeColombiaUbicacionInput('', mun).municipioProvincia === 'Bogotá'
+          ? bogotaMunicipioAliases()
+          : [mun],
+      );
 
-      if (!ubicacion) {
-        throw new BusinessException(
-          ErrorCode.UBICACION_NO_ENCONTRADA,
-          `No se encontró el municipio "${mun}" en el país de la sesión`,
-          HttpStatus.BAD_REQUEST,
-        );
+      for (const municipioBusqueda of municipiosBusqueda) {
+        const ubicacion = await this.ubicacionRepository.findOne({
+          where: { paisId: paisSesionId, municipioProvincia: municipioBusqueda },
+        });
+
+        if (ubicacion) {
+          return ubicacion.id;
+        }
       }
 
-      return ubicacion.id;
+      const formatted = formatUbicacionCargaMasivaError(dep, mun);
+      throw new BusinessException(
+        ErrorCode.UBICACION_NO_ENCONTRADA,
+        formatted.error,
+        HttpStatus.BAD_REQUEST,
+        { sugerencia: formatted.sugerencia },
+      );
     }
 
     const qb = this.ubicacionRepository
@@ -592,20 +903,78 @@ export class CargaMasivaService {
       .andWhere('u.departamento = :departamento', { departamento: dep });
 
     if (mun) {
-      qb.andWhere('u.municipio_provincia = :municipio', { municipio: mun });
+      const municipiosBusqueda = new Set(
+        dep && normalizeColombiaUbicacionInput(dep, mun).municipioProvincia === 'Bogotá'
+          ? bogotaMunicipioAliases()
+          : [mun],
+      );
+
+      for (const municipioBusqueda of municipiosBusqueda) {
+        const candidato = await this.ubicacionRepository.findOne({
+          where: {
+            paisId: paisSesionId,
+            departamento: dep,
+            municipioProvincia: municipioBusqueda,
+          },
+        });
+
+        if (candidato) {
+          return candidato.id;
+        }
+      }
     }
 
-    const ubicacion = mun ? await qb.getOne() : (await qb.getMany())[0];
+    const ubicacion = mun ? null : (await qb.getMany())[0];
 
     if (!ubicacion) {
+      const formatted = formatUbicacionCargaMasivaError(dep, mun);
       throw new BusinessException(
         ErrorCode.UBICACION_NO_ENCONTRADA,
-        'No se encontró la ubicación indicada en el archivo',
+        formatted.error,
         HttpStatus.BAD_REQUEST,
+        { sugerencia: formatted.sugerencia },
       );
     }
 
     return ubicacion.id;
+  }
+
+  private buildRowError(fila: number, error: unknown): CargaMasivaFilaError {
+    const sugerencia = this.extractErrorSuggestion(error);
+    const detalle: CargaMasivaFilaError = {
+      fila,
+      error: this.extractErrorMessage(error),
+    };
+
+    if (sugerencia) {
+      detalle.sugerencia = sugerencia;
+    }
+
+    return detalle;
+  }
+
+  private extractErrorSuggestion(error: unknown): string | undefined {
+    if (error instanceof BusinessException) {
+      const response = error.getResponse();
+      if (typeof response === 'object' && response !== null) {
+        if (
+          'sugerencia' in response &&
+          typeof response.sugerencia === 'string' &&
+          response.sugerencia.trim()
+        ) {
+          return response.sugerencia.trim();
+        }
+
+        if (
+          'errorCode' in response &&
+          typeof response.errorCode === 'string'
+        ) {
+          return sugerenciaPorCodigoError(response.errorCode);
+        }
+      }
+    }
+
+    return undefined;
   }
 
   private extractErrorMessage(error: unknown): string {
@@ -622,6 +991,23 @@ export class CargaMasivaService {
       }
     }
 
-    return 'Error al procesar la fila';
+    if (error instanceof BadRequestException) {
+      const response = error.getResponse();
+      if (typeof response === 'object' && response !== null && 'message' in response) {
+        const message = response.message;
+        if (Array.isArray(message)) {
+          return message.map(String).join('; ');
+        }
+        if (typeof message === 'string') {
+          return message;
+        }
+      }
+    }
+
+    if (error instanceof Error && error.message.trim()) {
+      return error.message;
+    }
+
+    return 'No fue posible importar la fila. Revise los datos obligatorios.';
   }
 }

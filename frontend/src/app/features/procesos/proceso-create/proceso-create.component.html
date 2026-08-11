@@ -34,10 +34,46 @@
             searchPlaceholder="Buscar cliente..."
           />
         </label>
+
+        @if (store.paso1().empresaClienteId) {
+          <div class="full contactos-panel">
+            <span class="contactos-panel__label">Contactos del proceso</span>
+            <p class="field-hint">Seleccione al menos un contacto del cliente para encuestas KAM.</p>
+
+            @if (contactosLoading()) {
+              <p class="muted">Cargando contactos...</p>
+            } @else if (!contactosCliente().length) {
+              <p class="muted">Este cliente no tiene contactos registrados.</p>
+            } @else {
+              <ul class="contactos-list">
+                @for (contacto of contactosCliente(); track contacto.id) {
+                  <li>
+                    <label class="contacto-item">
+                      <input
+                        type="checkbox"
+                        [checked]="isContactoSelected(contacto.id)"
+                        (change)="toggleContacto(contacto.id, $any($event.target).checked)"
+                      />
+                      <span>
+                        <strong>{{ contacto.nombre }}</strong>
+                        @if (contacto.cargo) {
+                          <small class="muted">{{ contacto.cargo }}</small>
+                        }
+                        @if (contacto.correo) {
+                          <small class="muted">{{ contacto.correo }}</small>
+                        }
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
       }
 
       <label>
-        Departamento
+        {{ etiquetaGeoNivel1() }}
         <select [ngModel]="store.paso1().departamento" (ngModelChange)="onDepartamentoChange($event)">
           <option value="">Seleccione</option>
           @for (d of departamentos(); track d) {
@@ -47,7 +83,7 @@
       </label>
 
       <label>
-        Municipio
+        {{ etiquetaGeoNivel2() }}
         <select [ngModel]="store.paso1().ubicacionId" (ngModelChange)="updatePaso1('ubicacionId', $event)">
           <option [ngValue]="null">Seleccione</option>
           @for (m of municipios(); track m.id) {
@@ -73,9 +109,30 @@
       <label>
         Segmento
         <select [ngModel]="store.paso1().segmento" (ngModelChange)="updatePaso1('segmento', $event)">
-          @for (s of segmentos; track s) { <option [value]="s">{{ s }}</option> }
+          @for (s of segmentos(); track s.id) { <option [value]="s.codigo">{{ s.etiqueta }}</option> }
         </select>
       </label>
+
+      <label>
+        Portal de origen
+        <select [ngModel]="store.paso1().portalOrigen" (ngModelChange)="updatePaso1('portalOrigen', $event)">
+          <option value="">Seleccione</option>
+          @for (p of portalesOrigen; track p.value) {
+            <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+      </label>
+
+      @if (store.paso1().portalOrigen === portalOtro) {
+        <label>
+          Especifique el portal
+          <input
+            [ngModel]="store.paso1().portalOrigenOtro"
+            (ngModelChange)="updatePaso1('portalOrigenOtro', $event)"
+            maxlength="255"
+          />
+        </label>
+      }
 
       <label>
         Tipo proceso
