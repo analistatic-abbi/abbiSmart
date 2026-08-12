@@ -1,6 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsOptional, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
 
 export enum CalendarioEventoTipo {
   PROYECCION = 'proyeccion',
@@ -16,6 +24,23 @@ export class CalendarioEventosQueryDto {
   @IsInt()
   @Min(2000)
   anio: number;
+
+  @ApiPropertyOptional({ description: 'Mes 1-12 (opcional). Filtra eventos del mes indicado.', example: 3 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  mes?: number;
+
+  @ApiPropertyOptional({
+    description: 'Solo procesos donde el actor es validador asignado (rol Validador)',
+    example: true,
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  soloMisValidaciones?: boolean;
 
   @ApiPropertyOptional({
     description:

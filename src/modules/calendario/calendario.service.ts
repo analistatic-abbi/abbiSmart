@@ -3,10 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { ResultadoRelacionamiento } from '../../common/enums/resultado-relacionamiento.enum';
+import { Rol } from '../../common/enums/rol.enum';
+import { VeredictoValidacion } from '../../common/enums/veredicto-validacion.enum';
 import { normalizarFechaDesdeBd } from '../../common/utils/proceso-fechas.util';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
+import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
   CalendarioEventoDto,
   CalendarioEventoTipo,
@@ -35,29 +38,34 @@ export class CalendarioService {
 
   async getEventos(
     query: CalendarioEventosQueryDto,
-    paisSesionId: number,
+    user: AuthUserPayload,
   ): Promise<CalendarioEventoDto[]> {
     const tipos = query.tipos?.length ? query.tipos : TIPOS_DEFAULT;
     const eventos: CalendarioEventoDto[] = [];
+    const { anio, mes } = query;
+    const soloMisValidaciones =
+      query.soloMisValidaciones === true && user.rol === Rol.VALIDADOR;
 
     if (tipos.includes(CalendarioEventoTipo.PROYECCION)) {
-      eventos.push(...(await this.getProyecciones(query.anio, paisSesionId)));
+      eventos.push(...(await this.getProyecciones(anio, mes, user.paisSesionId)));
     }
 
     if (tipos.includes(CalendarioEventoTipo.PROCESO)) {
-      eventos.push(...(await this.getProcesos(query.anio, paisSesionId)));
+      eventos.push(
+        ...(await this.getProcesos(anio, mes, user.paisSesionId, soloMisValidaciones, user.userId)),
+      );
     }
 
     if (tipos.includes(CalendarioEventoTipo.RELACIONAMIENTO)) {
-      eventos.push(...(await this.getRelacionamientos(query.anio, paisSesionId)));
+      eventos.push(...(await this.getRelacionamientos(anio, mes, user.paisSesionId)));
     }
 
     if (tipos.includes(CalendarioEventoTipo.KAM)) {
-      eventos.push(...(await this.getKamReuniones(query.anio, paisSesionId)));
+      eventos.push(...(await this.getKamReuniones(anio, mes, user.paisSesionId)));
     }
 
     if (tipos.includes(CalendarioEventoTipo.REUNION_ACLARATORIA)) {
-      eventos.push(...(await this.getReunionesAclaratorias(query.anio, paisSesionId)));
+      eventos.push(...(await this.getReunionesAclaratorias(anio, mes, user.paisSesionId)));
     }
 
     return eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -65,8 +73,13 @@ export class CalendarioService {
 
   private async getProyecciones(
     anio: number,
+    mes: number | undefined,
     paisSesionId: number,
   ): Promise<CalendarioEventoDto[]> {
+    const mesClause = mes ? 'AND MONTH(v.fecha_estimada_publicacion) = ?' : '';
+    const params: unknown[] = [paisSesionId, anio];
+    if (mes) params.push(mes);
+
     const rows = await this.dataSource.query(
       `SELECT v.id,
               v.fecha_estimada_publicacion AS fecha,
@@ -81,9 +94,10 @@ export class CalendarioService {
        WHERE v.pais_id = ?
          AND py.eliminado = false
          AND v.anio_proyectado = ?
+         ${mesClause}
        ORDER BY v.fecha_estimada_publicacion ASC
        LIMIT 500`,
-      [paisSesionId, anio],
+      params,
     );
 
     return (rows as Array<Record<string, unknown>>).map((row) => ({
@@ -102,9 +116,12 @@ export class CalendarioService {
 
   private async getProcesos(
     anio: number,
+    mes: number | undefined,
     paisSesionId: number,
+    soloMisValidaciones: boolean,
+    actorId: number,
   ): Promise<CalendarioEventoDto[]> {
-    const rows = await this.procesoRepository
+    const qb = this.procesoRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.empresaCliente', 'c')
       .where('p.eliminado = false')
@@ -112,10 +129,22 @@ export class CalendarioService {
       .andWhere('p.estado NOT IN (:...estados)', {
         estados: [EstadoProceso.DESCARTADO, EstadoProceso.CERRADO],
       })
-      .andWhere('YEAR(p.fecha_cierre) = :anio', { anio })
-      .orderBy('p.fecha_cierre', 'ASC')
-      .take(500)
-      .getMany();
+      .andWhere('YEAR(p.fecha_cierre) = :anio', { anio });
+
+    if (mes) {
+      qb.andWhere('MONTH(p.fecha_cierre) = :mes', { mes });
+    }
+
+    if (soloMisValidaciones) {
+      qb.innerJoin(
+        'validaciones_proceso',
+        'vp',
+        'vp.proceso_id = p.id AND vp.validador_id = :actorId AND vp.veredicto = :veredicto',
+        { actorId, veredicto: VeredictoValidacion.PENDIENTE },
+      );
+    }
+
+    const rows = await qb.orderBy('p.fecha_cierre', 'ASC').take(500).getMany();
 
     return rows.map((row) => ({
       id: Number(row.id),
@@ -130,9 +159,10 @@ export class CalendarioService {
 
   private async getRelacionamientos(
     anio: number,
+    mes: number | undefined,
     paisSesionId: number,
   ): Promise<CalendarioEventoDto[]> {
-    const rows = await this.relacionamientoRepository
+    const qb = this.relacionamientoRepository
       .createQueryBuilder('r')
       .innerJoinAndSelect('r.contacto', 'co')
       .innerJoinAndSelect('co.cliente', 'cl')
@@ -142,10 +172,13 @@ export class CalendarioService {
         resultado: ResultadoRelacionamiento.REUNION_PROGRAMADA,
       })
       .andWhere('r.fecha_reunion IS NOT NULL')
-      .andWhere('YEAR(r.fecha_reunion) = :anio', { anio })
-      .orderBy('r.fecha_reunion', 'ASC')
-      .take(500)
-      .getMany();
+      .andWhere('YEAR(r.fecha_reunion) = :anio', { anio });
+
+    if (mes) {
+      qb.andWhere('MONTH(r.fecha_reunion) = :mes', { mes });
+    }
+
+    const rows = await qb.orderBy('r.fecha_reunion', 'ASC').take(500).getMany();
 
     return rows.map((row) => {
       const empresa = row.contacto.cliente.empresa;
@@ -168,8 +201,13 @@ export class CalendarioService {
 
   private async getKamReuniones(
     anio: number,
+    mes: number | undefined,
     paisSesionId: number,
   ): Promise<CalendarioEventoDto[]> {
+    const mesClause = mes ? 'AND MONTH(r.fecha_reunion_socializacion) = ?' : '';
+    const params: unknown[] = [paisSesionId, anio];
+    if (mes) params.push(mes);
+
     const rows = await this.dataSource.query(
       `SELECT k.id AS kamId,
               r.id AS rondaId,
@@ -186,9 +224,10 @@ export class CalendarioService {
        WHERE k.pais_id = ?
          AND r.fecha_reunion_socializacion IS NOT NULL
          AND YEAR(r.fecha_reunion_socializacion) = ?
+         ${mesClause}
        ORDER BY r.fecha_reunion_socializacion ASC
        LIMIT 500`,
-      [paisSesionId, anio],
+      params,
     );
 
     return (rows as Array<Record<string, unknown>>).map((row) => {
@@ -219,18 +258,22 @@ export class CalendarioService {
 
   private async getReunionesAclaratorias(
     anio: number,
+    mes: number | undefined,
     paisSesionId: number,
   ): Promise<CalendarioEventoDto[]> {
-    const rows = await this.procesoRepository
+    const qb = this.procesoRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.empresaCliente', 'c')
       .where('p.eliminado = false')
       .andWhere('p.pais_id = :paisSesionId', { paisSesionId })
       .andWhere('p.fecha_reunion_aclaratoria IS NOT NULL')
-      .andWhere('YEAR(p.fecha_reunion_aclaratoria) = :anio', { anio })
-      .orderBy('p.fecha_reunion_aclaratoria', 'ASC')
-      .take(500)
-      .getMany();
+      .andWhere('YEAR(p.fecha_reunion_aclaratoria) = :anio', { anio });
+
+    if (mes) {
+      qb.andWhere('MONTH(p.fecha_reunion_aclaratoria) = :mes', { mes });
+    }
+
+    const rows = await qb.orderBy('p.fecha_reunion_aclaratoria', 'ASC').take(500).getMany();
 
     return rows.map((row) => {
       const empresa = row.empresaCliente?.empresa ?? row.empresaOtro ?? 'Sin empresa';

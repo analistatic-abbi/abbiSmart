@@ -67,6 +67,9 @@ export class ProcesoCreateComponent implements OnInit {
 
   protected readonly departamentos = signal<string[]>([]);
   protected readonly municipios = signal<Array<{ id: number; municipio: string }>>([]);
+  protected readonly municipioOptions = computed(() =>
+    this.municipios().map((m) => ({ value: m.id, label: m.municipio })),
+  );
   protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
   protected readonly contactosCliente = signal<Contacto[]>([]);
   protected readonly contactosLoading = signal(false);
@@ -111,11 +114,16 @@ export class ProcesoCreateComponent implements OnInit {
       this.municipios.set([]);
       return;
     }
-    this.catalogos.getMunicipios(departamento).subscribe((r) =>
-      this.municipios.set(
-        r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
-      ),
-    );
+    this.catalogos.getMunicipios(departamento).subscribe({
+      next: (r) =>
+        this.municipios.set(
+          r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
+        ),
+      error: () => {
+        this.municipios.set([]);
+        this.error.set('No fue posible cargar los municipios del departamento.');
+      },
+    });
   }
 
   protected updatePaso1(field: string, value: unknown): void {

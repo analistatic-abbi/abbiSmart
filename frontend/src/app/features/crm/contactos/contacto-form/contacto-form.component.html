@@ -56,12 +56,14 @@
     </label>
 
     <label>Municipio
-      <select [ngModel]="ubicacionId()" (ngModelChange)="ubicacionId.set(+$event || null)">
-        <option [ngValue]="null">Seleccione...</option>
-        @for (m of municipios(); track m.id) {
-          <option [ngValue]="m.id">{{ m.municipio }}</option>
-        }
-      </select>
+      <app-searchable-select
+        [options]="municipioOptions()"
+        [ngModel]="ubicacionId()"
+        (ngModelChange)="ubicacionId.set($event)"
+        placeholder="Seleccione municipio..."
+        searchPlaceholder="Buscar municipio..."
+        emptyMessage="Seleccione un departamento primero"
+      />
     </label>
 
     @if (isEdit() && esReferido()) {

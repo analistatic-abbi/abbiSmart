@@ -1,9 +1,6 @@
 <section class="page">
   <header class="page__header">
-    <div>
-      <h1>Panel de Control</h1>
-      <p>Resumen de procesos y métricas del sistema.</p>
-    </div>
+    <h1>Panel de Control</h1>
     <button
       type="button"
       class="btn-secondary"
@@ -31,19 +28,25 @@
     <p class="error">{{ error() }}</p>
   } @else {
     @if (resumen(); as data) {
-      <div class="cards">
-        <article class="card card--highlight">
-          <span class="card__label">Total procesos</span>
-          <strong class="card__value">{{ data.totalProcesos }}</strong>
+      <section class="overview" aria-label="Resumen de procesos">
+        <article class="overview__total">
+          <span class="overview__total-label">Total procesos</span>
+          <strong class="overview__total-value">{{ data.totalProcesos }}</strong>
         </article>
 
-        @for (item of estadoEntries(data); track item.estado) {
-          <article class="card">
-            <span class="card__label">{{ item.estado }}</span>
-            <strong class="card__value">{{ item.total }}</strong>
-          </article>
-        }
-      </div>
+        <div class="overview__by-estado">
+          <h2 class="overview__section-title">Distribución por estado</h2>
+          <div class="estado-grid">
+            @for (item of estadoEntries(data); track item.estado) {
+              <article class="estado-card">
+                <span [class]="procesoBadgeClass(item.estado)">{{ item.estado }}</span>
+                <strong class="estado-card__value">{{ item.total }}</strong>
+                <span class="estado-card__share">{{ porcentajeEstado(data.totalProcesos, item.total) }} del total</span>
+              </article>
+            }
+          </div>
+        </div>
+      </section>
 
       <section class="panel">
         <h2>Por segmento</h2>

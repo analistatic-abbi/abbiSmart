@@ -52,16 +52,22 @@ export class ValidacionService {
     data: Array<{
       id: number;
       validadorId: number;
+      validadorNombre: string | null;
       veredicto: string;
       comentario: string | null;
+      fechaAsignacion?: string;
+      fechaVeredicto?: string | null;
     }>;
   }> {
     return this.http.get<{
       data: Array<{
         id: number;
         validadorId: number;
+        validadorNombre: string | null;
         veredicto: string;
         comentario: string | null;
+        fechaAsignacion?: string;
+        fechaVeredicto?: string | null;
       }>;
     }>(`${this.base}/procesos/${procesoId}/validaciones`);
   }

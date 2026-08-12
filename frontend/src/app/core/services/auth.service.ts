@@ -190,6 +190,10 @@ export class AuthService {
     );
   }
 
+  esValidador(): boolean {
+    return this.rol() === 'Validador';
+  }
+
   puedeCerrarProyeccion(): boolean {
     const rol = this.rol();
     return rol === 'Administrador' || rol === 'Supervisor del Sistema';

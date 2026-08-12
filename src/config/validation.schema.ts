@@ -51,6 +51,11 @@ export const validationSchema = Joi.object({
   MAIL_SUPPORT_TO: Joi.string().email().allow('').default(''),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:4200'),
 
+  MONDAY_API_TOKEN: Joi.string().allow('').default(''),
+  MONDAY_API_URL: Joi.string().uri().default('https://api.monday.com/v2'),
+  MONDAY_BOARD_ID: Joi.string().default('9150513634'),
+  MONDAY_GROUP_ID: Joi.string().default('new_group29179'),
+
   SWAGGER_ENABLED: Joi.boolean().default(true),
   SWAGGER_PATH: Joi.string().default('api/docs'),
   SWAGGER_TITLE: Joi.string().default('Smart Licitaciones API'),

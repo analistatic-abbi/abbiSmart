@@ -1,3 +1,5 @@
+@use '../estado-proceso-badges';
+
 .page__header {
   display: flex;
   justify-content: space-between;
@@ -77,8 +79,6 @@ th {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 999px;
-  background: var(--color-secondary-container);
-  color: var(--color-primary);
   font-size: 12px;
   font-weight: 600;
 

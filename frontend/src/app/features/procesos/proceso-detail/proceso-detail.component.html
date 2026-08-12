@@ -20,7 +20,7 @@
 
         <h1>{{ p.codigo ?? p.idDigitado }}</h1>
 
-        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · <span class="badge">{{ p.estado }}</span>
+        <p>{{ p.empresaMostrar ?? p.empresaOtro }} · <span [class]="badgeClass(p.estado)">{{ p.estado }}</span>
           @if (mostrarDevolucionValidacion()) {
             <span class="badge badge--devuelto">Devuelto</span>
           }
@@ -39,9 +39,11 @@
         @if (puedeEscribir()) {
 
         @if (puedeAsignarValidadores()) {
+          <button type="button" class="btn-primary" (click)="abrirValidadores(false)">Asignar validadores</button>
+        }
 
-          <button type="button" class="btn-primary" (click)="abrirValidadores()">Asignar validadores</button>
-
+        @if (puedeAnadirValidadores()) {
+          <button type="button" class="btn-secondary" (click)="abrirValidadores(true)">Añadir validadores</button>
         }
 
         @if (estadosPermitidos().length > 0) {
@@ -87,6 +89,35 @@
 
     @if (guiaSiguientePaso(); as guia) {
       <div class="guide">{{ guia }}</div>
+    }
+
+    @if (validacionesAsignadas().length > 0) {
+      <section class="panel validadores-asignados">
+        <h2>Validadores asignados</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Validador</th>
+                <th>Veredicto</th>
+                <th>Comentario</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of validacionesAsignadas(); track v.id) {
+                <tr>
+                  <td>{{ v.validadorNombre ?? ('ID ' + v.validadorId) }}</td>
+                  <td>{{ v.veredicto }}</td>
+                  <td>{{ v.comentario?.trim() || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (puedeAnadirValidadores()) {
+          <p class="panel__hint">Ningún validador ha confirmado aún; puede añadir más si lo necesita.</p>
+        }
+      </section>
     }
 
     @if (necesitaMotivoBackfill()) {
@@ -763,9 +794,15 @@
 
       <div class="modal modal--wide">
 
-        <h3>Asignar validadores</h3>
+        <h3>{{ modoAmpliacionValidadores() ? 'Añadir validadores' : 'Asignar validadores' }}</h3>
 
-        <p class="modal__hint">Seleccione uno o más validadores para enviar el proceso a validación.</p>
+        <p class="modal__hint">
+          @if (modoAmpliacionValidadores()) {
+            Los validadores ya asignados aparecen marcados y no se pueden quitar. Seleccione uno o más adicionales.
+          } @else {
+            Seleccione uno o más validadores para enviar el proceso a validación.
+          }
+        </p>
 
         @if (validadoresError()) {
           <p class="error">{{ validadoresError() }}</p>
@@ -775,7 +812,7 @@
 
           @for (v of validadores(); track v.id) {
 
-            <label class="checkbox-row">
+            <label class="checkbox-row" [class.checkbox-row--locked]="isValidadorBloqueado(v.id)">
 
               <input
 
@@ -783,11 +820,18 @@
 
                 [checked]="isValidadorSeleccionado(v.id)"
 
+                [disabled]="isValidadorBloqueado(v.id)"
+
                 (change)="toggleValidador(v.id, $any($event.target).checked)"
 
               />
 
-              <span>{{ v.nombre }} <small>{{ v.correo }}</small></span>
+              <span>
+                {{ v.nombre }} <small>{{ v.correo }}</small>
+                @if (isValidadorBloqueado(v.id)) {
+                  <small class="locked-tag">ya asignado</small>
+                }
+              </span>
 
             </label>
 
@@ -811,7 +855,7 @@
 
           >
 
-            Asignar
+            {{ modoAmpliacionValidadores() ? 'Añadir' : 'Asignar' }}
 
           </button>
 
@@ -976,8 +1020,12 @@
         }
 
         <label>Nota adicional (opcional)
-          <textarea [ngModel]="evidencia()" (ngModelChange)="evidencia.set($event)" placeholder="Descripción breve del adjunto"></textarea>
+          <textarea [ngModel]="evidencia()" (ngModelChange)="onEvidenciaNotaChange($event)" placeholder="Descripción breve del adjunto"></textarea>
         </label>
+
+        @if (tareaError()) {
+          <p class="error">{{ tareaError() }}</p>
+        }
 
         <div class="modal__actions">
 

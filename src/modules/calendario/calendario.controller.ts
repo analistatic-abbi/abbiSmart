@@ -17,7 +17,7 @@ export class CalendarioController {
     @Query() query: CalendarioEventosQueryDto,
     @CurrentUser() user: AuthUserPayload,
   ) {
-    const data = await this.calendarioService.getEventos(query, user.paisSesionId!);
+    const data = await this.calendarioService.getEventos(query, user);
 
     return {
       message: 'Eventos del calendario obtenidos correctamente',

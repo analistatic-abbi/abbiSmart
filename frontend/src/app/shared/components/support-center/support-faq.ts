@@ -39,7 +39,7 @@ export const SUPPORT_FAQ_ITEMS: SupportFaqItem[] = [
     id: 'respuesta',
     question: '¿Cuándo recibiré respuesta?',
     answer:
-      'Al enviar su solicitud recibirá un correo de confirmación. El equipo de soporte revisará su mensaje y se comunicará con usted si requiere seguimiento.',
+      'Al enviar su solicitud se registra un ticket en el centro de soporte. El equipo lo revisará y se comunicará con usted según el procedimiento interno de atención.',
   },
 ];
 

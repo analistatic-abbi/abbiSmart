@@ -3,6 +3,7 @@ import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 import { Rol } from '../src/common/enums/rol.enum';
 import { HttpExceptionFilter } from '../src/common/exceptions/http-exception.filter';
+import { validationExceptionFactory } from '../src/common/validation/validation-exception.factory';
 
 export interface E2eMailMockHandlers {
   onActivationToken?: (token: string) => void;
@@ -62,6 +63,7 @@ export function configureE2eApp(app: INestApplication): void {
       forbidNonWhitelisted: true,
       transform: true,
       transformOptions: { enableImplicitConversion: true },
+      exceptionFactory: validationExceptionFactory,
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());

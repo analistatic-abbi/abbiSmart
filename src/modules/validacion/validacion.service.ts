@@ -146,22 +146,56 @@ export class ValidacionService {
       paisSesionId,
     );
 
-    if (proceso.estado !== EstadoProceso.EN_PROCESO) {
+    const existentes = await this.validacionRepository.find({
+      where: { procesoId },
+    });
+    const esReasignacionInicial = proceso.estado === EstadoProceso.EN_PROCESO;
+    const esAmpliacion =
+      proceso.estado === EstadoProceso.EN_VALIDACION && existentes.length > 0;
+
+    if (!esReasignacionInicial && !esAmpliacion) {
       throw new BusinessException(
         ErrorCode.PROCESO_ESTADO_INVALIDO,
-        'Solo se pueden asignar validadores a procesos en estado En Proceso',
+        'Solo se pueden asignar validadores a procesos en En Proceso, o añadir validadores mientras el proceso está En Validación',
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const avance = await this.procesosService.getAvancePorcentaje(procesoId);
-
-    if (avance < 100) {
-      throw new BusinessException(
-        ErrorCode.VALIDACION_AVANCE_INCOMPLETO,
-        'El proceso debe tener 100% de avance en tareas antes de enviar a validación',
-        HttpStatus.BAD_REQUEST,
+    if (esAmpliacion) {
+      const hayVeredictoConfirmado = existentes.some(
+        (item) => item.veredicto !== VeredictoValidacion.PENDIENTE,
       );
+      if (hayVeredictoConfirmado) {
+        throw new BusinessException(
+          ErrorCode.PROCESO_ESTADO_INVALIDO,
+          'No se pueden añadir validadores porque alguno ya emitió un veredicto',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const existentesIds = existentes.map((item) => Number(item.validadorId));
+      const faltantes = existentesIds.filter(
+        (id) => !dto.validadorIds.map(Number).includes(id),
+      );
+      if (faltantes.length > 0) {
+        throw new BusinessException(
+          ErrorCode.VALIDATION_ERROR,
+          'No se pueden quitar validadores ya asignados; solo es posible añadir otros',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (esReasignacionInicial) {
+      const avance = await this.procesosService.getAvancePorcentaje(procesoId);
+
+      if (avance < 100) {
+        throw new BusinessException(
+          ErrorCode.VALIDACION_AVANCE_INCOMPLETO,
+          'El proceso debe tener 100% de avance en tareas antes de enviar a validación',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     const validadores = await this.usuarioRepository.find({
@@ -181,39 +215,54 @@ export class ValidacionService {
       );
     }
 
-    const validadorIds = new Set(dto.validadorIds);
+    const validadorIds = new Set(dto.validadorIds.map(Number));
+    const existentesPorValidador = new Map(
+      existentes.map((item) => [Number(item.validadorId), item]),
+    );
 
-    await this.validacionRepository
-      .createQueryBuilder()
-      .delete()
-      .from(ValidacionProceso)
-      .where('proceso_id = :procesoId', { procesoId })
-      .andWhere('validador_id NOT IN (:...validadorIds)', {
-        validadorIds: [...validadorIds],
-      })
-      .execute();
+    if (esReasignacionInicial) {
+      await this.validacionRepository
+        .createQueryBuilder()
+        .delete()
+        .from(ValidacionProceso)
+        .where('proceso_id = :procesoId', { procesoId })
+        .andWhere('validador_id NOT IN (:...validadorIds)', {
+          validadorIds: [...validadorIds],
+        })
+        .execute();
+    }
+
+    const nuevosValidadorIds: number[] = [];
 
     for (const validador of validadores) {
-      const exists = await this.validacionRepository.findOne({
-        where: { procesoId, validadorId: validador.id },
-      });
+      const exists = existentesPorValidador.get(Number(validador.id));
 
       if (exists) {
-        exists.veredicto = VeredictoValidacion.PENDIENTE;
-        exists.comentario = null;
-        exists.fechaVeredicto = null;
-        exists.fechaAsignacion = new Date();
-        await this.validacionRepository.save(exists);
-      } else {
-        await this.validacionRepository.save(
-          this.validacionRepository.create({
-            procesoId,
-            validadorId: validador.id,
-            veredicto: VeredictoValidacion.PENDIENTE,
-          }),
-        );
+        if (esReasignacionInicial) {
+          exists.veredicto = VeredictoValidacion.PENDIENTE;
+          exists.comentario = null;
+          exists.fechaVeredicto = null;
+          exists.fechaAsignacion = new Date();
+          await this.validacionRepository.save(exists);
+          nuevosValidadorIds.push(Number(validador.id));
+        }
+        continue;
       }
 
+      await this.validacionRepository.save(
+        this.validacionRepository.create({
+          procesoId,
+          validadorId: validador.id,
+          veredicto: VeredictoValidacion.PENDIENTE,
+        }),
+      );
+      nuevosValidadorIds.push(Number(validador.id));
+    }
+
+    for (const validador of validadores) {
+      if (!nuevosValidadorIds.includes(Number(validador.id))) {
+        continue;
+      }
       await this.mailService.sendValidacionAsignadaEmail(
         validador.correo,
         validador.nombre,
@@ -221,16 +270,21 @@ export class ValidacionService {
       );
     }
 
-    proceso.estado = EstadoProceso.EN_VALIDACION;
-    proceso.validadoresAsignadoPorId = actorId;
-    await this.procesoRepository.save(proceso);
+    if (esReasignacionInicial) {
+      proceso.estado = EstadoProceso.EN_VALIDACION;
+      proceso.validadoresAsignadoPorId = actorId;
+      await this.procesoRepository.save(proceso);
+    }
 
     await this.auditService.log({
       usuarioId: actorId,
       accion: AuditAccion.VALIDACION_ASIGNAR,
       entidadTipo: AuditEntidadTipo.VALIDACION_PROCESO,
       entidadId: procesoId,
-      valorNuevo: JSON.stringify({ validadorIds: dto.validadorIds }),
+      valorNuevo: JSON.stringify({
+        validadorIds: dto.validadorIds,
+        modo: esAmpliacion ? 'ampliacion' : 'asignacion_inicial',
+      }),
     });
   }
 

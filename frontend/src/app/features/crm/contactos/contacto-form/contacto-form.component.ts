@@ -48,6 +48,9 @@ export class ContactoFormComponent implements OnInit {
   );
   protected readonly departamentos = signal<string[]>([]);
   protected readonly municipios = signal<Array<{ id: number; municipio: string }>>([]);
+  protected readonly municipioOptions = computed(() =>
+    this.municipios().map((m) => ({ value: m.id, label: m.municipio })),
+  );
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -140,11 +143,16 @@ export class ContactoFormComponent implements OnInit {
       this.municipios.set([]);
       return;
     }
-    this.catalogos.getMunicipios(value).subscribe((r) =>
-      this.municipios.set(
-        r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
-      ),
-    );
+    this.catalogos.getMunicipios(value).subscribe({
+      next: (r) =>
+        this.municipios.set(
+          r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
+        ),
+      error: () => {
+        this.municipios.set([]);
+        this.error.set('No fue posible cargar los municipios del departamento.');
+      },
+    });
   }
 
   protected guardar(): void {

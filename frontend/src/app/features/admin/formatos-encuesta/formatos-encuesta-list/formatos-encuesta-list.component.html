@@ -4,14 +4,13 @@
       <h1>Formatos de encuesta KAM</h1>
       <p>Administre plantillas de encuesta para las rondas KAM.</p>
     </div>
-    <div class="header-actions">
-      <button type="button" class="btn-primary" (click)="abrirNuevo('importar')">
-        Cargar nuevo formato (Excel)
-      </button>
-      <button type="button" class="btn-secondary" (click)="abrirNuevo('clonar')">
-        Clonar un formato existente
-      </button>
-    </div>
+    @if (!mostrarFormulario()) {
+      <div class="header-actions">
+        <button type="button" class="btn-primary" (click)="abrirNuevo('importar')">
+          Generar nuevo formato
+        </button>
+      </div>
+    }
   </header>
 
   @if (error()) {

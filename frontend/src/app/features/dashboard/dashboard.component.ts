@@ -12,6 +12,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { formatCurrencyAbbreviated, formatCurrencyFull } from '../../core/utils/currency.util';
 import { formatFechaHora } from '../../core/utils/date.util';
+import { claseBadgeEstadoProceso } from '../../core/utils/proceso-ui.util';
 import { claseBadgeEstadoProyeccion } from '../../core/utils/proyeccion-ui.util';
 
 const DASHBOARD_PROCESOS_FILTERS_KEY = 'abbi.dashboard.procesos.filters';
@@ -60,6 +61,7 @@ export class DashboardComponent implements OnInit {
   protected readonly formatMoney = formatCurrencyAbbreviated;
   protected readonly formatFecha = formatFechaHora;
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProyeccion(estado);
+  protected readonly procesoBadgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
   protected readonly puedeVerReportes = () => this.auth.puedeCerrarProyeccion();
 
   protected moneyTitle(value: string | number | null | undefined): string {
@@ -122,6 +124,11 @@ export class DashboardComponent implements OnInit {
 
   protected estadoEntries(resumen: DashboardResumen): Array<{ estado: string; total: number }> {
     return resumen.porEstado ?? [];
+  }
+
+  protected porcentajeEstado(total: number, parte: number): string {
+    if (!total || total <= 0) return '0%';
+    return `${Math.round((parte / total) * 100)}%`;
   }
 
   protected segmentoEntries(resumen: DashboardResumen): Array<{ label: string; total: number }> {

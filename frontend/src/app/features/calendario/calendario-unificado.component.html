@@ -6,54 +6,53 @@
     </div>
   </header>
 
-  <div class="toolbar">
-    <div class="filters">
+  <app-calendar-toolbar
+    [vista]="vista()"
+    [ocultarVacios]="ocultarVacios()"
+    [showOcultarVacios]="vista() === 'anio'"
+    (vistaChange)="onVistaChange($event)"
+    (hoyClick)="onHoy()"
+    (ocultarVaciosChange)="onOcultarVaciosChange($event)"
+  >
+    <label class="filter-toggle">
+      <input type="checkbox" [checked]="filtroProyecciones()" (change)="toggleFiltro('proyeccion')" />
+      Proyecciones
+    </label>
+    <label class="filter-toggle">
+      <input type="checkbox" [checked]="filtroProcesos()" (change)="toggleFiltro('proceso')" />
+      Procesos
+    </label>
+    <label class="filter-toggle">
+      <input type="checkbox" [checked]="filtroRelacionamientos()" (change)="toggleFiltro('relacionamiento')" />
+      Relacionamientos
+    </label>
+    <label class="filter-toggle">
+      <input type="checkbox" [checked]="filtroKam()" (change)="toggleFiltro('kam')" />
+      Reuniones KAM
+    </label>
+    <label class="filter-toggle">
+      <input type="checkbox" [checked]="filtroReunionAclaratoria()" (change)="toggleFiltro('reunion_aclaratoria')" />
+      Reunión aclaratoria
+    </label>
+    @if (esValidador()) {
       <label class="filter-toggle">
         <input
           type="checkbox"
-          [checked]="filtroProyecciones()"
-          (change)="toggleFiltro('proyeccion')"
+          [checked]="soloMisValidaciones()"
+          (change)="onSoloMisValidacionesChange($any($event.target).checked)"
         />
-        Proyecciones
+        Solo procesos donde soy validador
       </label>
-      <label class="filter-toggle">
-        <input
-          type="checkbox"
-          [checked]="filtroProcesos()"
-          (change)="toggleFiltro('proceso')"
-        />
-        Procesos
-      </label>
-      <label class="filter-toggle">
-        <input
-          type="checkbox"
-          [checked]="filtroRelacionamientos()"
-          (change)="toggleFiltro('relacionamiento')"
-        />
-        Relacionamientos
-      </label>
-      <label class="filter-toggle">
-        <input
-          type="checkbox"
-          [checked]="filtroKam()"
-          (change)="toggleFiltro('kam')"
-        />
-        Reuniones KAM
-      </label>
-      <label class="filter-toggle">
-        <input
-          type="checkbox"
-          [checked]="filtroReunionAclaratoria()"
-          (change)="toggleFiltro('reunion_aclaratoria')"
-        />
-        Reunión aclaratoria
-      </label>
-    </div>
+    }
+  </app-calendar-toolbar>
 
-    <app-year-selector
+  <div class="toolbar-nav">
+    <app-calendar-period-nav
+      [vista]="vista()"
       [anio]="anio()"
-      (anterior)="anioAnterior()"
-      (siguiente)="anioSiguiente()"
+      [mes]="mes()"
+      (anterior)="periodoAnterior()"
+      (siguiente)="periodoSiguiente()"
     />
   </div>
 
@@ -64,68 +63,80 @@
   @if (loading()) {
     <p class="loading">Cargando...</p>
   } @else if (!error()) {
-    <div class="calendar-grid">
-      @for (mes of mesesAgrupados(); track mes.mesIndex) {
-        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
-          <div class="month-column__header">
-            <h3>{{ mes.nombre }}</h3>
-          </div>
-          <div class="month-column__body">
-            @if (mes.items.length === 0) {
-              <p class="month-column__empty">Sin eventos</p>
-            } @else {
-              @for (evento of mes.items; track evento.tipo + '-' + evento.id) {
-                @let style = eventoStyle(evento.tipo, evento.estado);
-                <button
-                  type="button"
-                  class="evento-card evento-card--{{ evento.tipo }}"
-                  [style.background]="style.bg"
-                  [style.borderColor]="style.border"
-                  (click)="navigateToEvento(evento)"
-                >
-                  <div class="evento-card__top">
-                    <div class="evento-card__top-main">
-                      <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
-                        {{ evento.icono }}
-                      </span>
-                      <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
-                    </div>
-                    <span class="evento-card__dia" [style.color]="style.text">{{ formatFechaCorta(evento.fecha) }}</span>
-                  </div>
-                  <div class="evento-card__titulo">
-                    @if (esReunion(evento.tipo)) {
-                      Con {{ evento.titulo }}
-                    } @else {
-                      {{ evento.titulo }}
-                    }
-                  </div>
-                  @if (evento.tipo === 'proyeccion') {
-                    @if (evento.empresa) {
-                      <div class="evento-card__sub">{{ evento.empresa }}</div>
-                    }
-                    @if (evento.objeto) {
-                      <div class="evento-card__objeto">{{ evento.objeto }}</div>
-                    }
-                    @if (evento.valor) {
-                      <div class="evento-card__valor" [title]="tituloValor(evento.valor)">{{ formatValor(evento.valor) }}</div>
-                    }
-                  } @else if (esReunion(evento.tipo)) {
-                    @if (evento.subtitulo) {
-                      <div class="evento-card__sub evento-card__sub--strong">{{ evento.subtitulo }}</div>
-                    }
-                    @if (evento.detalle) {
-                      <div class="evento-card__detalle">{{ evento.detalle }}</div>
-                    }
-                  } @else if (evento.subtitulo) {
-                    <div class="evento-card__sub">{{ evento.subtitulo }}</div>
-                  }
-                  <div class="evento-card__meta">{{ metaEvento(evento) }}</div>
-                </button>
-              }
-            }
-          </div>
-        </div>
+    @if (eventoCardTpl(); as cardTpl) {
+      @if (vista() === 'anio') {
+        <app-calendar-year-board
+          [meses]="mesesAgrupados()"
+          [ocultarVacios]="ocultarVacios()"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
+      } @else if (vista() === 'mes') {
+        <app-calendar-month-grid
+          [items]="itemsFiltrados()"
+          [anio]="anio()"
+          [mes]="mes()"
+          [selectedDay]="diaSeleccionado()"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+          (daySelect)="onDaySelect($event)"
+        />
+      } @else {
+        <app-calendar-agenda-list
+          [items]="itemsFiltrados()"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
       }
-    </div>
+    }
   }
 </section>
+
+<ng-template #eventoCardTemplate let-evento>
+  @let style = eventoStyle(evento.tipo, evento.estado);
+  <button
+    type="button"
+    class="evento-card evento-card--{{ evento.tipo }}"
+    [style.background]="style.bg"
+    [style.borderColor]="style.border"
+    (click)="navigateToEvento(evento)"
+  >
+    <div class="evento-card__top">
+      <div class="evento-card__top-main">
+        <span class="material-symbols-outlined evento-card__icon" [style.color]="style.text">
+          {{ evento.icono }}
+        </span>
+        <span class="evento-card__tipo" [style.color]="style.text">{{ style.label }}</span>
+      </div>
+      <span class="evento-card__dia" [style.color]="style.text">{{ formatFechaCorta(evento.fecha) }}</span>
+    </div>
+    <div class="evento-card__titulo">
+      @if (esReunion(evento.tipo)) {
+        Con {{ evento.titulo }}
+      } @else {
+        {{ evento.titulo }}
+      }
+    </div>
+    @if (evento.tipo === 'proyeccion') {
+      @if (evento.empresa) {
+        <div class="evento-card__sub">{{ evento.empresa }}</div>
+      }
+      @if (evento.objeto) {
+        <div class="evento-card__objeto">{{ evento.objeto }}</div>
+      }
+      @if (evento.valor) {
+        <div class="evento-card__valor" [title]="tituloValor(evento.valor)">{{ formatValor(evento.valor) }}</div>
+      }
+    } @else if (esReunion(evento.tipo)) {
+      @if (evento.subtitulo) {
+        <div class="evento-card__sub evento-card__sub--strong">{{ evento.subtitulo }}</div>
+      }
+      @if (evento.detalle) {
+        <div class="evento-card__detalle">{{ evento.detalle }}</div>
+      }
+    } @else if (evento.subtitulo) {
+      <div class="evento-card__sub">{{ evento.subtitulo }}</div>
+    }
+    <div class="evento-card__meta">{{ metaEvento(evento) }}</div>
+  </button>
+</ng-template>

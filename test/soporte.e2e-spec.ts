@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Rol } from '../src/common/enums/rol.enum';
 import { MailService } from '../src/modules/mail/mail.service';
+import { MondayService } from '../src/modules/monday/monday.service';
 import {
   buildE2eUserPayload,
   configureE2eApp,
@@ -17,8 +18,7 @@ describe('Soporte (e2e)', () => {
 
   let app: INestApplication<App>;
   let capturedActivationToken = '';
-  let supportRequestPayload: Record<string, unknown> | null = null;
-  let supportAckTo = '';
+  let supportTicketPayload: Record<string, unknown> | null = null;
   const adminDevKey = 'e2e-soporte-admin-key';
   const password = 'Password1';
 
@@ -60,8 +60,7 @@ describe('Soporte (e2e)', () => {
     configureE2eEnvironment();
     process.env.ADMIN_DEV_KEY = adminDevKey;
     capturedActivationToken = '';
-    supportRequestPayload = null;
-    supportAckTo = '';
+    supportTicketPayload = null;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -72,14 +71,16 @@ describe('Soporte (e2e)', () => {
           onActivationToken: (token) => {
             capturedActivationToken = token;
           },
-          onSupportRequest: (payload) => {
-            supportRequestPayload = payload;
-          },
-          onSupportAck: (to) => {
-            supportAckTo = to;
-          },
         }),
       )
+      .overrideProvider(MondayService)
+      .useValue({
+        isConfigured: () => true,
+        createSupportTicket: jest.fn(async (input: Record<string, unknown>) => {
+          supportTicketPayload = input;
+          return { itemId: 'e2e-monday-item' };
+        }),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication({ bufferLogs: true });
@@ -98,7 +99,7 @@ describe('Soporte (e2e)', () => {
       .expect(401);
   });
 
-  it('POST /soporte/mensaje sends support and ack emails', async () => {
+  it('POST /soporte/mensaje creates Monday support ticket', async () => {
     const correo = `soporte-${Date.now()}@test.local`;
     await createUser(correo, Rol.VISITANTE);
     await activateUser();
@@ -115,13 +116,15 @@ describe('Soporte (e2e)', () => {
       })
       .expect(200)
       .expect((res) => {
-        expect(res.body.message).toContain('enviada');
+        expect(res.body.message).toContain('registrada');
       });
 
-    expect(supportRequestPayload).not.toBeNull();
-    expect(supportRequestPayload?.correo).toBe(correo);
-    expect(supportRequestPayload?.paisSesionNombre).toBeTruthy();
-    expect(supportRequestPayload?.mensaje).toContain('acceso al sistema');
-    expect(supportAckTo).toBe(correo);
+    expect(supportTicketPayload).not.toBeNull();
+    expect(supportTicketPayload?.correo).toBe(correo);
+    expect(supportTicketPayload?.tipoSolicitud).toBe('Acceso y cuenta');
+    expect(String(supportTicketPayload?.descripcion)).toContain('Consulta E2E');
+    expect(String(supportTicketPayload?.descripcion)).toContain('acceso al sistema');
+    expect(String(supportTicketPayload?.descripcion)).toContain('/dashboard');
+    expect(supportTicketPayload?.sede).toBeTruthy();
   });
 });

@@ -98,12 +98,14 @@
             </select>
           </label>
           <label>Municipio
-            <select [ngModel]="refUbicacionId()" (ngModelChange)="refUbicacionId.set(+$event || null)">
-              <option [ngValue]="null">Usar región del contacto origen</option>
-              @for (m of refMunicipios(); track m.id) {
-                <option [ngValue]="m.id">{{ m.municipio }}</option>
-              }
-            </select>
+            <app-searchable-select
+              [options]="refMunicipioOptions()"
+              [ngModel]="refUbicacionId()"
+              (ngModelChange)="refUbicacionId.set($event)"
+              placeholder="Usar región del contacto origen"
+              searchPlaceholder="Buscar municipio..."
+              emptyMessage="Seleccione un departamento primero"
+            />
           </label>
         }
       }

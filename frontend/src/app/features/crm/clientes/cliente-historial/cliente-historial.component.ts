@@ -1,6 +1,7 @@
 import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClientesService } from '../../../../core/services/clientes.service';
+import { claseBadgeEstadoProceso } from '../../../../core/utils/proceso-ui.util';
 
 export interface ClienteHistorialItem {
   tipo: 'proceso' | 'relacionamiento';
@@ -30,6 +31,8 @@ export class ClienteHistorialComponent implements OnInit {
   protected readonly total = signal(0);
   protected readonly page = signal(1);
   protected readonly limit = 50;
+
+  protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
 
   ngOnInit(): void {
     this.load(1, false);

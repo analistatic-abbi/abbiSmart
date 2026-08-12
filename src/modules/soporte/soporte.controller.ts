@@ -13,7 +13,7 @@ export class SoporteController {
 
   @Post('mensaje')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Enviar solicitud de soporte por correo' })
+  @ApiOperation({ summary: 'Registrar solicitud de soporte en Monday HelpDesk' })
   async enviarMensaje(
     @CurrentUser() user: AuthUserPayload,
     @Body() dto: EnviarSoporteDto,

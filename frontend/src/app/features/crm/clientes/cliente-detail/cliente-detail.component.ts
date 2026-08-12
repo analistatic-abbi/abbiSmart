@@ -17,6 +17,7 @@ import { mensajeExitoApi } from '../../../../core/utils/api-error.util';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { confirmarAccion } from '../../../../core/utils/confirm-dialog.util';
+import { claseBadgeEstadoProceso } from '../../../../core/utils/proceso-ui.util';
 
 type ClienteTab = 'resumen' | 'procesos' | 'proyecciones' | 'relacionamientos' | 'contactos' | 'historial';
 
@@ -76,6 +77,7 @@ export class ClienteDetailComponent implements OnInit {
   protected readonly formatCuantia = formatCuantiaConMoneda;
   protected readonly formatValor = formatMonedaAbreviada;
   protected readonly tituloValor = tituloMonedaCompleta;
+  protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
   protected readonly formatCuantiaTitle = (value: string | number | null | undefined) =>
     formatCurrencyFull(value, 2);
 

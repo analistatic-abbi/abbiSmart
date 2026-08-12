@@ -10,6 +10,7 @@ import { Request, Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 import { CUANTIA_MAX_MENSAJE } from '../constants/cuantia.constants';
 import { ErrorCode } from './error-codes.enum';
+import { traducirMensajeValidacionIngles } from '../validation/validation-exception.factory';
 
 interface ErrorResponseBody {
   statusCode: number;
@@ -103,11 +104,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   private extractMessage(payload: Record<string, unknown>): string {
     if (typeof payload.message === 'string') {
-      return payload.message;
+      return traducirMensajeValidacionIngles(payload.message);
     }
 
     if (Array.isArray(payload.message)) {
-      return payload.message.join(', ');
+      return payload.message
+        .map((item) =>
+          typeof item === 'string'
+            ? traducirMensajeValidacionIngles(item)
+            : String(item),
+        )
+        .join('. ');
     }
 
     return 'Error en la solicitud';
