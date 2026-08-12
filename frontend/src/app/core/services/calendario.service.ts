@@ -25,17 +25,31 @@ export interface CalendarioEvento {
   detalle?: string | null;
 }
 
+export interface CalendarioEventosParams {
+  anio: number;
+  tipos: CalendarioEventoTipo[];
+  mes?: number;
+  soloMisValidaciones?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CalendarioService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/calendario`;
 
-  getEventos(anio: number, tipos: CalendarioEventoTipo[]): Observable<{ data: CalendarioEvento[] }> {
+  getEventos(params: CalendarioEventosParams): Observable<{ data: CalendarioEvento[] }> {
+    const httpParams: Record<string, string | number | boolean> = {
+      anio: params.anio,
+      tipos: params.tipos.join(','),
+    };
+    if (params.mes != null) {
+      httpParams['mes'] = params.mes;
+    }
+    if (params.soloMisValidaciones) {
+      httpParams['soloMisValidaciones'] = true;
+    }
     return this.http.get<{ data: CalendarioEvento[] }>(`${this.base}/eventos`, {
-      params: {
-        anio,
-        tipos: tipos.join(','),
-      },
+      params: httpParams,
     });
   }
 }

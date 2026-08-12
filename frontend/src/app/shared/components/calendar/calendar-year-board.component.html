@@ -1,0 +1,27 @@
+<div class="calendar-grid">
+  @for (mes of meses(); track mes.mesIndex) {
+    @if (!ocultarVacios() || mes.items.length > 0) {
+      <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
+        <div class="month-column__header">
+          <h3>
+            {{ mes.nombre }}
+            @if (mes.items.length > 0) {
+              <span class="month-column__badge">{{ mes.items.length }}</span>
+            }
+          </h3>
+        </div>
+        <div class="month-column__body">
+          @if (mes.items.length === 0) {
+            <p class="month-column__empty">{{ emptyLabel() }}</p>
+          } @else {
+            @for (item of mes.items; track trackBy()(item)) {
+              @if (itemTemplate(); as tpl) {
+                <ng-container *ngTemplateOutlet="tpl; context: { $implicit: item }" />
+              }
+            }
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

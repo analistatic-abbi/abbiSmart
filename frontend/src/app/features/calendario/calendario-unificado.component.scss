@@ -1,3 +1,5 @@
+@use '../../shared/components/calendar/calendar' as *;
+
 .loading {
   color: var(--color-on-surface-variant);
 }
@@ -7,80 +9,23 @@
   margin-bottom: 16px;
 }
 
-.calendar-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1200px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.month-column {
+.toolbar-nav {
   display: flex;
-  flex-direction: column;
-  min-height: 280px;
-  background: var(--color-surface-container-lowest);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: calc(var(--radius-prime) + 2px);
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-  &--empty {
-    opacity: 0.75;
-  }
-}
-
-.month-column__header {
-  padding: 8px 12px;
-  text-align: center;
-  background: var(--color-surface-container-low);
-  border-bottom: 1px solid var(--color-outline-variant);
-
-  h3 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-on-surface);
-  }
-}
-
-.month-column__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.month-column__empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-on-surface-variant);
+  margin-bottom: 20px;
 }
 
-.toolbar {
+.filter-toggle {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-on-surface);
+  cursor: pointer;
+
+  input {
+    accent-color: var(--color-primary);
+  }
 }
 
 .evento-card {

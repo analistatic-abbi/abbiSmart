@@ -115,7 +115,7 @@
               <td class="col-objeto" [title]="proceso.objeto ?? ''">{{ proceso.objeto ?? '—' }}</td>
               <td>{{ proceso.empresaMostrar }}</td>
               <td>
-                <span class="badge">{{ proceso.estado }}</span>
+                <span [class]="badgeClass(proceso.estado)">{{ proceso.estado }}</span>
                 @if (mostrarDevolucionValidacion(proceso)) {
                   <span class="badge badge--devuelto">Devuelto</span>
                 }

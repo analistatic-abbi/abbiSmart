@@ -1,0 +1,56 @@
+.estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.estado-badge--por-validar {
+  background: var(--badge-proc-por-validar-bg);
+  border-color: var(--badge-proc-por-validar-border);
+  color: var(--badge-proc-por-validar-text);
+}
+
+.estado-badge--en-proceso {
+  background: var(--badge-proc-en-proceso-bg);
+  border-color: var(--badge-proc-en-proceso-border);
+  color: var(--badge-proc-en-proceso-text);
+}
+
+.estado-badge--descartado {
+  background: var(--badge-proc-descartado-bg);
+  border-color: var(--badge-proc-descartado-border);
+  color: var(--badge-proc-descartado-text);
+}
+
+.estado-badge--en-validacion {
+  background: var(--badge-proc-en-validacion-bg);
+  border-color: var(--badge-proc-en-validacion-border);
+  color: var(--badge-proc-en-validacion-text);
+}
+
+.estado-badge--presentado {
+  background: var(--badge-proc-presentado-bg);
+  border-color: var(--badge-proc-presentado-border);
+  color: var(--badge-proc-presentado-text);
+}
+
+.estado-badge--subsanacion {
+  background: var(--badge-proc-subsanacion-bg);
+  border-color: var(--badge-proc-subsanacion-border);
+  color: var(--badge-proc-subsanacion-text);
+}
+
+.estado-badge--adjudicado {
+  background: var(--badge-proc-adjudicado-bg);
+  border-color: var(--badge-proc-adjudicado-border);
+  color: var(--badge-proc-adjudicado-text);
+}
+
+.estado-badge--cerrado-proceso {
+  background: var(--badge-proc-cerrado-bg);
+  border-color: var(--badge-proc-cerrado-border);
+  color: var(--badge-proc-cerrado-text);
+}

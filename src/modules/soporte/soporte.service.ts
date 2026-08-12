@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { BusinessException } from '../../common/exceptions/business.exception';
+import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { Pais } from '../../database/entities/pais.entity';
 import { Usuario } from '../../database/entities/usuario.entity';
-import { MailService } from '../mail/mail.service';
 import { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
+import { MondayService } from '../monday/monday.service';
 import { EnviarSoporteDto } from './dto/enviar-soporte.dto';
 
 @Injectable()
@@ -14,7 +16,7 @@ export class SoporteService {
     private readonly usuarioRepository: Repository<Usuario>,
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
-    private readonly mailService: MailService,
+    private readonly mondayService: MondayService,
   ) {}
 
   async enviarMensaje(
@@ -26,38 +28,47 @@ export class SoporteService {
     });
 
     if (!usuario) {
-      return {
-        message:
-          'Su solicitud fue registrada. Si el correo está configurado, recibirá confirmación.',
-      };
+      throw new BusinessException(
+        ErrorCode.USUARIO_NO_ENCONTRADO,
+        'Usuario no encontrado',
+      );
     }
 
     const paisSesionNombre = await this.resolvePaisNombre(actor.paisSesionId);
+    const tipoSolicitud = (dto.categoria ?? 'Otro').trim() || 'Otro';
+    const descripcion = this.buildDescripcion(dto);
 
-    await this.mailService.sendSupportRequestEmail({
+    await this.mondayService.createSupportTicket({
       nombre: usuario.nombre,
       correo: usuario.correo,
-      rol: usuario.rol,
-      paisSesionNombre,
-      categoria: dto.categoria,
-      asunto: dto.asunto,
-      mensaje: dto.mensaje.trim(),
-      paginaActual: dto.paginaActual,
+      rol: String(usuario.rol),
+      sede: paisSesionNombre,
+      tipoSolicitud,
+      descripcion,
     });
 
-    await this.mailService.sendSupportAckEmail(
-      usuario.correo,
-      usuario.nombre,
-      dto.asunto,
-    );
-
     return {
-      message:
-        'Su solicitud fue enviada. Revise su correo para la confirmación de recepción.',
+      message: 'Su solicitud fue registrada en el centro de soporte.',
     };
   }
 
-  private async resolvePaisNombre(paisSesionId: number | null | undefined): Promise<string | null> {
+  private buildDescripcion(dto: EnviarSoporteDto): string {
+    const parts: string[] = [];
+    const asunto = dto.asunto?.trim();
+    if (asunto) {
+      parts.push(`Asunto: ${asunto}`);
+    }
+    parts.push(dto.mensaje.trim());
+    const pagina = dto.paginaActual?.trim();
+    if (pagina) {
+      parts.push(`Página: ${pagina}`);
+    }
+    return parts.join('\n\n');
+  }
+
+  private async resolvePaisNombre(
+    paisSesionId: number | null | undefined,
+  ): Promise<string | null> {
     if (paisSesionId == null) {
       return null;
     }

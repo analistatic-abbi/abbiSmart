@@ -27,6 +27,7 @@ import { Contacto } from '../../../core/models/crm.model';
 import { labelTarea } from '../../../core/constants/tarea-labels';
 import { mensajeErrorApi, mensajeExitoApi } from '../../../core/utils/api-error.util';
 import { formatFechaHora } from '../../../core/utils/date.util';
+import { claseBadgeEstadoProceso } from '../../../core/utils/proceso-ui.util';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { confirmarGuardado } from '../../../core/utils/confirm-dialog.util';
@@ -113,6 +114,7 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly archivoEvidencia = signal<File | null>(null);
   protected readonly tareaSeleccionada = signal<ProcesoTarea | null>(null);
   protected readonly editandoTarea = signal(false);
+  protected readonly tareaError = signal<string | null>(null);
 
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
@@ -142,6 +144,7 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected readonly formatFechaHora = formatFechaHora;
   protected readonly formatCuantia = formatCuantiaConMoneda;
+  protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
   protected readonly formatCuantiaTitle = (value: string | number | null | undefined) =>
     formatCurrencyFull(value, 2);
 
@@ -236,7 +239,18 @@ export class ProcesoDetailComponent implements OnInit {
   protected readonly showValidadoresModal = signal(false);
   protected readonly validadores = signal<ValidadorOption[]>([]);
   protected readonly validadoresSeleccionados = signal<number[]>([]);
+  protected readonly validadoresYaAsignados = signal<number[]>([]);
   protected readonly validadoresError = signal<string | null>(null);
+  protected readonly modoAmpliacionValidadores = signal(false);
+  protected readonly validacionesAsignadas = signal<
+    Array<{
+      id: number;
+      validadorId: number;
+      validadorNombre: string | null;
+      veredicto: string;
+      comentario: string | null;
+    }>
+  >([]);
 
   protected readonly showEliminarModal = signal(false);
   protected readonly dependencias = signal<DependenciaItem[]>([]);
@@ -328,6 +342,15 @@ export class ProcesoDetailComponent implements OnInit {
     return p.estado === EstadoProceso.EnProceso && this.avancePorcentaje() >= 100;
   });
 
+  protected readonly puedeAnadirValidadores = computed(() => {
+    if (!this.puedeEscribir()) return false;
+    const p = this.proceso();
+    if (!p || p.estado !== EstadoProceso.EnValidacion) return false;
+    const asignadas = this.validacionesAsignadas();
+    if (asignadas.length === 0) return false;
+    return asignadas.every((item) => item.veredicto === 'Pendiente');
+  });
+
   protected readonly guiaSiguientePaso = computed(() => {
     if (!this.puedeEscribir()) return null;
     const p = this.proceso();
@@ -352,6 +375,9 @@ export class ProcesoDetailComponent implements OnInit {
     }
 
     if (p.estado === EstadoProceso.EnValidacion) {
+      if (this.puedeAnadirValidadores()) {
+        return 'El proceso espera veredictos. Puede añadir más validadores mientras ninguno haya confirmado.';
+      }
       return 'Este estado solo cambia con los veredictos de los validadores (no con «Cambiar estado»).';
     }
 
@@ -566,10 +592,10 @@ export class ProcesoDetailComponent implements OnInit {
           this.proceso.set(r.proceso);
           this.showMotivoBackfillModal.set(false);
           this.actionLoading.set(false);
-          this.error.set(null);
+          this.toast.success('Motivo registrado correctamente.');
         },
         error: (err) => {
-          this.error.set(mensajeErrorApi(err, 'No fue posible registrar el motivo.'));
+          this.toast.error(mensajeErrorApi(err, 'No fue posible registrar el motivo.'));
           this.actionLoading.set(false);
         },
       });
@@ -597,7 +623,7 @@ export class ProcesoDetailComponent implements OnInit {
         this.proceso.set(r.proceso);
         this.showEstadoModal.set(false);
         this.actionLoading.set(false);
-        this.error.set(null);
+        this.toast.success('Estado actualizado correctamente.');
         if (r.proyeccionGenerada?.id) {
           this.proyeccionRecienGeneradaId.set(r.proyeccionGenerada.id);
           this.proyeccionAsociadaId.set(r.proyeccionGenerada.id);
@@ -610,7 +636,7 @@ export class ProcesoDetailComponent implements OnInit {
         this.loadProceso();
       },
       error: (err) => {
-        this.error.set(mensajeErrorApi(err, 'No fue posible cambiar el estado.'));
+        this.toast.error(mensajeErrorApi(err, 'No fue posible cambiar el estado.'));
         this.actionLoading.set(false);
       },
     });
@@ -714,20 +740,29 @@ export class ProcesoDetailComponent implements OnInit {
     });
   }
 
-  protected abrirValidadores(): void {
-    this.validadoresSeleccionados.set([]);
+  protected abrirValidadores(ampliacion = false): void {
+    this.modoAmpliacionValidadores.set(ampliacion);
     this.validadoresError.set(null);
+
+    const yaAsignados = this.validacionesAsignadas().map((item) => Number(item.validadorId));
+    this.validadoresYaAsignados.set(ampliacion ? yaAsignados : []);
+    this.validadoresSeleccionados.set(ampliacion ? [...yaAsignados] : []);
+
     this.validacion.listValidadores().subscribe({
       next: (r) => {
         this.validadores.set(r.data);
         this.showValidadoresModal.set(true);
       },
       error: (err) =>
-        this.error.set(mensajeErrorApi(err, 'No fue posible cargar los validadores.')),
+        this.toast.error(mensajeErrorApi(err, 'No fue posible cargar los validadores.')),
     });
   }
 
   protected toggleValidador(id: number, checked: boolean): void {
+    if (this.validadoresYaAsignados().includes(id) && !checked) {
+      return;
+    }
+
     this.validadoresError.set(null);
     this.validadoresSeleccionados.update((current) => {
       if (checked) {
@@ -741,11 +776,24 @@ export class ProcesoDetailComponent implements OnInit {
     return this.validadoresSeleccionados().includes(id);
   }
 
+  protected isValidadorBloqueado(id: number): boolean {
+    return this.validadoresYaAsignados().includes(id);
+  }
+
   protected confirmarValidadores(): void {
     const ids = this.validadoresSeleccionados();
     if (ids.length === 0) {
       this.validadoresError.set('Seleccione al menos un validador.');
       return;
+    }
+
+    if (this.modoAmpliacionValidadores()) {
+      const yaAsignados = this.validadoresYaAsignados();
+      const nuevos = ids.filter((id) => !yaAsignados.includes(id));
+      if (nuevos.length === 0) {
+        this.validadoresError.set('Seleccione al menos un validador adicional.');
+        return;
+      }
     }
 
     this.validadoresError.set(null);
@@ -754,7 +802,13 @@ export class ProcesoDetailComponent implements OnInit {
       next: () => {
         this.showValidadoresModal.set(false);
         this.actionLoading.set(false);
+        this.toast.success(
+          this.modoAmpliacionValidadores()
+            ? 'Validadores adicionales asignados correctamente.'
+            : 'Validadores asignados correctamente.',
+        );
         this.loadProceso();
+        this.loadValidaciones();
       },
       error: (err) => {
         this.validadoresError.set(
@@ -776,7 +830,7 @@ export class ProcesoDetailComponent implements OnInit {
           this.dependencias.set(r.data.dependientes);
           this.showEliminarModal.set(true);
         },
-        error: () => this.error.set('No fue posible consultar dependencias.'),
+        error: () => this.toast.error('No fue posible consultar dependencias.'),
       });
       return;
     }
@@ -794,9 +848,7 @@ export class ProcesoDetailComponent implements OnInit {
           void this.router.navigate(['/procesos']);
         },
         error: () => {
-          const mensaje = 'No fue posible eliminar el proceso.';
-          this.error.set(mensaje);
-          this.toast.error(mensaje);
+          this.toast.error('No fue posible eliminar el proceso.');
           this.actionLoading.set(false);
         },
       });
@@ -814,9 +866,7 @@ export class ProcesoDetailComponent implements OnInit {
         this.toast.success(mensajeExitoApi(r, 'Solicitud de eliminación registrada.'));
       },
       error: () => {
-        const mensaje = 'No fue posible registrar la solicitud de eliminación.';
-        this.error.set(mensaje);
-        this.toast.error(mensaje);
+        this.toast.error('No fue posible registrar la solicitud de eliminación.');
         this.actionLoading.set(false);
       },
     });
@@ -825,12 +875,19 @@ export class ProcesoDetailComponent implements OnInit {
   protected onArchivoSeleccionado(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.archivoEvidencia.set(input.files?.[0] ?? null);
+    this.tareaError.set(null);
+  }
+
+  protected onEvidenciaNotaChange(value: string): void {
+    this.evidencia.set(value);
+    this.tareaError.set(null);
   }
 
   protected abrirModalCompletarTarea(tarea: ProcesoTarea): void {
     this.editandoTarea.set(false);
     this.evidencia.set('');
     this.archivoEvidencia.set(null);
+    this.tareaError.set(null);
     this.tareaSeleccionada.set(tarea);
   }
 
@@ -838,6 +895,7 @@ export class ProcesoDetailComponent implements OnInit {
     this.editandoTarea.set(true);
     this.evidencia.set(tarea.evidencia?.trim() ?? '');
     this.archivoEvidencia.set(null);
+    this.tareaError.set(null);
     this.tareaSeleccionada.set(tarea);
   }
 
@@ -846,6 +904,7 @@ export class ProcesoDetailComponent implements OnInit {
     this.editandoTarea.set(false);
     this.evidencia.set('');
     this.archivoEvidencia.set(null);
+    this.tareaError.set(null);
   }
 
   protected guardarTarea(tarea: ProcesoTarea): void {
@@ -858,7 +917,9 @@ export class ProcesoDetailComponent implements OnInit {
       Boolean(tarea.evidenciaArchivoNombre || tarea.evidencia?.trim());
 
     if (!evidencia && !archivo && !conservaEvidenciaExistente) {
-      this.error.set('Debe adjuntar un archivo o escribir una evidencia.');
+      const mensaje = 'Debe adjuntar un archivo o escribir una evidencia.';
+      this.tareaError.set(mensaje);
+      this.toast.error(mensaje);
       return;
     }
 
@@ -870,7 +931,8 @@ export class ProcesoDetailComponent implements OnInit {
       if (!ok) return;
 
       this.actionLoading.set(true);
-      this.error.set(null);
+      this.tareaError.set(null);
+      const eraEdicion = this.editandoTarea();
       this.procesos.completarTarea(this.procesoId, tarea.id, evidencia, archivo).subscribe({
         next: (r) => {
           this.cerrarModalTarea();
@@ -885,13 +947,21 @@ export class ProcesoDetailComponent implements OnInit {
           }
           this.loadTareas();
           this.loadProceso();
+          this.toast.success(
+            eraEdicion
+              ? 'Tarea actualizada correctamente.'
+              : 'Tarea completada correctamente.',
+          );
         },
-        error: () => {
-          this.error.set(
-            this.editandoTarea()
+        error: (err) => {
+          const msg = mensajeErrorApi(
+            err,
+            eraEdicion
               ? 'No fue posible actualizar la tarea.'
               : 'No fue posible completar la tarea.',
           );
+          this.tareaError.set(msg);
+          this.toast.error(msg);
           this.actionLoading.set(false);
         },
       });
@@ -984,6 +1054,7 @@ export class ProcesoDetailComponent implements OnInit {
           this.anioParametrosCalificacion.set(r.proceso.anioParametros);
         }
         this.loading.set(false);
+        this.loadValidaciones();
         if (
           r.proceso.estado === EstadoProceso.Adjudicado &&
           r.proceso.tipoProceso === TipoProceso.Periodico
@@ -1006,6 +1077,13 @@ export class ProcesoDetailComponent implements OnInit {
         this.error.set('No fue posible cargar el proceso.');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadValidaciones(): void {
+    this.validacion.getValidacionesProceso(this.procesoId).subscribe({
+      next: (r) => this.validacionesAsignadas.set(r.data ?? []),
+      error: () => this.validacionesAsignadas.set([]),
     });
   }
 

@@ -10,11 +10,22 @@
     </div>
   </header>
 
-  <div class="toolbar">
-    <app-year-selector
+  <app-calendar-toolbar
+    [vista]="vista()"
+    [ocultarVacios]="ocultarVacios()"
+    [showOcultarVacios]="vista() === 'anio'"
+    (vistaChange)="onVistaChange($event)"
+    (hoyClick)="onHoy()"
+    (ocultarVaciosChange)="onOcultarVaciosChange($event)"
+  />
+
+  <div class="toolbar-nav">
+    <app-calendar-period-nav
+      [vista]="vista()"
       [anio]="anio()"
-      (anterior)="anioAnterior()"
-      (siguiente)="anioSiguiente()"
+      [mes]="mes()"
+      (anterior)="periodoAnterior()"
+      (siguiente)="periodoSiguiente()"
     />
     @if (!loading() && !error()) {
       <span class="toolbar__count">{{ totalEventos() }} reunión(es) en {{ anio() }}</span>
@@ -44,46 +55,60 @@
       <a class="btn-primary" routerLink="/kam">Ir a lista KAM</a>
     </div>
   } @else {
-    <div class="calendar-grid">
-      @for (mes of mesesAgrupados(); track mes.mesIndex) {
-        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
-          <div class="month-column__header">
-            <h3>{{ mes.nombre }}</h3>
-          </div>
-          <div class="month-column__body">
-            @if (mes.items.length === 0) {
-              <p class="month-column__empty">Sin eventos</p>
-            } @else {
-              @for (e of mes.items; track e.rondaId + e.fecha) {
-                @let style = estadoStyle(e.estado);
-                <button
-                  type="button"
-                  class="calendar-card"
-                  [style.background]="style.bg"
-                  [style.borderColor]="style.border"
-                  (click)="navigateToDetail(e.kamId)"
-                >
-                  <div class="calendar-card__top">
-                    <span class="calendar-card__empresa">{{ e.empresaMostrar }}</span>
-                    <span class="calendar-card__dia">{{ formatFechaCorta(e.fecha) }}</span>
-                  </div>
-                  @if (e.procesoObjeto) {
-                    <div class="calendar-card__objeto">{{ e.procesoObjeto }}</div>
-                  } @else if (e.procesoCodigo) {
-                    <div class="calendar-card__objeto">{{ e.procesoCodigo }}</div>
-                  }
-                  <div [class]="claseUrgenciaDias(dias(e))">
-                    {{ labelDiasRestantes(dias(e)) }}
-                  </div>
-                  <div class="calendar-card__estado" [style.color]="style.text">
-                    {{ formatFechaCorta(e.fecha) }} · {{ style.label }}
-                  </div>
-                </button>
-              }
-            }
-          </div>
-        </div>
+    @if (eventoCardTpl(); as cardTpl) {
+      @if (vista() === 'anio') {
+        <app-calendar-year-board
+          [meses]="mesesAgrupados()"
+          [ocultarVacios]="ocultarVacios()"
+          emptyLabel="Sin reuniones"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
+      } @else if (vista() === 'mes') {
+        <app-calendar-month-grid
+          [items]="itemsFiltrados()"
+          [anio]="anio()"
+          [mes]="mes()"
+          [selectedDay]="diaSeleccionado()"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+          (daySelect)="onDaySelect($event)"
+        />
+      } @else {
+        <app-calendar-agenda-list
+          [items]="itemsFiltrados()"
+          emptyLabel="Sin reuniones en el periodo seleccionado"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
       }
-    </div>
+    }
   }
 </section>
+
+<ng-template #eventoCardTemplate let-e>
+  @let style = estadoStyle(e.estado);
+  <button
+    type="button"
+    class="calendar-card"
+    [style.background]="style.bg"
+    [style.borderColor]="style.border"
+    (click)="navigateToDetail(e.kamId)"
+  >
+    <div class="calendar-card__top">
+      <span class="calendar-card__empresa">{{ e.empresaMostrar }}</span>
+      <span class="calendar-card__dia">{{ formatFechaCorta(e.fecha) }}</span>
+    </div>
+    @if (e.procesoObjeto) {
+      <div class="calendar-card__objeto">{{ e.procesoObjeto }}</div>
+    } @else if (e.procesoCodigo) {
+      <div class="calendar-card__objeto">{{ e.procesoCodigo }}</div>
+    }
+    <div [class]="claseUrgenciaDias(dias(e))">
+      {{ labelDiasRestantes(dias(e)) }}
+    </div>
+    <div class="calendar-card__estado" [style.color]="style.text">
+      {{ formatFechaCorta(e.fecha) }} · {{ style.label }}
+    </div>
+  </button>
+</ng-template>

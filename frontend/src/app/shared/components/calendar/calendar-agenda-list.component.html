@@ -1,0 +1,18 @@
+@if (groups().length === 0) {
+  <p class="agenda-list__empty">{{ emptyLabel() }}</p>
+} @else {
+  <div class="agenda-list">
+    @for (group of groups(); track group.iso) {
+      <section>
+        <h3 class="agenda-list__group-header">{{ group.label }}</h3>
+        <div class="agenda-list__items">
+          @for (item of group.items; track trackBy()(item)) {
+            @if (itemTemplate(); as tpl) {
+              <ng-container *ngTemplateOutlet="tpl; context: { $implicit: item }" />
+            }
+          }
+        </div>
+      </section>
+    }
+  </div>
+}

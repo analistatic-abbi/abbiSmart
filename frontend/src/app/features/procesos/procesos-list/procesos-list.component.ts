@@ -22,6 +22,7 @@ import {
   formatMonedaAbreviada,
   tituloMonedaCompleta,
 } from '../../../core/utils/currency.util';
+import { claseBadgeEstadoProceso } from '../../../core/utils/proceso-ui.util';
 import {
   SearchableSelectComponent,
   SearchableSelectOption,
@@ -202,6 +203,8 @@ export class ProcesosListComponent implements OnInit {
       proceso.devueltoValidacion && proceso.estado === EstadoProceso.EnProceso,
     );
   }
+
+  protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
 
   protected formatCuantia(proceso: ProcesoListItem): string {
     if (!proceso.cuantia) {

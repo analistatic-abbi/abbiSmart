@@ -234,7 +234,14 @@ export class CatalogosService {
   getMunicipios(departamento: string): Observable<{ data: UbicacionOption[]; total: number }> {
     return this.http.get<{ data: UbicacionOption[]; total: number }>(
       `${this.base}/catalogos/ubicaciones`,
-      { params: { departamento, limit: 200 } },
+      {
+        params: {
+          departamento,
+          page: '1',
+          // Departamentos grandes (p. ej. Cundinamarca) superan el default 50.
+          limit: '5000',
+        },
+      },
     );
   }
 

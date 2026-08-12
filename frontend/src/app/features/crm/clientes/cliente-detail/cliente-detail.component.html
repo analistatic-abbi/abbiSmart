@@ -89,7 +89,7 @@
             @for (proceso of procesos(); track proceso.id) {
               <tr>
                 <td>{{ proceso.codigo ?? proceso.idDigitado }}</td>
-                <td>{{ proceso.estado }}</td>
+                <td><span [class]="badgeClass(proceso.estado)">{{ proceso.estado }}</span></td>
                 <td [title]="formatCuantiaTitle(proceso.cuantia)">{{ formatValor(proceso.cuantia) }} {{ proceso.moneda ?? '' }}</td>
                 <td>{{ proceso.fechaCierre ?? '—' }}</td>
                 <td><a [routerLink]="['/procesos', proceso.id]">Ver</a></td>

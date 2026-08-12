@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
@@ -9,6 +9,7 @@ import {
   DuplicadoAlertaComponent,
   DuplicadoSugerencia,
 } from '../../../../shared/components/duplicado-alerta/duplicado-alerta.component';
+import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { mensajeErrorApi, mensajeExitoApi } from '../../../../core/utils/api-error.util';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
@@ -17,7 +18,7 @@ import { confirmarCreacion, confirmarGuardado } from '../../../../core/utils/con
 @Component({
   selector: 'app-cliente-form',
   standalone: true,
-  imports: [FormsModule, RouterLink, DuplicadoAlertaComponent],
+  imports: [FormsModule, RouterLink, DuplicadoAlertaComponent, SearchableSelectComponent],
   templateUrl: './cliente-form.component.html',
   styleUrl: './cliente-form.component.scss',
 })
@@ -42,6 +43,9 @@ export class ClienteFormComponent implements OnInit {
 
   protected readonly departamentos = signal<string[]>([]);
   protected readonly municipios = signal<Array<{ id: number; municipio: string }>>([]);
+  protected readonly municipioOptions = computed(() =>
+    this.municipios().map((m) => ({ value: m.id, label: m.municipio })),
+  );
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -135,11 +139,16 @@ export class ClienteFormComponent implements OnInit {
       this.municipios.set([]);
       return;
     }
-    this.catalogos.getMunicipios(value).subscribe((r) =>
-      this.municipios.set(
-        r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
-      ),
-    );
+    this.catalogos.getMunicipios(value).subscribe({
+      next: (r) =>
+        this.municipios.set(
+          r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
+        ),
+      error: () => {
+        this.municipios.set([]);
+        this.error.set('No fue posible cargar los municipios del departamento.');
+      },
+    });
   }
 
   protected guardar(): void {

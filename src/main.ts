@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
+import { validationExceptionFactory } from './common/validation/validation-exception.factory';
 
 function setupSwagger(
   app: Awaited<ReturnType<typeof NestFactory.create>>,
@@ -73,6 +74,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      exceptionFactory: validationExceptionFactory,
     }),
   );
 

@@ -9,15 +9,15 @@
   align-items: center;
 }
 
-.toolbar {
+.toolbar-nav {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 
-  &__count {
+  .toolbar__count {
     font-size: 13px;
     color: var(--color-on-surface-variant);
     font-weight: 600;

@@ -41,7 +41,7 @@
               @if (esVistaSupervision()) {
                 <td>{{ item.validadorNombre ?? '—' }}</td>
               }
-              <td><span class="badge">{{ item.estado }}</span></td>
+              <td><span [class]="badgeClass(item.estado)">{{ item.estado }}</span></td>
               <td>
                 <a [routerLink]="['/validacion/procesos', item.procesoId]" [queryParams]="{ validacionId: item.validacionId }">
                   {{ esVistaSupervision() ? 'Ver' : 'Revisar' }}

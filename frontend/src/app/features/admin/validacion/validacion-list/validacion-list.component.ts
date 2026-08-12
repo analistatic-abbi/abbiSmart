@@ -5,6 +5,7 @@ import { ValidacionService } from '../../../../core/services/validacion.service'
 import { AuthService } from '../../../../core/services/auth.service';
 import { ValidacionPendiente } from '../../../../core/models/admin.model';
 import { Rol } from '../../../../core/models/rol.enum';
+import { claseBadgeEstadoProceso } from '../../../../core/utils/proceso-ui.util';
 
 @Component({
   selector: 'app-validacion-list',
@@ -24,6 +25,8 @@ export class ValidacionListComponent implements OnInit {
     const rol = this.auth.rol();
     return rol === Rol.Administrador || rol === Rol.SupervisorSistema;
   });
+
+  protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
 
   ngOnInit(): void {
     this.load();

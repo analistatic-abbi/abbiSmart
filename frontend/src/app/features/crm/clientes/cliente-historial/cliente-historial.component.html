@@ -20,7 +20,7 @@
             <p class="timeline__sub">{{ item.subtitulo }}</p>
           }
           @if (item.estado) {
-            <span class="badge">{{ item.estado }}</span>
+            <span [class]="badgeClass(item.estado)">{{ item.estado }}</span>
           }
         </div>
       </li>

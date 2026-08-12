@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
@@ -10,13 +10,14 @@ import {
   ResultadoRelacionamiento,
 } from '../../../../core/models/crm.model';
 import { FijarEntidadButtonComponent } from '../../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
+import { SearchableSelectComponent } from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { confirmarGuardado } from '../../../../core/utils/confirm-dialog.util';
 
 @Component({
   selector: 'app-relacionamiento-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, FijarEntidadButtonComponent],
+  imports: [FormsModule, RouterLink, FijarEntidadButtonComponent, SearchableSelectComponent],
   templateUrl: './relacionamiento-detail.component.html',
   styleUrl: './relacionamiento-detail.component.scss',
 })
@@ -50,6 +51,9 @@ export class RelacionamientoDetailComponent implements OnInit {
   protected readonly refDepartamento = signal('');
   protected readonly refUbicacionId = signal<number | null>(null);
   protected readonly refMunicipios = signal<Array<{ id: number; municipio: string }>>([]);
+  protected readonly refMunicipioOptions = computed(() =>
+    this.refMunicipios().map((m) => ({ value: m.id, label: m.municipio })),
+  );
 
   protected readonly departamentos = signal<string[]>([]);
 
@@ -74,11 +78,13 @@ export class RelacionamientoDetailComponent implements OnInit {
       this.refMunicipios.set([]);
       return;
     }
-    this.catalogos.getMunicipios(value).subscribe((r) =>
-      this.refMunicipios.set(
-        r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
-      ),
-    );
+    this.catalogos.getMunicipios(value).subscribe({
+      next: (r) =>
+        this.refMunicipios.set(
+          r.data.map((u) => ({ id: u.id, municipio: u.municipioProvincia })),
+        ),
+      error: () => this.refMunicipios.set([]),
+    });
   }
 
   protected tieneContactoReferido(): boolean {

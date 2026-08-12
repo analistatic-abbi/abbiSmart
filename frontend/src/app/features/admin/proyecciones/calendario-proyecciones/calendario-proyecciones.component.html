@@ -15,55 +15,80 @@
     </div>
   </header>
 
-  <div class="toolbar">
-    <app-year-selector
+  <app-calendar-toolbar
+    [vista]="vista()"
+    [ocultarVacios]="ocultarVacios()"
+    [showOcultarVacios]="vista() === 'anio'"
+    (vistaChange)="onVistaChange($event)"
+    (hoyClick)="onHoy()"
+    (ocultarVaciosChange)="onOcultarVaciosChange($event)"
+  />
+
+  <div class="toolbar-nav">
+    <app-calendar-period-nav
+      [vista]="vista()"
       [anio]="anio()"
-      (anterior)="anioAnterior()"
-      (siguiente)="anioSiguiente()"
+      [mes]="mes()"
+      (anterior)="periodoAnterior()"
+      (siguiente)="periodoSiguiente()"
     />
   </div>
 
   @if (loading()) {
     <p class="loading">Cargando...</p>
   } @else {
-    <div class="calendar-grid">
-      @for (mes of mesesAgrupados(); track mes.mesIndex) {
-        <div class="month-column" [class.month-column--empty]="mes.items.length === 0">
-          <div class="month-column__header">
-            <h3>{{ mes.nombre }}</h3>
-          </div>
-          <div class="month-column__body">
-            @if (mes.items.length === 0) {
-              <p class="month-column__empty">Sin proyecciones</p>
-            } @else {
-              @for (p of mes.items; track p.id) {
-                @let style = estadoStyle(p.estado);
-                <button
-                  type="button"
-                  class="proyeccion-card"
-                  [style.background]="style.bg"
-                  [style.borderColor]="style.border"
-                  (click)="navigateToDetail(p.id)"
-                >
-                  <div class="proyeccion-card__top">
-                    <span class="proyeccion-card__empresa">{{ empresaLabel(p) }}</span>
-                    <span class="proyeccion-card__dia">{{ formatFechaCorta(p.fechaEstimadaPublicacion) }}</span>
-                  </div>
-                  @if (p.objeto) {
-                    <div class="proyeccion-card__objeto">{{ p.objeto }}</div>
-                  }
-                  <div class="proyeccion-card__valor" [title]="tituloValor(p.valorVenta)">
-                    {{ formatValor(p.valorVenta) }}
-                  </div>
-                  <div class="proyeccion-card__estado" [style.color]="style.text">
-                    {{ formatFechaCorta(p.fechaEstimadaPublicacion) }} · {{ style.label }}
-                  </div>
-                </button>
-              }
-            }
-          </div>
-        </div>
+    @if (eventoCardTpl(); as cardTpl) {
+      @if (vista() === 'anio') {
+        <app-calendar-year-board
+          [meses]="mesesAgrupados()"
+          [ocultarVacios]="ocultarVacios()"
+          emptyLabel="Sin proyecciones"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
+      } @else if (vista() === 'mes') {
+        <app-calendar-month-grid
+          [items]="itemsFiltrados()"
+          [anio]="anio()"
+          [mes]="mes()"
+          [selectedDay]="diaSeleccionado()"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+          (daySelect)="onDaySelect($event)"
+        />
+      } @else {
+        <app-calendar-agenda-list
+          [items]="itemsFiltrados()"
+          emptyLabel="Sin proyecciones en el periodo seleccionado"
+          [itemTemplate]="cardTpl"
+          [trackBy]="trackEventoFn"
+        />
       }
-    </div>
+    }
   }
 </section>
+
+<ng-template #eventoCardTemplate let-p>
+  @let style = estadoStyle(p.estado);
+  <button
+    type="button"
+    class="proyeccion-card"
+    [style.background]="style.bg"
+    [style.borderColor]="style.border"
+    (click)="navigateToDetail(p.id)"
+  >
+    <div class="proyeccion-card__top">
+      <span class="proyeccion-card__empresa">{{ empresaLabel(p) }}</span>
+      <span class="proyeccion-card__dia">{{ formatFechaCorta(p.fechaEstimadaPublicacion) }}</span>
+    </div>
+    @if (p.objeto) {
+      <div class="proyeccion-card__objeto">{{ p.objeto }}</div>
+    }
+    <div class="proyeccion-card__valor" [title]="tituloValor(p.valorVenta)">
+      {{ formatValor(p.valorVenta) }}
+    </div>
+    <div class="proyeccion-card__estado" [style.color]="style.text">
+      {{ formatFechaCorta(p.fechaEstimadaPublicacion) }} · {{ style.label }}
+    </div>
+  </button>
+</ng-template>

@@ -1,0 +1,56 @@
+<div class="month-grid">
+  <div class="month-grid__header">
+    @for (dia of diasSemana; track dia) {
+      <div class="month-grid__weekday">{{ dia }}</div>
+    }
+  </div>
+  <div class="month-grid__cells">
+    @for (cell of cells(); track cell.iso) {
+      <button
+        type="button"
+        class="month-grid__cell"
+        [class.month-grid__cell--outside]="!cell.inMonth"
+        [class.month-grid__cell--today]="cell.isToday"
+        [class.month-grid__cell--selected]="cell.isSelected"
+        [class.month-grid__cell--has-events]="cell.count > 0 && cell.inMonth"
+        [attr.aria-selected]="cell.isSelected"
+        [attr.aria-label]="cell.date.getDate() + (cell.count ? ', ' + cell.count + ' eventos' : '')"
+        (click)="daySelect.emit(cell.iso)"
+      >
+        <span class="month-grid__day">{{ cell.date.getDate() }}</span>
+        @if (cell.count > 0 && cell.inMonth) {
+          <div class="month-grid__markers">
+            @for (marker of cell.markers; track $index) {
+              <span
+                class="month-grid__marker month-grid__marker--{{ marker.tipo }}"
+                [attr.title]="markerLabel(marker.tipo)"
+              >
+                <span class="material-symbols-outlined">{{ marker.icono }}</span>
+              </span>
+            }
+            @if (cell.count > cell.markers.length) {
+              <span class="month-grid__marker-more">+{{ cell.count - cell.markers.length }}</span>
+            }
+          </div>
+        }
+      </button>
+    }
+  </div>
+</div>
+
+@if (selectedDay() && selectedDayItems().length > 0) {
+  <div class="month-grid__day-events">
+    <h4 class="month-grid__day-events-header">{{ selectedDayLabel() }}</h4>
+    @for (item of selectedDayItems(); track trackBy()(item)) {
+      @if (itemTemplate(); as tpl) {
+        <ng-container *ngTemplateOutlet="tpl; context: { $implicit: item }" />
+      }
+    }
+  </div>
+} @else if (selectedDay()) {
+  <div class="month-grid__day-events">
+    <h4 class="month-grid__day-events-header">{{ selectedDayLabel() }}</h4>
+    <p class="month-column__empty">Sin eventos este día</p>
+  </div>
+}
+

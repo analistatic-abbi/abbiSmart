@@ -1,3 +1,5 @@
+@use '../../../procesos/estado-proceso-badges';
+
 .timeline {
   list-style: none;
   margin: 0;
@@ -53,15 +55,6 @@
   margin: 0 0 6px;
   font-size: 13px;
   color: var(--color-on-surface-variant);
-}
-
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eef6fb;
-  color: #0e3b65;
-  font-size: 12px;
 }
 
 .muted {

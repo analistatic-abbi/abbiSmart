@@ -1,0 +1,19 @@
+<div class="calendar-period-nav">
+  <button
+    type="button"
+    class="calendar-period-nav__btn"
+    (click)="anterior.emit()"
+    [attr.aria-label]="vista() === 'mes' ? 'Mes anterior' : 'Año anterior'"
+  >
+    <span class="material-symbols-outlined">chevron_left</span>
+  </button>
+  <span class="calendar-period-nav__label">{{ label() }}</span>
+  <button
+    type="button"
+    class="calendar-period-nav__btn"
+    (click)="siguiente.emit()"
+    [attr.aria-label]="vista() === 'mes' ? 'Mes siguiente' : 'Año siguiente'"
+  >
+    <span class="material-symbols-outlined">chevron_right</span>
+  </button>
+</div>

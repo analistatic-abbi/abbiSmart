@@ -84,12 +84,14 @@
 
       <label>
         {{ etiquetaGeoNivel2() }}
-        <select [ngModel]="store.paso1().ubicacionId" (ngModelChange)="updatePaso1('ubicacionId', $event)">
-          <option [ngValue]="null">Seleccione</option>
-          @for (m of municipios(); track m.id) {
-            <option [ngValue]="m.id">{{ m.municipio }}</option>
-          }
-        </select>
+        <app-searchable-select
+          [options]="municipioOptions()"
+          [ngModel]="store.paso1().ubicacionId"
+          (ngModelChange)="updatePaso1('ubicacionId', $event)"
+          placeholder="Seleccione"
+          searchPlaceholder="Buscar..."
+          emptyMessage="Seleccione un departamento primero"
+        />
       </label>
 
       <label>

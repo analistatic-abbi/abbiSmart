@@ -1,0 +1,52 @@
+<div class="calendar-toolbar">
+  <div class="calendar-toolbar__row">
+    <div class="calendar-toolbar__views">
+      <button
+        type="button"
+        class="calendar-toolbar__btn"
+        [class.calendar-toolbar__btn--active]="vista() === 'anio'"
+        (click)="vistaChange.emit('anio')"
+      >
+        Año
+      </button>
+      <button
+        type="button"
+        class="calendar-toolbar__btn"
+        [class.calendar-toolbar__btn--active]="vista() === 'mes'"
+        (click)="vistaChange.emit('mes')"
+      >
+        Mes
+      </button>
+      <button
+        type="button"
+        class="calendar-toolbar__btn"
+        [class.calendar-toolbar__btn--active]="vista() === 'agenda'"
+        (click)="vistaChange.emit('agenda')"
+      >
+        Agenda
+      </button>
+    </div>
+
+    <div class="calendar-toolbar__actions">
+      @if (showOcultarVacios() && vista() === 'anio') {
+        <label class="calendar-toggle">
+          <input
+            type="checkbox"
+            [checked]="ocultarVacios()"
+            (change)="ocultarVaciosChange.emit($any($event.target).checked)"
+          />
+          Ocultar meses vacíos
+        </label>
+      }
+
+      <button type="button" class="calendar-toolbar__hoy" (click)="hoyClick.emit()">
+        Hoy
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-toolbar__filters">
+    <ng-content />
+  </div>
+</div>
+
