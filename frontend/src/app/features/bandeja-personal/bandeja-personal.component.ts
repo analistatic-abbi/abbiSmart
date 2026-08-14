@@ -128,6 +128,12 @@ export class BandejaPersonalComponent implements OnInit {
         items: data.relacionamientos,
         subgrupos: this.groupByUrgencia(data.relacionamientos),
       },
+      {
+        titulo: 'KAMs',
+        tipo: 'kam',
+        items: data.kams ?? [],
+        subgrupos: this.groupByUrgencia(data.kams ?? []),
+      },
     ];
   }
 

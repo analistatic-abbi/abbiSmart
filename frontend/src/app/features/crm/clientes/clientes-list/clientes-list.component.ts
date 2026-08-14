@@ -12,11 +12,12 @@ import {
   FiltroEliminados,
 } from '../../../../core/models/filtro-eliminados.model';
 import { CrmTabsComponent } from '../../shared/crm-tabs.component';
+import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
   selector: 'app-clientes-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, CrmTabsComponent, DatePipe],
+  imports: [FormsModule, RouterLink, CrmTabsComponent, DatePipe, TablePaginationComponent],
   templateUrl: './clientes-list.component.html',
   styleUrl: './clientes-list.component.scss',
 })
@@ -35,6 +36,9 @@ export class ClientesListComponent implements OnInit {
   protected readonly segmento = signal('');
   protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
   protected readonly segmentos = signal<CatalogoPaisItem[]>([]);
+  protected readonly page = signal(1);
+  protected readonly limit = signal(50);
+  protected readonly total = signal(0);
 
   ngOnInit(): void {
     this.catalogos.getCatalogoSesion('segmento_cliente', false).subscribe((r) =>
@@ -44,6 +48,18 @@ export class ClientesListComponent implements OnInit {
   }
 
   protected onFilter(): void {
+    this.page.set(1);
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  protected onLimitChange(limit: number): void {
+    this.limit.set(limit);
+    this.page.set(1);
     this.load();
   }
 
@@ -54,14 +70,18 @@ export class ClientesListComponent implements OnInit {
         search: this.search() || undefined,
         segmento: this.segmento() || undefined,
         filtroEliminados: this.filtroEliminados(),
+        page: this.page(),
+        limit: this.limit(),
       })
       .subscribe({
         next: (r) => {
           this.items.set(r.data);
+          this.total.set(r.total ?? r.data.length);
           this.loading.set(false);
         },
         error: () => {
           this.items.set([]);
+          this.total.set(0);
           this.loading.set(false);
         },
       });

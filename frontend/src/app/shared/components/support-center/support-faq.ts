@@ -4,6 +4,9 @@ export interface SupportFaqItem {
   answer: string;
 }
 
+/** HelpDesk TIC (Jotform) — formulario externo de tickets. */
+export const SUPPORT_JOTFORM_URL = 'https://eu-submit.jotform.com/242673172348056';
+
 export const SUPPORT_FAQ_ITEMS: SupportFaqItem[] = [
   {
     id: 'procesos',
@@ -33,21 +36,12 @@ export const SUPPORT_FAQ_ITEMS: SupportFaqItem[] = [
     id: 'permisos',
     question: 'No veo un menú o acción esperada',
     answer:
-      'Las opciones del menú dependen de su rol y de la configuración del sistema (por ejemplo, carga masiva). Si necesita un permiso adicional, indíquelo en el formulario de soporte.',
+      'Las opciones del menú dependen de su rol y de la configuración del sistema (por ejemplo, carga masiva). Si necesita un permiso adicional, regístrelo en el HelpDesk TIC.',
   },
   {
     id: 'respuesta',
-    question: '¿Cuándo recibiré respuesta?',
+    question: '¿Cómo solicito soporte técnico?',
     answer:
-      'Al enviar su solicitud se registra un ticket en el centro de soporte. El equipo lo revisará y se comunicará con usted según el procedimiento interno de atención.',
+      'Use el botón «Ir al HelpDesk TIC» en este panel. Completará el formulario externo y el equipo de TIC le agendará un ticket de soporte.',
   },
 ];
-
-export const SUPPORT_CATEGORIAS = [
-  'Acceso y cuenta',
-  'Procesos y validación',
-  'Proyecciones',
-  'CRM (clientes/contactos)',
-  'Configuración / permisos',
-  'Otro',
-] as const;

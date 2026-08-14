@@ -5,7 +5,6 @@ import cookieConfig from './cookie.config';
 import databaseConfig from './database.config';
 import jwtConfig from './jwt.config';
 import mailConfig from './mail.config';
-import mondayConfig from './monday.config';
 import securityConfig from './security.config';
 import swaggerConfig from './swagger.config';
 import throttleConfig from './throttle.config';
@@ -21,7 +20,6 @@ import { validationSchema } from './validation.schema';
         jwtConfig,
         cookieConfig,
         mailConfig,
-        mondayConfig,
         securityConfig,
         throttleConfig,
         swaggerConfig,

@@ -15,11 +15,14 @@
           {{ kam()!.empresaMostrar }} · <a [routerLink]="['/procesos', kam()!.procesoId]">Ver proceso</a>
         </p>
       </div>
-      @if (puedeEscribir()) {
-        <button type="button" class="btn-secondary" [disabled]="actionLoading()" (click)="crearRonda()">
-          Nueva ronda
-        </button>
-      }
+      <div class="detail__actions">
+        <app-fijar-entidad-button entidadTipo="kam" [entidadId]="kam()!.id" />
+        @if (puedeEscribir()) {
+          <button type="button" class="btn-secondary" [disabled]="actionLoading()" (click)="crearRonda()">
+            Nueva ronda
+          </button>
+        }
+      </div>
     </header>
 
     <section class="panel">
@@ -69,7 +72,6 @@
                   <div class="ronda-section">
                     <header class="ronda-section__header">
                       <h3 class="section-title">Bitácora</h3>
-                      <p class="ronda-section__hint">Registre notas, acuerdos o seguimiento de la ronda.</p>
                     </header>
                     <div class="ronda-section__content">
                       @if (puedeEscribir()) {
@@ -115,9 +117,6 @@
                   <div class="ronda-section" [class.ronda-section--readonly]="!rondaEditable(ronda)">
                     <header class="ronda-section__header">
                       <h3 class="section-title">Correspondencia</h3>
-                      <p class="ronda-section__hint">
-                        Adjunte uno o varios documentos o correos relacionados con la ronda.
-                      </p>
                     </header>
                     <div class="ronda-section__content">
                       @if (archivosCorrespondencia(ronda).length) {
@@ -180,9 +179,6 @@
                   <div class="ronda-section ronda-section--encuestas">
                     <header class="ronda-section__header">
                       <h3 class="section-title">Encuestas</h3>
-                      <p class="ronda-section__hint">
-                        Asigne un formato de encuesta a cada contacto y complete las respuestas a su ritmo.
-                      </p>
                     </header>
                     <div class="ronda-section__content">
                       @if (ronda.encuestas.length) {
@@ -240,7 +236,6 @@
                       <header class="ronda-section__header">
                         <h3 class="section-title">Resumen de ronda</h3>
                         <p class="ronda-section__hint">
-                          Puntajes agregados de las encuestas de la ronda.
                           Categoría: <strong>{{ resumen.categoria }}</strong>
                           · Global: <strong>{{ formatPorcentaje(resumen.porcentajeGlobal) }}</strong>
                           ({{ resumen.puntosObtenidos }} / {{ resumen.puntosPosibles }} pts)
@@ -344,9 +339,6 @@
                     <div class="ronda-section">
                       <header class="ronda-section__header">
                         <h3 class="section-title">Reunión de fin de ronda</h3>
-                        <p class="ronda-section__hint">
-                          La fase de encuestas terminó. Agende la reunión de cierre y, cuando se realice, márquela como realizada.
-                        </p>
                       </header>
                       <div class="ronda-section__content">
                         @if (ronda.fechaReunionSocializacion) {

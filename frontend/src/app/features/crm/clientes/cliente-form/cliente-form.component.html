@@ -2,10 +2,7 @@
   <a class="back" routerLink="/crm/clientes">← Volver a clientes</a>
 
   <header class="page__header">
-    <div>
-      <h1>{{ isEdit() ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
-      <p>Registre la empresa y su ubicación.</p>
-    </div>
+    <h1>{{ isEdit() ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
   </header>
 
   @if (error()) {

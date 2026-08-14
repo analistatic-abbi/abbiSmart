@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { BandejaUrgencia } from '../../common/enums/bandeja-urgencia.enum';
+import { EstadoKamRonda } from '../../common/enums/estado-kam-ronda.enum';
 import { FijacionEntidadTipo } from '../../common/enums/fijacion-entidad-tipo.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
@@ -11,6 +12,7 @@ import {
   diasHastaFecha,
 } from '../../common/utils/bandeja-urgencia.util';
 import { normalizarFechaDesdeBd } from '../../common/utils/proceso-fechas.util';
+import { Kam } from '../../database/entities/kam.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
@@ -35,6 +37,8 @@ export class BandejaPersonalService {
     private readonly proyeccionRepository: Repository<Proyeccion>,
     @InjectRepository(Relacionamiento)
     private readonly relacionamientoRepository: Repository<Relacionamiento>,
+    @InjectRepository(Kam)
+    private readonly kamRepository: Repository<Kam>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -50,6 +54,7 @@ export class BandejaPersonalService {
     const procesos: BandejaItemDto[] = [];
     const proyecciones: BandejaItemDto[] = [];
     const relacionamientos: BandejaItemDto[] = [];
+    const kams: BandejaItemDto[] = [];
 
     for (const fijacion of fijaciones) {
       const item = await this.buildItem(fijacion, paisSesionId);
@@ -65,22 +70,28 @@ export class BandejaPersonalService {
         case FijacionEntidadTipo.RELACIONAMIENTO:
           relacionamientos.push(item);
           break;
+        case FijacionEntidadTipo.KAM:
+          kams.push(item);
+          break;
       }
     }
 
     const procesosOrdenados = this.sortByUrgencia(procesos);
     const proyeccionesOrdenadas = this.sortByUrgencia(proyecciones);
     const relacionamientosOrdenados = this.sortByUrgencia(relacionamientos);
+    const kamsOrdenados = this.sortByUrgencia(kams);
 
     return {
       resumen: this.buildResumen(
         procesosOrdenados,
         proyeccionesOrdenadas,
         relacionamientosOrdenados,
+        kamsOrdenados,
       ),
       procesos: procesosOrdenados,
       proyecciones: proyeccionesOrdenadas,
       relacionamientos: relacionamientosOrdenados,
+      kams: kamsOrdenados,
     };
   }
 
@@ -198,6 +209,13 @@ export class BandejaPersonalService {
 
         return count > 0;
       }
+      case FijacionEntidadTipo.KAM:
+        return this.kamRepository.exists({
+          where: {
+            id: entidadId,
+            paisId: paisSesionId,
+          },
+        });
       default:
         return false;
     }
@@ -214,6 +232,8 @@ export class BandejaPersonalService {
         return this.buildProyeccionItem(fijacion, paisSesionId);
       case FijacionEntidadTipo.RELACIONAMIENTO:
         return this.buildRelacionamientoItem(fijacion, paisSesionId);
+      case FijacionEntidadTipo.KAM:
+        return this.buildKamItem(fijacion, paisSesionId);
       default:
         return null;
     }
@@ -341,6 +361,64 @@ export class BandejaPersonalService {
     };
   }
 
+  private async buildKamItem(
+    fijacion: UsuarioFijacion,
+    paisSesionId: number,
+  ): Promise<BandejaItemDto | null> {
+    const rows = await this.dataSource.query(
+      `SELECT k.id,
+              COALESCE(p.codigo, p.id_digitado) AS titulo,
+              c.empresa AS empresa,
+              p.objeto AS objeto,
+              COALESCE(r.estado, ?) AS estado,
+              r.numero AS rondaNumero,
+              r.fecha_reunion_socializacion AS fechaReunion,
+              p.fecha_cierre AS fechaCierre
+       FROM kams k
+       INNER JOIN procesos p ON p.id = k.proceso_id
+       INNER JOIN clientes c ON c.id = k.empresa_cliente_id
+       LEFT JOIN kam_rondas r ON r.kam_id = k.id
+         AND r.numero = (
+           SELECT MAX(r2.numero) FROM kam_rondas r2 WHERE r2.kam_id = k.id
+         )
+       WHERE k.id = ?
+         AND k.pais_id = ?
+       LIMIT 1`,
+      [EstadoKamRonda.Pendiente, fijacion.entidadId, paisSesionId],
+    );
+
+    const row = (rows as Array<Record<string, unknown>>)[0];
+    if (!row) return null;
+
+    const fechaReunion = row.fechaReunion
+      ? normalizarFechaDesdeBd(row.fechaReunion as string | Date).fecha
+      : '';
+    const fechaCierre = row.fechaCierre
+      ? normalizarFechaDesdeBd(row.fechaCierre as string | Date).fecha
+      : '';
+    const usaReunion = Boolean(fechaReunion);
+    const rondaNumero = row.rondaNumero ? Number(row.rondaNumero) : null;
+
+    return {
+      id: Number(row.id),
+      entidadTipo: FijacionEntidadTipo.KAM,
+      titulo: String(row.titulo),
+      subtitulo: rondaNumero
+        ? `Ronda ${rondaNumero} · ${String(row.empresa)}`
+        : String(row.empresa),
+      empresa: row.empresa ? String(row.empresa) : null,
+      objeto: row.objeto ? String(row.objeto) : null,
+      estado: String(row.estado),
+      ...this.buildUrgenciaFields(
+        usaReunion ? fechaReunion : fechaCierre,
+        usaReunion ? 'Reunión socialización' : 'Cierre proceso',
+      ),
+      icono: 'groups',
+      ruta: `/kam/${row.id}`,
+      fechaFijacion: this.formatFechaFijacion(fijacion.fechaFijacion),
+    };
+  }
+
   private sortByUrgencia(items: BandejaItemDto[]): BandejaItemDto[] {
     return [...items].sort((a, b) => {
       const urgenciaDiff =
@@ -359,14 +437,16 @@ export class BandejaPersonalService {
     procesos: BandejaItemDto[],
     proyecciones: BandejaItemDto[],
     relacionamientos: BandejaItemDto[],
+    kams: BandejaItemDto[],
   ): BandejaResumenDto {
-    const all = [...procesos, ...proyecciones, ...relacionamientos];
+    const all = [...procesos, ...proyecciones, ...relacionamientos, ...kams];
 
     return {
       totalFijados: all.length,
       totalProcesos: procesos.length,
       totalProyecciones: proyecciones.length,
       totalRelacionamientos: relacionamientos.length,
+      totalKams: kams.length,
       urgentes: all.filter((item) => item.urgencia === BandejaUrgencia.ALTA).length,
       vencidos: all.filter(
         (item) => item.diasRestantes !== null && item.diasRestantes < 0,

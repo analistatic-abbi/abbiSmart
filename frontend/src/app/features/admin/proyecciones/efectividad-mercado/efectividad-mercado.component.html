@@ -2,14 +2,89 @@
   <a class="back" routerLink="/proyecciones">← Volver a proyecciones</a>
 
   <header class="page__header">
-    <div>
-      <h1>Efectividad de mercado</h1>
-      <p>
-        Compara qué tan acertada fue la clasificación General u Objetivo según el desenlace
-        real de las proyecciones del año seleccionado.
-      </p>
-    </div>
+    <h1>Efectividad de mercado</h1>
+    <button
+      type="button"
+      class="btn-secondary help-toggle"
+      (click)="toggleExplicacion()"
+      [attr.aria-expanded]="explicacionAbierta()"
+      aria-controls="efectividad-explicacion"
+    >
+      <span class="material-symbols-outlined">{{ explicacionAbierta() ? 'expand_less' : 'info' }}</span>
+      {{ explicacionAbierta() ? 'Ocultar explicación' : 'Cómo funciona' }}
+    </button>
   </header>
+
+  @if (explicacionAbierta()) {
+    <aside
+      id="efectividad-explicacion"
+      class="panel help-panel"
+      aria-label="Explicación de efectividad de mercado"
+    >
+      <h2>Cómo se calcula este reporte</h2>
+      <p>
+        El reporte toma las <strong>proyecciones del país de sesión</strong> con
+        <strong>año proyectado</strong> igual al seleccionado y mercado
+        <strong>General</strong> u <strong>Objetivo</strong>. Las proyecciones eliminadas
+        o sin mercado no entran al comparativo (aunque se informa cuántas quedaron fuera).
+      </p>
+
+      <h3>De dónde salen los datos</h3>
+      <ul>
+        <li>
+          <strong>Proyecciones:</strong> registro en el módulo de proyecciones (estado,
+          mercado y vínculo al proceso resultante, si existe).
+        </li>
+        <li>
+          <strong>Proceso resultante:</strong> proceso al que se materializó la proyección
+          (si está vinculado y no eliminado).
+        </li>
+        <li>
+          <strong>Adjudicación:</strong> se considera ganada si el proceso resultante está
+          en estado <em>Adjudicado</em> o tiene la marca de adjudicación.
+        </li>
+      </ul>
+
+      <h3>Cómo se clasifica cada proyección</h3>
+      <ul>
+        <li>
+          <strong>Ganada:</strong> tiene proceso resultante vigente y ese proceso fue adjudicado.
+        </li>
+        <li>
+          <strong>Se materializó, no se ganó:</strong> tiene proceso resultante vigente, pero
+          ese proceso no está adjudicado.
+        </li>
+        <li>
+          <strong>Nunca se materializó:</strong> no tiene proceso resultante y la proyección
+          está en estado <em>Cerrado</em>.
+        </li>
+        <li>
+          <strong>Pendiente / en curso:</strong> aún no se puede resolver (por ejemplo,
+          sigue abierta, o el proceso vinculado es inconsistente). Estas
+          <strong>no entran en los porcentajes</strong>.
+        </li>
+      </ul>
+
+      <h3>Cómo se leen los porcentajes</h3>
+      <ul>
+        <li>
+          Los tres primeros porcentajes (% nunca materializó, % materializó y no ganó, % ganó)
+          se calculan solo sobre proyecciones <strong>resueltas</strong>
+          (excluyen pendientes).
+        </li>
+        <li>
+          <strong>% Ganadas de las materializadas</strong> usa solo las que sí se
+          materializaron (ganadas + materializadas no ganadas) y muestra la tasa de éxito
+          cuando la oportunidad llegó a proceso.
+        </li>
+      </ul>
+
+      <p class="help-panel__note">
+        La comparación General vs Objetivo ayuda a evaluar si las proyecciones marcadas como
+        Objetivo tuvieron mejor desenlace real que las de mercado General en el mismo año.
+      </p>
+    </aside>
+  }
 
   <div class="toolbar">
     <app-year-selector

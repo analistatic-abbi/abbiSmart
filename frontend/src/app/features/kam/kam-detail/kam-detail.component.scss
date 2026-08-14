@@ -10,6 +10,14 @@
   margin-bottom: 20px;
 }
 
+.detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .detail__objeto {
   margin: 4px 0;
   font-size: 15px;

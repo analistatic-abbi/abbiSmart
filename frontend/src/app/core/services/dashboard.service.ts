@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { FiltroEliminados } from '../models/filtro-eliminados.model';
 import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 
 export interface DashboardResumen {
@@ -46,6 +47,19 @@ export interface ReporteGenerado {
   generadoPor: string;
 }
 
+export interface DashboardProcesosFilters {
+  search?: string;
+  estado?: string;
+  segmento?: string;
+  tipoProceso?: string;
+  tipoInstrumento?: string;
+  portalOrigen?: string;
+  empresaClienteId?: number;
+  fechaCierreDesde?: string;
+  fechaCierreHasta?: string;
+  filtroEliminados?: FiltroEliminados;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly http = inject(HttpClient);
@@ -55,15 +69,10 @@ export class DashboardService {
     return this.http.get<{ resumen: DashboardResumen }>(`${this.base}/resumen`);
   }
 
-  getProcesos(
-    search: string,
-    fechaCierreDesde?: string,
-    fechaCierreHasta?: string,
-  ): Observable<{ data: DashboardProceso[] }> {
-    let params = new HttpParams().set('search', search.trim());
-    if (fechaCierreDesde) params = params.set('fechaCierreDesde', fechaCierreDesde);
-    if (fechaCierreHasta) params = params.set('fechaCierreHasta', fechaCierreHasta);
-    return this.http.get<{ data: DashboardProceso[] }>(`${this.base}/procesos`, { params });
+  getProcesos(filters: DashboardProcesosFilters): Observable<{ data: DashboardProceso[] }> {
+    return this.http.get<{ data: DashboardProceso[] }>(`${this.base}/procesos`, {
+      params: this.buildProcesosParams(filters),
+    });
   }
 
   getProyecciones(anio?: number): Observable<{ data: DashboardProyecciones }> {
@@ -73,24 +82,13 @@ export class DashboardService {
   }
 
   exportar(
-    search?: string,
+    filters: DashboardProcesosFilters,
     anio?: number,
-    fechaCierreDesde?: string,
-    fechaCierreHasta?: string,
     onError?: (message: string) => void,
   ): void {
-    let params = new HttpParams();
-    if (search?.trim()) {
-      params = params.set('search', search.trim());
-    }
+    let params = this.buildProcesosParams(filters);
     if (anio) {
       params = params.set('anio', anio);
-    }
-    if (fechaCierreDesde) {
-      params = params.set('fechaCierreDesde', fechaCierreDesde);
-    }
-    if (fechaCierreHasta) {
-      params = params.set('fechaCierreHasta', fechaCierreHasta);
     }
 
     this.http
@@ -159,5 +157,28 @@ export class DashboardService {
           onError?.(message);
         },
       });
+  }
+
+  private buildProcesosParams(filters: DashboardProcesosFilters): HttpParams {
+    let params = new HttpParams();
+    if (filters.search?.trim()) params = params.set('search', filters.search.trim());
+    if (filters.estado) params = params.set('estado', filters.estado);
+    if (filters.segmento) params = params.set('segmento', filters.segmento);
+    if (filters.tipoProceso) params = params.set('tipoProceso', filters.tipoProceso);
+    if (filters.tipoInstrumento) params = params.set('tipoInstrumento', filters.tipoInstrumento);
+    if (filters.portalOrigen) params = params.set('portalOrigen', filters.portalOrigen);
+    if (filters.empresaClienteId != null) {
+      params = params.set('empresaClienteId', filters.empresaClienteId);
+    }
+    if (filters.fechaCierreDesde) {
+      params = params.set('fechaCierreDesde', filters.fechaCierreDesde);
+    }
+    if (filters.fechaCierreHasta) {
+      params = params.set('fechaCierreHasta', filters.fechaCierreHasta);
+    }
+    if (filters.filtroEliminados) {
+      params = params.set('filtroEliminados', filters.filtroEliminados);
+    }
+    return params;
   }
 }

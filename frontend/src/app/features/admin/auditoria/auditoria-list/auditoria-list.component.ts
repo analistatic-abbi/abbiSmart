@@ -5,11 +5,12 @@ import { AuditService } from '../../../../core/services/audit.service';
 import { AuditLog } from '../../../../core/models/admin.model';
 import { formatFechaHora } from '../../../../core/utils/date.util';
 import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
   selector: 'app-auditoria-list',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TablePaginationComponent],
   templateUrl: './auditoria-list.component.html',
   styleUrl: './auditoria-list.component.scss',
 })
@@ -20,6 +21,8 @@ export class AuditoriaListComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
+  protected readonly page = signal(1);
+  protected readonly limit = signal(50);
   protected readonly entidadTipo = signal('');
   protected readonly accion = signal('');
   protected readonly fecha = signal('');
@@ -30,6 +33,18 @@ export class AuditoriaListComponent implements OnInit {
   }
 
   protected onFilter(): void {
+    this.page.set(1);
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  protected onLimitChange(limit: number): void {
+    this.limit.set(limit);
+    this.page.set(1);
     this.load();
   }
 
@@ -47,7 +62,8 @@ export class AuditoriaListComponent implements OnInit {
         entidadTipo: this.entidadTipo() || undefined,
         accion: this.accion() || undefined,
         fecha: this.fecha() || undefined,
-        limit: 50,
+        page: this.page(),
+        limit: this.limit(),
       })
       .subscribe({
         next: (r) => {

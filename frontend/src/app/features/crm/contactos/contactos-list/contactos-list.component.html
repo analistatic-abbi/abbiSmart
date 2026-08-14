@@ -2,10 +2,7 @@
   <app-crm-tabs active="contactos" />
 
   <header class="page__header">
-    <div>
-      <h1>Contactos</h1>
-      <p>Personas de contacto en empresas cliente.</p>
-    </div>
+    <h1>Contactos</h1>
     @if (puedeEscribir()) {
       <a class="btn-primary" routerLink="/crm/contactos/nuevo">Nuevo contacto</a>
     }
@@ -92,8 +89,12 @@
         </tbody>
       </table>
     </div>
-    @if (total() > items().length) {
-      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} contactos.</p>
-    }
+    <app-table-pagination
+      [page]="page()"
+      [limit]="limit()"
+      [total]="total()"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)"
+    />
   }
 </section>

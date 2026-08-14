@@ -59,8 +59,16 @@
 
 .estado-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 12px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .estado-card {
@@ -190,6 +198,17 @@
   &:disabled {
     opacity: 0.6;
     cursor: wait;
+  }
+}
+
+.filters__empresa {
+  flex: 0 1 240px;
+  min-width: 200px;
+  max-width: 280px;
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
   }
 }
 

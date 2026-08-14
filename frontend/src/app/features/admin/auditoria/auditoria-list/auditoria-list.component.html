@@ -1,9 +1,6 @@
 <section class="page">
   <header class="page__header">
-    <div>
-      <h1>Auditoría</h1>
-      <p>Registro de acciones del sistema.</p>
-    </div>
+    <h1>Auditoría</h1>
   </header>
 
   <div class="filters">
@@ -65,8 +62,12 @@
         </tbody>
       </table>
     </div>
-    @if (total() > items().length) {
-      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} registros.</p>
-    }
+    <app-table-pagination
+      [page]="page()"
+      [limit]="limit()"
+      [total]="total()"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)"
+    />
   }
 </section>

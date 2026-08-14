@@ -13,13 +13,14 @@ import {
 import { CrmTabsComponent } from '../../shared/crm-tabs.component';
 import { formatFechaHora } from '../../../../core/utils/date.util';
 import { mensajeErrorApi } from '../../../../core/utils/api-error.util';
+import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 type Vista = 'todos' | 'vencidos';
 
 @Component({
   selector: 'app-relacionamientos-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, CrmTabsComponent],
+  imports: [FormsModule, RouterLink, CrmTabsComponent, TablePaginationComponent],
   templateUrl: './relacionamientos-list.component.html',
   styleUrl: './relacionamientos-list.component.scss',
 })
@@ -43,6 +44,8 @@ export class RelacionamientosListComponent implements OnInit {
   protected readonly fechaMensajeDesde = signal('');
   protected readonly fechaMensajeHasta = signal('');
   protected readonly error = signal<string | null>(null);
+  protected readonly page = signal(1);
+  protected readonly limit = signal(50);
   protected readonly total = signal(0);
   protected readonly formatFecha = formatFechaHora;
 
@@ -89,12 +92,25 @@ export class RelacionamientosListComponent implements OnInit {
 
   protected setVista(vista: Vista): void {
     this.vista.set(vista);
+    this.page.set(1);
     this.load();
   }
 
   protected onFilter(): void {
     if (!this.validarRangoFechas()) return;
     if (this.vista() === 'vencidos') return;
+    this.page.set(1);
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  protected onLimitChange(limit: number): void {
+    this.limit.set(limit);
+    this.page.set(1);
     this.load();
   }
 
@@ -105,6 +121,7 @@ export class RelacionamientosListComponent implements OnInit {
     this.fechaMensajeDesde.set('');
     this.fechaMensajeHasta.set('');
     this.error.set(null);
+    this.page.set(1);
     this.load();
   }
 
@@ -131,7 +148,8 @@ export class RelacionamientosListComponent implements OnInit {
         resultado: this.resultado() || undefined,
         fechaMensajeDesde: this.fechaMensajeDesde() || undefined,
         fechaMensajeHasta: this.fechaMensajeHasta() || undefined,
-        limit: 500,
+        page: this.page(),
+        limit: this.limit(),
       })
       .subscribe({
         next: (r) => {
