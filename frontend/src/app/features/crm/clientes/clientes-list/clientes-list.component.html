@@ -2,10 +2,7 @@
   <app-crm-tabs active="clientes" />
 
   <header class="page__header">
-    <div>
-      <h1>Clientes</h1>
-      <p>Gestión de empresas cliente.</p>
-    </div>
+    <h1>Clientes</h1>
     @if (puedeEscribir()) {
       <a class="btn-primary" routerLink="/crm/clientes/nuevo">Nuevo cliente</a>
     }
@@ -59,5 +56,12 @@
         </tbody>
       </table>
     </div>
+    <app-table-pagination
+      [page]="page()"
+      [limit]="limit()"
+      [total]="total()"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)"
+    />
   }
 </section>

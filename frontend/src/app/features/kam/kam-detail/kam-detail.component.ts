@@ -20,6 +20,7 @@ import { claseBadgeEstadoKamRonda } from '../../../core/utils/kam-ui.util';
 import { formatFechaHora } from '../../../core/utils/date.util';
 import { AsignarFormatoModalComponent } from '../modals/asignar-formato-modal/asignar-formato-modal.component';
 import { AgendarReunionModalComponent } from '../modals/agendar-reunion-modal/agendar-reunion-modal.component';
+import { FijarEntidadButtonComponent } from '../../../shared/components/fijar-entidad-button/fijar-entidad-button.component';
 
 @Component({
   selector: 'app-kam-detail',
@@ -30,6 +31,7 @@ import { AgendarReunionModalComponent } from '../modals/agendar-reunion-modal/ag
     DatePipe,
     AsignarFormatoModalComponent,
     AgendarReunionModalComponent,
+    FijarEntidadButtonComponent,
   ],
   templateUrl: './kam-detail.component.html',
   styleUrl: './kam-detail.component.scss',

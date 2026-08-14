@@ -31,6 +31,7 @@ export class EfectividadMercadoComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly reporte = signal<EfectividadMercadoReporte | null>(null);
   protected readonly anio = signal(new Date().getFullYear() - 1);
+  protected readonly explicacionAbierta = signal(false);
 
   protected readonly filas = computed<FilaReporte[]>(() => {
     const data = this.reporte();
@@ -104,6 +105,10 @@ export class EfectividadMercadoComponent implements OnInit {
 
   protected anioSiguiente(): void {
     this.setAnio(this.anio() + 1);
+  }
+
+  protected toggleExplicacion(): void {
+    this.explicacionAbierta.update((open) => !open);
   }
 
   protected barWidth(mercado: EfectividadMercadoMercado): number {

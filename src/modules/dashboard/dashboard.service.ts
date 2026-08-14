@@ -5,9 +5,13 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { EstadoUsuario } from '../../common/enums/estado-usuario.enum';
+import { FiltroEliminados } from '../../common/enums/filtro-eliminados.enum';
 import { Rol } from '../../common/enums/rol.enum';
+import { PermisosService } from '../../common/services/permisos.service';
+import { resolveFiltroEliminados } from '../../common/utils/filtro-eliminados.util';
 import {
   buildWorkbookBuffer,
   type SpreadsheetSheet,
@@ -20,6 +24,7 @@ import { NotificacionesService } from '../notificaciones/notificaciones.service'
 import { DashboardExportQueryDto, DashboardProcesosQueryDto } from './dto/dashboard-query.dto';
 
 export const EXPORT_MAX_ROWS = 10_000;
+export const DASHBOARD_PROCESOS_MAX_ROWS = 200;
 
 export interface DashboardResumenDto {
   totalProcesos: number;
@@ -78,6 +83,7 @@ export class DashboardService {
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
     private readonly notificacionesService: NotificacionesService,
+    private readonly permisosService: PermisosService,
   ) {}
 
   async getResumen(paisSesionId: number): Promise<DashboardResumenDto> {
@@ -124,71 +130,18 @@ export class DashboardService {
   async getProcesos(
     paisSesionId: number,
     query: DashboardProcesosQueryDto,
+    rol: Rol = Rol.OPERADOR,
   ): Promise<DashboardProcesoDto[]> {
-    const term = query.search?.trim();
-    if (!term) {
+    if (!this.hasProcesosFiltros(query)) {
       return [];
     }
 
-    if (
-      query.fechaCierreDesde &&
-      query.fechaCierreHasta &&
-      query.fechaCierreDesde > query.fechaCierreHasta
-    ) {
-      throw new BusinessException(
-        ErrorCode.VALIDATION_ERROR,
-        'La fecha de cierre desde no puede ser posterior a la fecha hasta',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const pattern = `%${term}%`;
-    const dateConditions: string[] = [];
-    const dateParams: unknown[] = [];
-
-    if (query.fechaCierreDesde) {
-      dateConditions.push('p.fecha_cierre >= ?');
-      dateParams.push(query.fechaCierreDesde);
-    }
-
-    if (query.fechaCierreHasta) {
-      dateConditions.push('p.fecha_cierre <= ?');
-      dateParams.push(query.fechaCierreHasta);
-    }
-
-    const dateClause = dateConditions.length
-      ? ` AND ${dateConditions.join(' AND ')}`
-      : '';
-
-    const rows = await this.procesoRepository.query(
-      `SELECT
-         vc.id,
-         vc.codigo,
-         vc.empresa_mostrar AS empresaMostrar,
-         vc.estado,
-         vc.segmento,
-         vc.cuantia,
-         vc.dias_restantes_cierre AS diasRestantesCierre,
-         COALESCE(va.avance_porcentaje, 0) AS avancePorcentaje,
-         vc.facturacion_estimada_anio_reporte AS facturacionEstimadaAnioReporte,
-         vc.fecha_inicio_ejecucion AS fechaInicioEjecucion,
-         vc.fecha_finalizacion AS fechaFinalizacion,
-         vc.dias_espera AS diasEspera,
-         vc.fecha_esperada AS fechaEsperada,
-         vc.meses_ejecucion_anio_reporte AS mesesEjecucionAnioReporte
-       FROM vista_procesos_calculado vc
-       INNER JOIN procesos p ON p.id = vc.id
-       LEFT JOIN vista_procesos_avance va ON va.proceso_id = vc.id
-       WHERE p.pais_id = ?
-         AND p.eliminado = FALSE
-         AND ${RFI_FILTER}
-         AND p.estado NOT IN ('Cerrado', 'Descartado')
-         AND p.id_digitado LIKE ?${dateClause}
-       ORDER BY vc.dias_restantes_cierre ASC`,
-      [paisSesionId, pattern, ...dateParams],
+    return this.queryProcesosFiltrados(
+      paisSesionId,
+      query,
+      rol,
+      DASHBOARD_PROCESOS_MAX_ROWS,
     );
-
-    return rows as DashboardProcesoDto[];
   }
 
   async getProyecciones(
@@ -281,9 +234,10 @@ export class DashboardService {
   async exportarXlsx(
     paisSesionId: number,
     query: DashboardExportQueryDto = {},
+    rol: Rol = Rol.OPERADOR,
   ): Promise<{ buffer: Buffer; filename: string }> {
     const resumen = await this.getResumen(paisSesionId);
-    const procesos = await this.getProcesosParaExport(paisSesionId, query);
+    const procesos = await this.getProcesosParaExport(paisSesionId, query, rol);
     const proyecciones = await this.getProyecciones(paisSesionId, query.anio);
     const fecha = new Date().toISOString().slice(0, 10);
 
@@ -452,25 +406,135 @@ export class DashboardService {
   private async getProcesosParaExport(
     paisSesionId: number,
     query: DashboardProcesosQueryDto,
+    rol: Rol,
   ): Promise<DashboardProcesoDto[]> {
-    const term = query.search?.trim();
-    const params: unknown[] = [paisSesionId];
-    let filtroBusqueda = '';
+    if (!this.hasProcesosFiltros(query)) {
+      // Exportación sin filtros: procesos activos (comportamiento histórico).
+      return this.queryProcesosFiltrados(
+        paisSesionId,
+        {},
+        rol,
+        EXPORT_MAX_ROWS,
+        true,
+      );
+    }
 
-    if (term) {
-      const pattern = `%${term}%`;
-      filtroBusqueda = ' AND p.id_digitado LIKE ?';
-      params.push(pattern);
+    return this.queryProcesosFiltrados(
+      paisSesionId,
+      query,
+      rol,
+      EXPORT_MAX_ROWS,
+    );
+  }
+
+  private hasProcesosFiltros(query: DashboardProcesosQueryDto): boolean {
+    return Boolean(
+      query.search?.trim() ||
+        query.estado ||
+        query.segmento ||
+        query.tipoProceso ||
+        query.tipoInstrumento ||
+        query.portalOrigen ||
+        query.empresaClienteId ||
+        query.fechaCierreDesde ||
+        query.fechaCierreHasta ||
+        (query.filtroEliminados &&
+          query.filtroEliminados !== FiltroEliminados.ACTIVOS),
+    );
+  }
+
+  private async queryProcesosFiltrados(
+    paisSesionId: number,
+    query: DashboardProcesosQueryDto,
+    rol: Rol,
+    limit: number,
+    allowEmptyFilters = false,
+  ): Promise<DashboardProcesoDto[]> {
+    if (!allowEmptyFilters && !this.hasProcesosFiltros(query)) {
+      return [];
+    }
+
+    if (
+      query.fechaCierreDesde &&
+      query.fechaCierreHasta &&
+      query.fechaCierreDesde > query.fechaCierreHasta
+    ) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'La fecha de cierre desde no puede ser posterior a la fecha hasta',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const filtroEliminados = resolveFiltroEliminados(
+      query.filtroEliminados,
+      undefined,
+      rol,
+      this.permisosService,
+    );
+
+    const conditions: string[] = [
+      'p.pais_id = ?',
+      RFI_FILTER,
+    ];
+    const params: unknown[] = [paisSesionId];
+
+    if (filtroEliminados === FiltroEliminados.ACTIVOS) {
+      conditions.push('p.eliminado = FALSE');
+    } else if (filtroEliminados === FiltroEliminados.SOLO_ELIMINADOS) {
+      conditions.push('p.eliminado = TRUE');
+    }
+
+    if (query.estado) {
+      conditions.push('p.estado = ?');
+      params.push(query.estado);
+    } else {
+      conditions.push(`p.estado NOT IN (?, ?)`);
+      params.push(EstadoProceso.CERRADO, EstadoProceso.DESCARTADO);
+    }
+
+    if (query.segmento) {
+      conditions.push('p.segmento = ?');
+      params.push(query.segmento);
+    }
+
+    if (query.tipoProceso) {
+      conditions.push('p.tipo_proceso = ?');
+      params.push(query.tipoProceso);
+    }
+
+    if (query.tipoInstrumento) {
+      conditions.push('p.tipo_instrumento = ?');
+      params.push(query.tipoInstrumento);
+    }
+
+    if (query.portalOrigen) {
+      conditions.push('p.portal_origen = ?');
+      params.push(query.portalOrigen);
+    }
+
+    if (query.empresaClienteId) {
+      conditions.push('p.empresa_cliente_id = ?');
+      params.push(query.empresaClienteId);
     }
 
     if (query.fechaCierreDesde) {
-      filtroBusqueda += ' AND p.fecha_cierre >= ?';
+      conditions.push('p.fecha_cierre >= ?');
       params.push(query.fechaCierreDesde);
     }
 
     if (query.fechaCierreHasta) {
-      filtroBusqueda += ' AND p.fecha_cierre <= ?';
+      conditions.push('p.fecha_cierre <= ?');
       params.push(query.fechaCierreHasta);
+    }
+
+    const term = query.search?.trim();
+    if (term) {
+      conditions.push(
+        '(p.id_digitado LIKE ? OR p.codigo LIKE ? OR p.objeto LIKE ?)',
+      );
+      const pattern = `%${term}%`;
+      params.push(pattern, pattern, pattern);
     }
 
     const rows = await this.procesoRepository.query(
@@ -492,13 +556,9 @@ export class DashboardService {
        FROM vista_procesos_calculado vc
        INNER JOIN procesos p ON p.id = vc.id
        LEFT JOIN vista_procesos_avance va ON va.proceso_id = vc.id
-       WHERE p.pais_id = ?
-         AND p.eliminado = FALSE
-         AND ${RFI_FILTER}
-         AND p.estado NOT IN ('Cerrado', 'Descartado')
-         ${filtroBusqueda}
+       WHERE ${conditions.join(' AND ')}
        ORDER BY vc.dias_restantes_cierre ASC
-       LIMIT ${EXPORT_MAX_ROWS}`,
+       LIMIT ${limit}`,
       params,
     );
 

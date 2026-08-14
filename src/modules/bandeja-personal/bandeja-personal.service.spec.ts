@@ -5,6 +5,7 @@ import { DataSource, Repository } from 'typeorm';
 import { BandejaUrgencia } from '../../common/enums/bandeja-urgencia.enum';
 import { FijacionEntidadTipo } from '../../common/enums/fijacion-entidad-tipo.enum';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { Kam } from '../../database/entities/kam.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
@@ -15,8 +16,6 @@ describe('BandejaPersonalService', () => {
   let service: BandejaPersonalService;
   let fijacionRepository: jest.Mocked<Repository<UsuarioFijacion>>;
   let procesoRepository: jest.Mocked<Repository<Proceso>>;
-  let proyeccionRepository: jest.Mocked<Repository<Proyeccion>>;
-  let relacionamientoRepository: jest.Mocked<Repository<Relacionamiento>>;
   let dataSource: { query: jest.Mock };
 
   beforeEach(async () => {
@@ -56,6 +55,12 @@ describe('BandejaPersonalService', () => {
           },
         },
         {
+          provide: getRepositoryToken(Kam),
+          useValue: {
+            exists: jest.fn(),
+          },
+        },
+        {
           provide: DataSource,
           useValue: dataSource,
         },
@@ -65,8 +70,6 @@ describe('BandejaPersonalService', () => {
     service = module.get(BandejaPersonalService);
     fijacionRepository = module.get(getRepositoryToken(UsuarioFijacion));
     procesoRepository = module.get(getRepositoryToken(Proceso));
-    proyeccionRepository = module.get(getRepositoryToken(Proyeccion));
-    relacionamientoRepository = module.get(getRepositoryToken(Relacionamiento));
   });
 
   it('fijar es idempotente cuando ya existe la fijación', async () => {
@@ -167,6 +170,7 @@ describe('BandejaPersonalService', () => {
     expect(result.procesos).toEqual([]);
     expect(result.proyecciones).toEqual([]);
     expect(result.relacionamientos).toEqual([]);
+    expect(result.kams).toEqual([]);
     expect(result.resumen.totalFijados).toBe(0);
   });
 

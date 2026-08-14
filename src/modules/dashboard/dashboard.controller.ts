@@ -38,6 +38,7 @@ export class DashboardController {
     const data = await this.dashboardService.getProcesos(
       user.paisSesionId!,
       query,
+      user.rol,
     );
 
     return {
@@ -73,6 +74,7 @@ export class DashboardController {
     const { buffer, filename } = await this.dashboardService.exportarXlsx(
       user.paisSesionId!,
       query,
+      user.rol,
     );
 
     res.setHeader(

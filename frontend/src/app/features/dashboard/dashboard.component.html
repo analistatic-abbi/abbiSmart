@@ -65,26 +65,81 @@
       <div class="panel__header-row">
         <h2>Procesos</h2>
       </div>
-      <p class="panel__hint">Busque por ID digitado para ver procesos activos.</p>
+      <p class="panel__hint">Use los mismos filtros de la pestaña Procesos para consultar activos.</p>
       <div class="filters">
         <input
           type="search"
-          placeholder="Buscar por ID digitado"
+          placeholder="Buscar por código, objeto o ID digitado"
           [ngModel]="searchProcesos()"
           (ngModelChange)="searchProcesos.set($event)"
           (keyup.enter)="buscarProcesos()"
         />
-        <label>
-          Cierre desde
-          <input type="date" [ngModel]="fechaCierreDesde()" (ngModelChange)="fechaCierreDesde.set($event)" />
-        </label>
-        <label>
-          Cierre hasta
-          <input type="date" [ngModel]="fechaCierreHasta()" (ngModelChange)="fechaCierreHasta.set($event)" />
-        </label>
+        <select [ngModel]="estado()" (ngModelChange)="estado.set($event); buscarProcesos()">
+          <option value="">Todos los estados</option>
+          @for (e of estados; track e) {
+            <option [value]="e">{{ e }}</option>
+          }
+        </select>
+        <select [ngModel]="segmento()" (ngModelChange)="segmento.set($event); buscarProcesos()">
+          <option value="">Todos los segmentos</option>
+          @for (s of segmentos(); track s.codigo) {
+            <option [value]="s.codigo">{{ s.etiqueta }}</option>
+          }
+        </select>
+        <select [ngModel]="tipoProceso()" (ngModelChange)="tipoProceso.set($event); buscarProcesos()">
+          <option value="">Todos los tipos</option>
+          @for (t of tiposProceso; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+        <select [ngModel]="tipoInstrumento()" (ngModelChange)="tipoInstrumento.set($event); buscarProcesos()">
+          <option value="">Todos los instrumentos</option>
+          @for (i of tiposInstrumento; track i) {
+            <option [value]="i">{{ i }}</option>
+          }
+        </select>
+        <select [ngModel]="portalOrigen()" (ngModelChange)="portalOrigen.set($event); buscarProcesos()">
+          <option value="">Todos los portales</option>
+          @for (p of portalesOrigen; track p.value) {
+            <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+        <div class="filters__empresa">
+          <app-searchable-select
+            [options]="clienteOptions()"
+            [ngModel]="empresaClienteId()"
+            (ngModelChange)="onEmpresaChange($event)"
+            placeholder="Todas las empresas"
+            searchPlaceholder="Buscar empresa..."
+            [minOptionsForSearch]="0"
+          />
+        </div>
+        <div class="filters__dates">
+          <label>
+            Cierre desde
+            <input type="date" [ngModel]="fechaCierreDesde()" (ngModelChange)="fechaCierreDesde.set($event)" />
+          </label>
+          <label>
+            Cierre hasta
+            <input type="date" [ngModel]="fechaCierreHasta()" (ngModelChange)="fechaCierreHasta.set($event)" />
+          </label>
+        </div>
+        @if (puedeVerEliminados()) {
+          <select
+            [ngModel]="filtroEliminados()"
+            (ngModelChange)="filtroEliminados.set($event); buscarProcesos()"
+          >
+            @for (opt of filtrosEliminados; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        }
         <button type="button" class="btn-secondary" [disabled]="buscandoProcesos()" (click)="buscarProcesos()">
-          {{ buscandoProcesos() ? 'Buscando...' : 'Buscar' }}
+          {{ buscandoProcesos() ? 'Buscando...' : 'Filtrar' }}
         </button>
+        @if (tieneFiltrosActivos()) {
+          <button type="button" class="btn-secondary" (click)="limpiarFiltrosProcesos()">Limpiar</button>
+        }
       </div>
 
       @if (errorProcesos()) {
@@ -115,7 +170,7 @@
                 <tr>
                   <td><a [routerLink]="['/procesos', p.id]">{{ p.codigo ?? '—' }}</a></td>
                   <td>{{ p.empresaMostrar }}</td>
-                  <td>{{ p.estado }}</td>
+                  <td><span [class]="procesoBadgeClass(p.estado)">{{ p.estado }}</span></td>
                   <td>{{ p.segmento }}</td>
                   <td [title]="moneyTitle(p.cuantia)">{{ formatMoney(p.cuantia) }}</td>
                   <td>{{ p.avancePorcentaje }}%</td>
@@ -128,9 +183,9 @@
                 <tr>
                   <td colspan="10">
                     @if (procesosBuscados()) {
-                      No se encontraron procesos para "{{ searchProcesos() }}".
+                      No se encontraron procesos con los filtros seleccionados.
                     } @else {
-                      Ingrese un término de búsqueda para consultar procesos.
+                      Use los filtros para consultar procesos activos.
                     }
                   </td>
                 </tr>

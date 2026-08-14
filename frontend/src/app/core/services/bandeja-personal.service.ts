@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export type FijacionEntidadTipo = 'proceso' | 'proyeccion' | 'relacionamiento';
+export type FijacionEntidadTipo =
+  | 'proceso'
+  | 'proyeccion'
+  | 'relacionamiento'
+  | 'kam';
 export type BandejaUrgencia = 'alta' | 'media' | 'baja' | 'sin_fecha';
 
 export interface BandejaItem {
@@ -33,6 +37,7 @@ export interface BandejaResumen {
   totalProcesos: number;
   totalProyecciones: number;
   totalRelacionamientos: number;
+  totalKams: number;
   urgentes: number;
   vencidos: number;
   porUrgencia: BandejaResumenConteo[];
@@ -44,6 +49,7 @@ export interface BandejaPersonalData {
   procesos: BandejaItem[];
   proyecciones: BandejaItem[];
   relacionamientos: BandejaItem[];
+  kams: BandejaItem[];
 }
 
 @Injectable({ providedIn: 'root' })

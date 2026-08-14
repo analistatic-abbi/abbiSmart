@@ -1,9 +1,6 @@
 <section class="page">
   <header class="page__header">
-    <div>
-      <h1>Panel de procesos</h1>
-      <p>Listado de procesos licitatorios.</p>
-    </div>
+    <h1>Panel de procesos</h1>
     @if (puedeEscribir()) {
       <a class="btn-primary" routerLink="/procesos/nuevo">Crear proceso</a>
     }
@@ -142,8 +139,12 @@
         </tbody>
       </table>
     </div>
-    @if (total() > items().length) {
-      <p class="table-hint">Mostrando {{ items().length }} de {{ total() }} procesos. Refine los filtros para acotar resultados.</p>
-    }
+    <app-table-pagination
+      [page]="page()"
+      [limit]="limit()"
+      [total]="total()"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)"
+    />
   }
 </section>

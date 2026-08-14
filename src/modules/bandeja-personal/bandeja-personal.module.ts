@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Kam } from '../../database/entities/kam.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { Relacionamiento } from '../../database/entities/relacionamiento.entity';
@@ -14,6 +15,7 @@ import { BandejaPersonalService } from './bandeja-personal.service';
       Proceso,
       Proyeccion,
       Relacionamiento,
+      Kam,
     ]),
   ],
   controllers: [BandejaPersonalController],

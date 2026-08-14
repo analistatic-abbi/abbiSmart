@@ -6,13 +6,14 @@ import { ClientesService } from '../../../../core/services/clientes.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteListItem, Contacto } from '../../../../core/models/crm.model';
 import { CrmTabsComponent } from '../../shared/crm-tabs.component';
+import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 type FiltroGenerico = '' | 'true' | 'false';
 
 @Component({
   selector: 'app-contactos-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, CrmTabsComponent],
+  imports: [FormsModule, RouterLink, CrmTabsComponent, TablePaginationComponent],
   templateUrl: './contactos-list.component.html',
   styleUrl: './contactos-list.component.scss',
 })
@@ -29,6 +30,8 @@ export class ContactosListComponent implements OnInit {
   protected readonly search = signal('');
   protected readonly clienteId = signal<number | ''>('');
   protected readonly esGenerico = signal<FiltroGenerico>('');
+  protected readonly page = signal(1);
+  protected readonly limit = signal(50);
   protected readonly total = signal(0);
 
   protected readonly tieneFiltrosActivos = computed(
@@ -44,6 +47,18 @@ export class ContactosListComponent implements OnInit {
   }
 
   protected onFilter(): void {
+    this.page.set(1);
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  protected onLimitChange(limit: number): void {
+    this.limit.set(limit);
+    this.page.set(1);
     this.load();
   }
 
@@ -51,6 +66,7 @@ export class ContactosListComponent implements OnInit {
     this.search.set('');
     this.clienteId.set('');
     this.esGenerico.set('');
+    this.page.set(1);
     this.load();
   }
 
@@ -66,7 +82,8 @@ export class ContactosListComponent implements OnInit {
         search: this.search().trim() || undefined,
         clienteId: this.clienteId() ? Number(this.clienteId()) : undefined,
         esGenerico: this.parseGenerico(this.esGenerico()),
-        limit: 500,
+        page: this.page(),
+        limit: this.limit(),
       })
       .subscribe({
         next: (r) => {

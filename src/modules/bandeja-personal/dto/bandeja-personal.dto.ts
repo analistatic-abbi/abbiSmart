@@ -41,6 +41,7 @@ export class BandejaResumenDto {
   totalProcesos: number;
   totalProyecciones: number;
   totalRelacionamientos: number;
+  totalKams: number;
   urgentes: number;
   vencidos: number;
   porUrgencia: BandejaResumenConteoDto[];
@@ -52,6 +53,7 @@ export class BandejaPersonalResponseDto {
   procesos: BandejaItemDto[];
   proyecciones: BandejaItemDto[];
   relacionamientos: BandejaItemDto[];
+  kams: BandejaItemDto[];
 }
 
 export class FijacionEstadoDto {

@@ -1,7 +1,8 @@
 /**
  * Carga datos de negocio mínimos para desarrollo (Colombia + Perú).
  * Idempotente: no reinserta si ya existe el proceso DEMO-CO-001.
- * Con --force (o SEED_DEMO_FORCE=1) elimina procesos DEMO-* y vuelve a crearlos.
+ * Con --force (o SEED_DEMO_FORCE=1) elimina TODO el dataset DEMO
+ * (clientes, contactos, procesos, proyecciones demo, etc.) y lo recrea.
  *
  * Ejecutar: npm run seed:demo-data
  * Forzar:   npm run seed:demo-data -- --force
@@ -115,22 +116,27 @@ interface UserIds {
   admin: number;
   validador: number;
   operadorCo: number;
+  operadorPe: number;
 }
 
-interface ClienteIds {
-  ecopetrolCo: number;
-  isaCo: number;
-  luzDelSurPe: number;
-  southernPe: number;
+type ClienteKey =
+  | 'ecopetrolCo'
+  | 'isaCo'
+  | 'emgesaCo'
+  | 'cenitCo'
+  | 'luzDelSurPe'
+  | 'southernPe'
+  | 'enelPe'
+  | 'repPe';
+
+type ClienteIds = Record<ClienteKey, number>;
+
+interface ContactoBundle {
+  generico: number;
+  nominales: number[];
 }
 
-interface ContactoIds {
-  ecopetrolGenerico: number;
-  ecopetrolNominal: number;
-  isaGenerico: number;
-  luzDelSurGenerico: number;
-  luzDelSurNominal: number;
-}
+type ContactosByCliente = Record<ClienteKey, ContactoBundle>;
 
 async function getConnection(): Promise<mariadb.Connection> {
   return mariadb.createConnection({
@@ -194,7 +200,12 @@ async function resolveUbicacionIds(
 async function resolveUserIds(conn: mariadb.Connection): Promise<UserIds> {
   const rows = await conn.query<Array<{ id: number; correo: string }>>(
     `SELECT id, correo FROM usuarios
-     WHERE correo IN ('admin@abbi.com', 'validador@abbi.com', 'operador.co@abbi.com')
+     WHERE correo IN (
+       'admin@abbi.com',
+       'validador@abbi.com',
+       'operador.co@abbi.com',
+       'operador.pe@abbi.com'
+     )
        AND eliminado = 0`,
   );
 
@@ -202,12 +213,13 @@ async function resolveUserIds(conn: mariadb.Connection): Promise<UserIds> {
   const admin = byCorreo.get('admin@abbi.com');
   const validador = byCorreo.get('validador@abbi.com');
   const operadorCo = byCorreo.get('operador.co@abbi.com');
+  const operadorPe = byCorreo.get('operador.pe@abbi.com');
 
-  if (!admin || !validador || !operadorCo) {
+  if (!admin || !validador || !operadorCo || !operadorPe) {
     throw new Error('Usuarios demo no encontrados. Ejecuta npm run seed:demo-users.');
   }
 
-  return { admin, validador, operadorCo };
+  return { admin, validador, operadorCo, operadorPe };
 }
 
 async function isDemoLoaded(conn: mariadb.Connection): Promise<boolean> {
@@ -254,7 +266,13 @@ async function insertClientes(
   paisIds: PaisIds,
   ubicaciones: UbicacionIds,
 ): Promise<ClienteIds> {
-  const clientes = [
+  const clientes: Array<{
+    key: ClienteKey;
+    empresa: string;
+    paisId: number;
+    ubicacionId: number;
+    segmento: string;
+  }> = [
     {
       key: 'ecopetrolCo',
       empresa: 'DEMO - Ecopetrol CO',
@@ -270,6 +288,20 @@ async function insertClientes(
       segmento: 'Energía Eléctrica',
     },
     {
+      key: 'emgesaCo',
+      empresa: 'DEMO - Emgesa CO',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      segmento: 'Energía Eléctrica',
+    },
+    {
+      key: 'cenitCo',
+      empresa: 'DEMO - Cenit Transporte CO',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      segmento: 'Gas Natural',
+    },
+    {
       key: 'luzDelSurPe',
       empresa: 'DEMO - Luz del Sur PE',
       paisId: paisIds.peru,
@@ -283,7 +315,21 @@ async function insertClientes(
       ubicacionId: ubicaciones.lima,
       segmento: 'Minería',
     },
-  ] as const;
+    {
+      key: 'enelPe',
+      empresa: 'DEMO - Enel Distribución PE',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      segmento: 'Energía Eléctrica',
+    },
+    {
+      key: 'repPe',
+      empresa: 'DEMO - Red de Energía del Perú',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      segmento: 'Electricidad',
+    },
+  ];
 
   const ids = {} as ClienteIds;
 
@@ -296,7 +342,7 @@ async function insertClientes(
     ids[cliente.key] = Number(result.insertId);
   }
 
-  console.log('✓ Clientes demo (2 CO + 2 PE)');
+  console.log(`✓ Clientes demo (${clientes.length}: 4 CO + 4 PE)`);
   return ids;
 }
 
@@ -304,122 +350,307 @@ async function insertContactos(
   conn: mariadb.Connection,
   clientes: ClienteIds,
   ubicaciones: UbicacionIds,
-): Promise<ContactoIds> {
-  const contactos: Array<{
-    key: keyof ContactoIds;
-    clienteId: number;
-    nombre: string;
+): Promise<ContactosByCliente> {
+  const plantillas: Array<{
+    clienteKey: ClienteKey;
     ubicacionId: number;
-    esGenerico: boolean;
-    cargo?: string;
-    correo?: string;
+    genericoNombre: string;
+    nominales: Array<{ nombre: string; cargo: string; correo: string; telefono: string }>;
   }> = [
     {
-      key: 'ecopetrolGenerico',
-      clienteId: clientes.ecopetrolCo,
-      nombre: 'Contacto General - DEMO - Ecopetrol CO',
+      clienteKey: 'ecopetrolCo',
       ubicacionId: ubicaciones.medellin,
-      esGenerico: true,
+      genericoNombre: 'Contacto General - DEMO - Ecopetrol CO',
+      nominales: [
+        {
+          nombre: 'María Gómez',
+          cargo: 'Gerente de Compras',
+          correo: 'maria.gomez@demo.local',
+          telefono: '3001110001',
+        },
+        {
+          nombre: 'Andrés Pérez',
+          cargo: 'Coordinador de Contratación',
+          correo: 'andres.perez@demo.local',
+          telefono: '3001110002',
+        },
+        {
+          nombre: 'Sofía Ramírez',
+          cargo: 'Analista de Proveedores',
+          correo: 'sofia.ramirez@demo.local',
+          telefono: '3001110003',
+        },
+      ],
     },
     {
-      key: 'ecopetrolNominal',
-      clienteId: clientes.ecopetrolCo,
-      nombre: 'María Gómez',
+      clienteKey: 'isaCo',
       ubicacionId: ubicaciones.medellin,
-      esGenerico: false,
-      cargo: 'Gerente de Compras',
-      correo: 'maria.gomez@demo.local',
+      genericoNombre: 'Contacto General - DEMO - ISA Interconexión CO',
+      nominales: [
+        {
+          nombre: 'Laura Restrepo',
+          cargo: 'Líder de Abastecimiento',
+          correo: 'laura.restrepo@demo.local',
+          telefono: '3002220001',
+        },
+        {
+          nombre: 'Julián Castro',
+          cargo: 'Analista de Licitaciones',
+          correo: 'julian.castro@demo.local',
+          telefono: '3002220002',
+        },
+        {
+          nombre: 'Camila Hoyos',
+          cargo: 'Ingeniera de Proyectos',
+          correo: 'camila.hoyos@demo.local',
+          telefono: '3002220003',
+        },
+      ],
     },
     {
-      key: 'isaGenerico',
-      clienteId: clientes.isaCo,
-      nombre: 'Contacto General - DEMO - ISA Interconexión CO',
+      clienteKey: 'emgesaCo',
       ubicacionId: ubicaciones.medellin,
-      esGenerico: true,
+      genericoNombre: 'Contacto General - DEMO - Emgesa CO',
+      nominales: [
+        {
+          nombre: 'Ricardo Mejía',
+          cargo: 'Jefe de Compras',
+          correo: 'ricardo.mejia@demo.local',
+          telefono: '3003330001',
+        },
+        {
+          nombre: 'Valentina López',
+          cargo: 'Especialista Técnica',
+          correo: 'valentina.lopez@demo.local',
+          telefono: '3003330002',
+        },
+        {
+          nombre: 'Esteban Quintero',
+          cargo: 'Coordinador Comercial',
+          correo: 'esteban.quintero@demo.local',
+          telefono: '3003330003',
+        },
+      ],
     },
     {
-      key: 'luzDelSurGenerico',
-      clienteId: clientes.luzDelSurPe,
-      nombre: 'Contacto General - DEMO - Luz del Sur PE',
+      clienteKey: 'cenitCo',
+      ubicacionId: ubicaciones.medellin,
+      genericoNombre: 'Contacto General - DEMO - Cenit Transporte CO',
+      nominales: [
+        {
+          nombre: 'Diana Vargas',
+          cargo: 'Gerente de Contratación',
+          correo: 'diana.vargas@demo.local',
+          telefono: '3004440001',
+        },
+        {
+          nombre: 'Felipe Rojas',
+          cargo: 'Líder HSE',
+          correo: 'felipe.rojas@demo.local',
+          telefono: '3004440002',
+        },
+        {
+          nombre: 'Natalia Suárez',
+          cargo: 'Analista de Costos',
+          correo: 'natalia.suarez@demo.local',
+          telefono: '3004440003',
+        },
+      ],
+    },
+    {
+      clienteKey: 'luzDelSurPe',
       ubicacionId: ubicaciones.lima,
-      esGenerico: true,
+      genericoNombre: 'Contacto General - DEMO - Luz del Sur PE',
+      nominales: [
+        {
+          nombre: 'Carlos Mendoza',
+          cargo: 'Jefe de Licitaciones',
+          correo: 'carlos.mendoza@demo.local',
+          telefono: '9001110001',
+        },
+        {
+          nombre: 'Patricia Rojas',
+          cargo: 'Especialista Comercial',
+          correo: 'patricia.rojas@demo.local',
+          telefono: '9001110002',
+        },
+        {
+          nombre: 'Luis Aliaga',
+          cargo: 'Ingeniero de Redes',
+          correo: 'luis.aliaga@demo.local',
+          telefono: '9001110003',
+        },
+      ],
     },
     {
-      key: 'luzDelSurNominal',
-      clienteId: clientes.luzDelSurPe,
-      nombre: 'Carlos Mendoza',
+      clienteKey: 'southernPe',
       ubicacionId: ubicaciones.lima,
-      esGenerico: false,
-      cargo: 'Jefe de Licitaciones',
-      correo: 'carlos.mendoza@demo.local',
+      genericoNombre: 'Contacto General - DEMO - Southern Peru PE',
+      nominales: [
+        {
+          nombre: 'Diego Quispe',
+          cargo: 'Jefe de Proyectos',
+          correo: 'diego.quispe@demo.local',
+          telefono: '9002220001',
+        },
+        {
+          nombre: 'Ana Torres',
+          cargo: 'Coordinadora de Compras',
+          correo: 'ana.torres@demo.local',
+          telefono: '9002220002',
+        },
+        {
+          nombre: 'Miguel Salas',
+          cargo: 'Supervisor de Obra',
+          correo: 'miguel.salas@demo.local',
+          telefono: '9002220003',
+        },
+      ],
+    },
+    {
+      clienteKey: 'enelPe',
+      ubicacionId: ubicaciones.lima,
+      genericoNombre: 'Contacto General - DEMO - Enel Distribución PE',
+      nominales: [
+        {
+          nombre: 'Rosa Paredes',
+          cargo: 'Jefa de Abastecimiento',
+          correo: 'rosa.paredes@demo.local',
+          telefono: '9003330001',
+        },
+        {
+          nombre: 'Jorge Huamán',
+          cargo: 'Analista de Contratos',
+          correo: 'jorge.huaman@demo.local',
+          telefono: '9003330002',
+        },
+        {
+          nombre: 'Elena Cruz',
+          cargo: 'Coordinadora Técnica',
+          correo: 'elena.cruz@demo.local',
+          telefono: '9003330003',
+        },
+      ],
+    },
+    {
+      clienteKey: 'repPe',
+      ubicacionId: ubicaciones.lima,
+      genericoNombre: 'Contacto General - DEMO - Red de Energía del Perú',
+      nominales: [
+        {
+          nombre: 'Pedro Salinas',
+          cargo: 'Gerente de Proyectos',
+          correo: 'pedro.salinas@demo.local',
+          telefono: '9004440001',
+        },
+        {
+          nombre: 'Lucía Vega',
+          cargo: 'Especialista de Licitaciones',
+          correo: 'lucia.vega@demo.local',
+          telefono: '9004440002',
+        },
+        {
+          nombre: 'Héctor Ramos',
+          cargo: 'Ingeniero Eléctrico',
+          correo: 'hector.ramos@demo.local',
+          telefono: '9004440003',
+        },
+      ],
     },
   ];
 
-  const ids = {} as ContactoIds;
+  const byCliente = {} as ContactosByCliente;
+  let total = 0;
 
-  for (const contacto of contactos) {
-    const result = await conn.query(
+  for (const plantilla of plantillas) {
+    const genericoResult = await conn.query(
       `INSERT INTO contactos
-         (cliente_id, nombre, cargo, correo, ubicacion_id, es_generico, eliminado)
-       VALUES (?, ?, ?, ?, ?, ?, FALSE)`,
-      [
-        contacto.clienteId,
-        contacto.nombre,
-        contacto.cargo ?? null,
-        contacto.correo ?? null,
-        contacto.ubicacionId,
-        contacto.esGenerico,
-      ],
+         (cliente_id, nombre, cargo, correo, telefono, ubicacion_id, es_generico, eliminado)
+       VALUES (?, ?, NULL, NULL, NULL, ?, TRUE, FALSE)`,
+      [clientes[plantilla.clienteKey], plantilla.genericoNombre, plantilla.ubicacionId],
     );
-    ids[contacto.key] = Number(result.insertId);
+    const generico = Number(genericoResult.insertId);
+    total += 1;
+
+    const nominales: number[] = [];
+    for (const nominal of plantilla.nominales) {
+      const result = await conn.query(
+        `INSERT INTO contactos
+           (cliente_id, nombre, cargo, correo, telefono, ubicacion_id, es_generico, eliminado)
+         VALUES (?, ?, ?, ?, ?, ?, FALSE, FALSE)`,
+        [
+          clientes[plantilla.clienteKey],
+          nominal.nombre,
+          nominal.cargo,
+          nominal.correo,
+          nominal.telefono,
+          plantilla.ubicacionId,
+        ],
+      );
+      nominales.push(Number(result.insertId));
+      total += 1;
+    }
+
+    byCliente[plantilla.clienteKey] = { generico, nominales };
   }
 
-  console.log('✓ Contactos demo');
-  return ids;
+  console.log(`✓ Contactos demo (${total}, 4 por cliente)`);
+  return byCliente;
 }
 
-interface ProcesoSeed {
-  idDigitado: string;
-  paisId: number;
-  ubicacionId: number;
-  empresaClienteId: number;
-  estado: string;
-  usuarioCreadorId: number;
-  completarTareas?: CompletarNivel;
-  moneda: 'COP' | 'PEN';
-  cuantia: number;
-  segmento?: string;
-  tipoProceso?: 'Periódico' | 'No periódico';
-  tipoInstrumento?: TipoInstrumento;
-  fechaAdquisicionDerecho?: string | null;
+async function tableExists(
+  conn: mariadb.Connection,
+  tableName: string,
+): Promise<boolean> {
+  const rows = await conn.query<Array<{ cnt: number }>>(
+    `SELECT COUNT(*) AS cnt
+     FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = ?`,
+    [tableName],
+  );
+  return Number(rows[0]?.cnt ?? 0) > 0;
 }
 
-async function clearDemoProcesos(conn: mariadb.Connection): Promise<void> {
-  await conn.query(`
-    DELETE FROM validaciones_proceso
-    WHERE proceso_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-  `);
-  await conn.query(`
-    DELETE FROM proceso_tareas
-    WHERE proceso_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-  `);
-  await conn.query(`
-    DELETE FROM proceso_indicadores
-    WHERE proceso_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-  `);
-  await conn.query(`
-    UPDATE proyecciones
-    SET proceso_origen_id = NULL, proceso_resultante_id = NULL
-    WHERE proceso_origen_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-       OR proceso_resultante_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-  `);
-  await conn.query(`
-    DELETE FROM solicitudes_eliminacion
-    WHERE entidad_tipo = 'proceso'
-      AND entidad_id IN (SELECT id FROM procesos WHERE id_digitado LIKE 'DEMO-%')
-  `);
-  await conn.query(`DELETE FROM procesos WHERE id_digitado LIKE 'DEMO-%'`);
-  console.log('✓ Procesos demo anteriores eliminados');
+async function clearDemoDataset(conn: mariadb.Connection): Promise<void> {
+  // Limpieza total de datos de negocio (deja usuarios, países, ubicaciones, catálogos).
+  await conn.query('SET FOREIGN_KEY_CHECKS = 0');
+
+  const tables = [
+    'kam_encuesta_respuestas',
+    'kam_encuesta_contactos',
+    'kam_encuestas',
+    'kam_ronda_bitacora',
+    'kam_ronda_correspondencias',
+    'kam_rondas',
+    'kams',
+    'proceso_contactos',
+    'proceso_comentarios',
+    'proceso_calificacion_detalle',
+    'proceso_calificaciones',
+    'proceso_tareas',
+    'proceso_indicadores',
+    'validaciones_proceso',
+    'alertas_enviadas',
+    'usuario_fijaciones',
+    'solicitudes_eliminacion',
+    'relacionamientos',
+    'notificaciones',
+    'proyecciones',
+    'procesos',
+    'contactos',
+    'clientes',
+    'carga_masiva_log',
+    'reportes_generados',
+  ];
+
+  for (const table of tables) {
+    if (await tableExists(conn, table)) {
+      await conn.query(`DELETE FROM \`${table}\``);
+    }
+  }
+
+  await conn.query('SET FOREIGN_KEY_CHECKS = 1');
+  console.log('✓ Datos de negocio anteriores eliminados (procesos, clientes, contactos, etc.)');
 }
 
 async function insertProceso(
@@ -438,8 +669,8 @@ async function insertProceso(
        id_digitado, empresa_cliente_id, pais_id, ubicacion_id,
        cuantia, moneda, segmento, tipo_proceso, tipo_instrumento,
        plazo_ejecucion_meses, experiencia, estado, usuario_creador_id,
-       fecha_apertura, fecha_cierre, fecha_adquisicion_derecho, eliminado
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 12, FALSE, ?, ?, ?, ?, ?, FALSE)`,
+       fecha_apertura, fecha_cierre, fecha_adquisicion_derecho, anio_parametros, eliminado
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 12, FALSE, ?, ?, ?, ?, ?, 2026, FALSE)`,
     [
       proceso.idDigitado,
       proceso.empresaClienteId,
@@ -525,11 +756,25 @@ async function insertProcesos(
   paisIds: PaisIds,
   ubicaciones: UbicacionIds,
   clientes: ClienteIds,
+  contactos: ContactosByCliente,
   users: UserIds,
 ): Promise<void> {
-  const seeds: ProcesoSeed[] = [
+  const pickContactos = (clienteKey: ClienteKey, cantidad: number): number[] => {
+    const bundle = contactos[clienteKey];
+    const pool = [bundle.generico, ...bundle.nominales];
+    return pool.slice(0, Math.min(cantidad, pool.length));
+  };
+
+  type SeedDef = ProcesoSeed & {
+    clienteKey: ClienteKey;
+    contactosCount: number;
+  };
+
+  const defs: SeedDef[] = [
+    // Colombia — Ecopetrol
     {
       idDigitado: 'DEMO-CO-001',
+      clienteKey: 'ecopetrolCo',
       paisId: paisIds.colombia,
       ubicacionId: ubicaciones.medellin,
       empresaClienteId: clientes.ecopetrolCo,
@@ -538,21 +783,11 @@ async function insertProcesos(
       moneda: 'COP',
       cuantia: 500000000,
       segmento: 'Gas Natural',
+      contactosCount: 2,
     },
     {
       idDigitado: 'DEMO-CO-002',
-      paisId: paisIds.colombia,
-      ubicacionId: ubicaciones.medellin,
-      empresaClienteId: clientes.isaCo,
-      estado: 'En Proceso',
-      usuarioCreadorId: users.admin,
-      completarTareas: 'partial',
-      moneda: 'COP',
-      cuantia: 750000000,
-      segmento: 'Electricidad',
-    },
-    {
-      idDigitado: 'DEMO-CO-003',
+      clienteKey: 'ecopetrolCo',
       paisId: paisIds.colombia,
       ubicacionId: ubicaciones.medellin,
       empresaClienteId: clientes.ecopetrolCo,
@@ -563,21 +798,11 @@ async function insertProcesos(
       cuantia: 920000000,
       segmento: 'Obra Civil',
       fechaAdquisicionDerecho: '2026-02-10',
+      contactosCount: 3,
     },
     {
-      idDigitado: 'DEMO-CO-004',
-      paisId: paisIds.colombia,
-      ubicacionId: ubicaciones.medellin,
-      empresaClienteId: clientes.isaCo,
-      estado: 'En Validación',
-      usuarioCreadorId: users.admin,
-      completarTareas: 'all',
-      moneda: 'COP',
-      cuantia: 1100000000,
-      segmento: 'Alcantarillado',
-    },
-    {
-      idDigitado: 'DEMO-CO-005',
+      idDigitado: 'DEMO-CO-003',
+      clienteKey: 'ecopetrolCo',
       paisId: paisIds.colombia,
       ubicacionId: ubicaciones.medellin,
       empresaClienteId: clientes.ecopetrolCo,
@@ -588,9 +813,53 @@ async function insertProcesos(
       cuantia: 430000000,
       tipoProceso: 'No periódico',
       segmento: 'Servicios Adicionales',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-004',
+      clienteKey: 'ecopetrolCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.ecopetrolCo,
+      estado: 'Descartado',
+      usuarioCreadorId: users.operadorCo,
+      moneda: 'COP',
+      cuantia: 210000000,
+      segmento: 'Minería',
+      contactosCount: 2,
+    },
+    // Colombia — ISA
+    {
+      idDigitado: 'DEMO-CO-005',
+      clienteKey: 'isaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.isaCo,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'partial',
+      moneda: 'COP',
+      cuantia: 750000000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
     },
     {
       idDigitado: 'DEMO-CO-006',
+      clienteKey: 'isaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.isaCo,
+      estado: 'En Validación',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 1100000000,
+      segmento: 'Alcantarillado',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-007',
+      clienteKey: 'isaCo',
       paisId: paisIds.colombia,
       ubicacionId: ubicaciones.medellin,
       empresaClienteId: clientes.isaCo,
@@ -600,33 +869,153 @@ async function insertProcesos(
       moneda: 'COP',
       cuantia: 680000000,
       segmento: 'Gas Natural',
+      contactosCount: 3,
     },
     {
+      idDigitado: 'DEMO-CO-008',
+      clienteKey: 'isaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.isaCo,
+      estado: 'Cerrado',
+      usuarioCreadorId: users.operadorCo,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 390000000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    // Colombia — Emgesa
+    {
+      idDigitado: 'DEMO-CO-009',
+      clienteKey: 'emgesaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.emgesaCo,
+      estado: 'Por Validar',
+      usuarioCreadorId: users.admin,
+      moneda: 'COP',
+      cuantia: 560000000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-010',
+      clienteKey: 'emgesaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.emgesaCo,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.operadorCo,
+      completarTareas: 'partial',
+      moneda: 'COP',
+      cuantia: 870000000,
+      segmento: 'Obra Civil',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-CO-011',
+      clienteKey: 'emgesaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.emgesaCo,
+      estado: 'Presentado',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 640000000,
+      segmento: 'Servicios Adicionales',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-012',
+      clienteKey: 'emgesaCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.emgesaCo,
+      estado: 'Subsanación',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 455000000,
+      segmento: 'Electricidad',
+      contactosCount: 3,
+    },
+    // Colombia — Cenit
+    {
+      idDigitado: 'DEMO-CO-013',
+      clienteKey: 'cenitCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.cenitCo,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.operadorCo,
+      completarTareas: 'partial',
+      moneda: 'COP',
+      cuantia: 980000000,
+      segmento: 'Gas Natural',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-014',
+      clienteKey: 'cenitCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.cenitCo,
+      estado: 'En Validación',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 1250000000,
+      segmento: 'Gas Natural',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-CO-015',
+      clienteKey: 'cenitCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.cenitCo,
+      estado: 'Adjudicado',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'COP',
+      cuantia: 720000000,
+      segmento: 'Obra Civil',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-CO-016',
+      clienteKey: 'cenitCo',
+      paisId: paisIds.colombia,
+      ubicacionId: ubicaciones.medellin,
+      empresaClienteId: clientes.cenitCo,
+      estado: 'Por Validar',
+      usuarioCreadorId: users.admin,
+      moneda: 'COP',
+      cuantia: 305000000,
+      tipoInstrumento: TipoInstrumento.COTIZACION,
+      segmento: 'Servicios Adicionales',
+      contactosCount: 2,
+    },
+    // Perú — Luz del Sur
+    {
       idDigitado: 'DEMO-PE-001',
+      clienteKey: 'luzDelSurPe',
       paisId: paisIds.peru,
       ubicacionId: ubicaciones.lima,
       empresaClienteId: clientes.luzDelSurPe,
       estado: 'En Proceso',
-      usuarioCreadorId: users.admin,
+      usuarioCreadorId: users.operadorPe,
       completarTareas: 'partial',
       moneda: 'PEN',
       cuantia: 1500000,
       segmento: 'Electricidad',
+      contactosCount: 2,
     },
     {
       idDigitado: 'DEMO-PE-002',
-      paisId: paisIds.peru,
-      ubicacionId: ubicaciones.lima,
-      empresaClienteId: clientes.southernPe,
-      estado: 'Por Validar',
-      usuarioCreadorId: users.admin,
-      moneda: 'PEN',
-      cuantia: 2100000,
-      segmento: 'Obra Civil',
-      tipoInstrumento: TipoInstrumento.COTIZACION,
-    },
-    {
-      idDigitado: 'DEMO-PE-003',
+      clienteKey: 'luzDelSurPe',
       paisId: paisIds.peru,
       ubicacionId: ubicaciones.lima,
       empresaClienteId: clientes.luzDelSurPe,
@@ -636,37 +1025,240 @@ async function insertProcesos(
       moneda: 'PEN',
       cuantia: 3200000,
       segmento: 'Gas Natural',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-PE-003',
+      clienteKey: 'luzDelSurPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.luzDelSurPe,
+      estado: 'Por Validar',
+      usuarioCreadorId: users.operadorPe,
+      moneda: 'PEN',
+      cuantia: 980000,
+      segmento: 'Servicios Adicionales',
+      contactosCount: 2,
     },
     {
       idDigitado: 'DEMO-PE-004',
+      clienteKey: 'luzDelSurPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.luzDelSurPe,
+      estado: 'Cerrado',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 2100000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    // Perú — Southern
+    {
+      idDigitado: 'DEMO-PE-005',
+      clienteKey: 'southernPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.southernPe,
+      estado: 'Por Validar',
+      usuarioCreadorId: users.admin,
+      moneda: 'PEN',
+      cuantia: 2100000,
+      segmento: 'Obra Civil',
+      tipoInstrumento: TipoInstrumento.COTIZACION,
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-006',
+      clienteKey: 'southernPe',
       paisId: paisIds.peru,
       ubicacionId: ubicaciones.lima,
       empresaClienteId: clientes.southernPe,
       estado: 'Subsanación',
-      usuarioCreadorId: users.admin,
+      usuarioCreadorId: users.operadorPe,
       completarTareas: 'all',
       moneda: 'PEN',
       cuantia: 1850000,
       segmento: 'Electricidad',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-PE-007',
+      clienteKey: 'southernPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.southernPe,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'partial',
+      moneda: 'PEN',
+      cuantia: 2750000,
+      segmento: 'Minería',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-008',
+      clienteKey: 'southernPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.southernPe,
+      estado: 'Adjudicado',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 4100000,
+      segmento: 'Obra Civil',
+      contactosCount: 3,
+    },
+    // Perú — Enel
+    {
+      idDigitado: 'DEMO-PE-009',
+      clienteKey: 'enelPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.enelPe,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.operadorPe,
+      completarTareas: 'partial',
+      moneda: 'PEN',
+      cuantia: 1650000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-010',
+      clienteKey: 'enelPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.enelPe,
+      estado: 'En Validación',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 2900000,
+      segmento: 'Electricidad',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-PE-011',
+      clienteKey: 'enelPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.enelPe,
+      estado: 'Presentado',
+      usuarioCreadorId: users.operadorPe,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 1340000,
+      segmento: 'Servicios Adicionales',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-012',
+      clienteKey: 'enelPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.enelPe,
+      estado: 'Descartado',
+      usuarioCreadorId: users.admin,
+      moneda: 'PEN',
+      cuantia: 760000,
+      segmento: 'Gas Natural',
+      contactosCount: 2,
+    },
+    // Perú — REP
+    {
+      idDigitado: 'DEMO-PE-013',
+      clienteKey: 'repPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.repPe,
+      estado: 'Por Validar',
+      usuarioCreadorId: users.operadorPe,
+      moneda: 'PEN',
+      cuantia: 2480000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-014',
+      clienteKey: 'repPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.repPe,
+      estado: 'En Proceso',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 3650000,
+      segmento: 'Obra Civil',
+      fechaAdquisicionDerecho: '2026-03-01',
+      contactosCount: 3,
+    },
+    {
+      idDigitado: 'DEMO-PE-015',
+      clienteKey: 'repPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.repPe,
+      estado: 'Subsanación',
+      usuarioCreadorId: users.operadorPe,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 1980000,
+      segmento: 'Electricidad',
+      contactosCount: 2,
+    },
+    {
+      idDigitado: 'DEMO-PE-016',
+      clienteKey: 'repPe',
+      paisId: paisIds.peru,
+      ubicacionId: ubicaciones.lima,
+      empresaClienteId: clientes.repPe,
+      estado: 'Adjudicado',
+      usuarioCreadorId: users.admin,
+      completarTareas: 'all',
+      moneda: 'PEN',
+      cuantia: 4520000,
+      segmento: 'Electricidad',
+      contactosCount: 3,
     },
   ];
 
   const idsByDigitado = new Map<string, number>();
-  for (const seed of seeds) {
-    const id = await insertProceso(conn, seed);
-    idsByDigitado.set(seed.idDigitado, id);
+  let vinculosInsertados = 0;
+
+  for (const def of defs) {
+    const { clienteKey, contactosCount, ...proceso } = def;
+    const procesoId = await insertProceso(conn, proceso);
+    idsByDigitado.set(proceso.idDigitado, procesoId);
+
+    for (const contactoId of pickContactos(clienteKey, contactosCount)) {
+      await conn.query(
+        `INSERT IGNORE INTO proceso_contactos (proceso_id, contacto_id)
+         VALUES (?, ?)`,
+        [procesoId, contactoId],
+      );
+      vinculosInsertados += 1;
+    }
   }
 
-  const enValidacionId = idsByDigitado.get('DEMO-CO-004');
-  if (enValidacionId) {
+  for (const digitado of ['DEMO-CO-006', 'DEMO-CO-014', 'DEMO-PE-010'] as const) {
+    const procesoId = idsByDigitado.get(digitado);
+    if (!procesoId) {
+      continue;
+    }
     await conn.query(
       `INSERT INTO validaciones_proceso (proceso_id, validador_id, veredicto)
        VALUES (?, ?, 'Pendiente')`,
-      [enValidacionId, users.validador],
+      [procesoId, users.validador],
     );
   }
 
-  console.log(`✓ Procesos demo (${seeds.length}), validación pendiente en DEMO-CO-004`);
+  console.log(
+    `✓ Procesos demo (${defs.length}), ${vinculosInsertados} vínculos proceso↔contacto, 3 en validación pendiente`,
+  );
 }
 
 async function insertProyecciones(
@@ -674,13 +1266,21 @@ async function insertProyecciones(
   paisIds: PaisIds,
 ): Promise<void> {
   const proyecciones = [
-  {
+    {
       paisId: paisIds.colombia,
       anio: 2026,
       fecha: '2026-03-10',
       estado: 'Lejano',
       venta: 800000000,
       facturacion: 600000000,
+    },
+    {
+      paisId: paisIds.colombia,
+      anio: 2026,
+      fecha: '2026-04-22',
+      estado: 'Lejano',
+      venta: 450000000,
+      facturacion: 320000000,
     },
     {
       paisId: paisIds.colombia,
@@ -693,10 +1293,34 @@ async function insertProyecciones(
     {
       paisId: paisIds.colombia,
       anio: 2026,
+      fecha: '2026-07-05',
+      estado: 'Proximo',
+      venta: 670000000,
+      facturacion: 510000000,
+    },
+    {
+      paisId: paisIds.colombia,
+      anio: 2026,
       fecha: '2026-08-20',
       estado: 'Sale este mes',
       venta: 950000000,
       facturacion: 700000000,
+    },
+    {
+      paisId: paisIds.colombia,
+      anio: 2026,
+      fecha: '2026-09-12',
+      estado: 'Sale este mes',
+      venta: 530000000,
+      facturacion: 410000000,
+    },
+    {
+      paisId: paisIds.peru,
+      anio: 2026,
+      fecha: '2026-03-28',
+      estado: 'Lejano',
+      venta: 1900000,
+      facturacion: 1400000,
     },
     {
       paisId: paisIds.peru,
@@ -717,10 +1341,26 @@ async function insertProyecciones(
     {
       paisId: paisIds.peru,
       anio: 2026,
+      fecha: '2026-08-08',
+      estado: 'Proximo',
+      venta: 1750000,
+      facturacion: 1300000,
+    },
+    {
+      paisId: paisIds.peru,
+      anio: 2026,
       fecha: '2026-09-18',
       estado: 'Sale este mes',
       venta: 2800000,
       facturacion: 2100000,
+    },
+    {
+      paisId: paisIds.peru,
+      anio: 2026,
+      fecha: '2026-10-02',
+      estado: 'Sale este mes',
+      venta: 2100000,
+      facturacion: 1600000,
     },
   ];
 
@@ -740,13 +1380,13 @@ async function insertProyecciones(
     );
   }
 
-  console.log('✓ Proyecciones demo (6)');
+  console.log(`✓ Proyecciones demo (${proyecciones.length})`);
 }
 
 async function insertRelacionamientos(
   conn: mariadb.Connection,
-  contactos: ContactoIds,
-  operadorCoId: number,
+  contactos: ContactosByCliente,
+  users: UserIds,
 ): Promise<void> {
   const haceQuinceDias = new Date();
   haceQuinceDias.setDate(haceQuinceDias.getDate() - 15);
@@ -755,21 +1395,124 @@ async function insertRelacionamientos(
   fechaAlertaVencida.setDate(fechaAlertaVencida.getDate() - 1);
   const fechaAlertaVencidaStr = fechaAlertaVencida.toISOString().slice(0, 10);
 
-  await conn.query(
-    `INSERT INTO relacionamientos
-       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, fecha_alerta_respuesta, respuesta, fecha_respuesta, resultado, fecha_reunion, eliminado)
-     VALUES (?, ?, 'Correo', 'Seguimiento demo con respuesta recibida.', '2026-02-01', '2026-02-08', 'Cliente interesado en reunión.', '2026-02-05', 'Reunión programada', '2026-02-12', FALSE)`,
-    [contactos.ecopetrolNominal, operadorCoId],
-  );
+  const items: Array<{
+    contactoId: number;
+    emisorId: number;
+    canal: string;
+    mensaje: string;
+    fechaMensaje: string;
+    fechaAlerta: string;
+    respuesta?: string;
+    fechaRespuesta?: string;
+    resultado: string;
+    fechaReunion?: string;
+  }> = [
+    {
+      contactoId: contactos.ecopetrolCo.nominales[0],
+      emisorId: users.operadorCo,
+      canal: 'Correo',
+      mensaje: 'Seguimiento demo con respuesta recibida.',
+      fechaMensaje: '2026-02-01',
+      fechaAlerta: '2026-02-08',
+      respuesta: 'Cliente interesado en reunión.',
+      fechaRespuesta: '2026-02-05',
+      resultado: 'Reunión programada',
+      fechaReunion: '2026-02-12',
+    },
+    {
+      contactoId: contactos.luzDelSurPe.nominales[0],
+      emisorId: users.operadorPe,
+      canal: 'Llamada',
+      mensaje: 'Seguimiento demo sin respuesta (vencido).',
+      fechaMensaje: fechaVencida,
+      fechaAlerta: fechaAlertaVencidaStr,
+      resultado: 'Ninguno',
+    },
+    {
+      contactoId: contactos.isaCo.nominales[0],
+      emisorId: users.operadorCo,
+      canal: 'Presencial',
+      mensaje: 'Visita comercial DEMO ISA.',
+      fechaMensaje: '2026-02-18',
+      fechaAlerta: '2026-02-25',
+      respuesta: 'Se acordó enviar información técnica.',
+      fechaRespuesta: '2026-02-20',
+      resultado: 'Ninguno',
+    },
+    {
+      contactoId: contactos.southernPe.nominales[0],
+      emisorId: users.operadorPe,
+      canal: 'Mensaje',
+      mensaje: 'Consulta DEMO Southern sobre cronograma.',
+      fechaMensaje: '2026-02-22',
+      fechaAlerta: '2026-03-01',
+      resultado: 'Ninguno',
+    },
+    {
+      contactoId: contactos.emgesaCo.nominales[1],
+      emisorId: users.operadorCo,
+      canal: 'Correo',
+      mensaje: 'Envío de capacidad técnica DEMO Emgesa.',
+      fechaMensaje: '2026-02-10',
+      fechaAlerta: '2026-02-17',
+      respuesta: 'Solicitan visita a planta.',
+      fechaRespuesta: '2026-02-14',
+      resultado: 'Reunión programada',
+      fechaReunion: '2026-02-28',
+    },
+    {
+      contactoId: contactos.cenitCo.nominales[0],
+      emisorId: users.admin,
+      canal: 'Llamada',
+      mensaje: 'Aclaración de alcance DEMO Cenit.',
+      fechaMensaje: '2026-02-12',
+      fechaAlerta: '2026-02-19',
+      resultado: 'Referido a tercero',
+    },
+    {
+      contactoId: contactos.enelPe.nominales[0],
+      emisorId: users.operadorPe,
+      canal: 'Correo',
+      mensaje: 'Presentación comercial DEMO Enel.',
+      fechaMensaje: '2026-02-15',
+      fechaAlerta: '2026-02-22',
+      respuesta: 'Interesados en cotización.',
+      fechaRespuesta: '2026-02-18',
+      resultado: 'Ninguno',
+    },
+    {
+      contactoId: contactos.repPe.nominales[1],
+      emisorId: users.operadorPe,
+      canal: 'Presencial',
+      mensaje: 'Reunión técnica DEMO REP.',
+      fechaMensaje: '2026-02-20',
+      fechaAlerta: '2026-02-27',
+      resultado: 'Ninguno',
+    },
+  ];
 
-  await conn.query(
-    `INSERT INTO relacionamientos
-       (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, fecha_alerta_respuesta, resultado, eliminado)
-     VALUES (?, ?, 'Llamada', 'Seguimiento demo sin respuesta (vencido).', ?, ?, 'Ninguno', FALSE)`,
-    [contactos.luzDelSurNominal, operadorCoId, fechaVencida, fechaAlertaVencidaStr],
-  );
+  for (const item of items) {
+    await conn.query(
+      `INSERT INTO relacionamientos
+         (contacto_id, emisor_usuario_id, canal, mensaje, fecha_mensaje, fecha_alerta_respuesta,
+          respuesta, fecha_respuesta, resultado, fecha_reunion, eliminado)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE)`,
+      [
+        item.contactoId,
+        item.emisorId,
+        item.canal,
+        item.mensaje,
+        item.fechaMensaje,
+        item.fechaAlerta,
+        item.respuesta ?? null,
+        item.fechaRespuesta ?? null,
+        item.resultado,
+        item.fechaReunion ?? null,
+      ],
+    );
+  }
 
-  console.log('✓ Relacionamientos demo (2, 1 vencido)');
+  console.log(`✓ Relacionamientos demo (${items.length})`);
 }
 
 async function insertSolicitudEliminacion(
@@ -787,31 +1530,6 @@ async function insertSolicitudEliminacion(
   console.log('✓ Solicitud de eliminación pendiente');
 }
 
-async function resolveClienteIds(conn: mariadb.Connection): Promise<ClienteIds | null> {
-  const rows = await conn.query<Array<{ id: number; empresa: string }>>(
-    `SELECT id, empresa FROM clientes
-     WHERE empresa IN (
-       'DEMO - Ecopetrol CO',
-       'DEMO - ISA Interconexión CO',
-       'DEMO - Luz del Sur PE',
-       'DEMO - Southern Peru PE'
-     )
-       AND eliminado = 0`,
-  );
-
-  const byEmpresa = new Map(rows.map((row) => [row.empresa, row.id]));
-  const ecopetrolCo = byEmpresa.get('DEMO - Ecopetrol CO');
-  const isaCo = byEmpresa.get('DEMO - ISA Interconexión CO');
-  const luzDelSurPe = byEmpresa.get('DEMO - Luz del Sur PE');
-  const southernPe = byEmpresa.get('DEMO - Southern Peru PE');
-
-  if (!ecopetrolCo || !isaCo || !luzDelSurPe || !southernPe) {
-    return null;
-  }
-
-  return { ecopetrolCo, isaCo, luzDelSurPe, southernPe };
-}
-
 async function main(): Promise<void> {
   const conn = await getConnection();
 
@@ -821,35 +1539,27 @@ async function main(): Promise<void> {
     const users = await resolveUserIds(conn);
 
     if (FORCE) {
-      await clearDemoProcesos(conn);
-      let clientes = await resolveClienteIds(conn);
-      if (!clientes) {
-        await insertParametros(conn, paisIds, users.admin);
-        clientes = await insertClientes(conn, paisIds, ubicaciones);
-        const contactos = await insertContactos(conn, clientes, ubicaciones);
-        await insertProyecciones(conn, paisIds);
-        await insertRelacionamientos(conn, contactos, users.operadorCo);
-        await insertSolicitudEliminacion(conn, clientes.southernPe, users.operadorCo);
-      }
-      await insertProcesos(conn, paisIds, ubicaciones, clientes, users);
-      console.log('\n✓ Procesos demo regenerados (--force).');
-      return;
-    }
-
-    if (await isDemoLoaded(conn)) {
-      console.log('Demo ya cargado (proceso DEMO-CO-001 existe). Usa --force para regenerar procesos.');
+      await clearDemoDataset(conn);
+    } else if (await isDemoLoaded(conn)) {
+      console.log(
+        'Demo ya cargado (proceso DEMO-CO-001 o clientes DEMO existen). Usa --force para regenerar todo el dataset.',
+      );
       return;
     }
 
     await insertParametros(conn, paisIds, users.admin);
     const clientes = await insertClientes(conn, paisIds, ubicaciones);
     const contactos = await insertContactos(conn, clientes, ubicaciones);
-    await insertProcesos(conn, paisIds, ubicaciones, clientes, users);
+    await insertProcesos(conn, paisIds, ubicaciones, clientes, contactos, users);
     await insertProyecciones(conn, paisIds);
-    await insertRelacionamientos(conn, contactos, users.operadorCo);
+    await insertRelacionamientos(conn, contactos, users);
     await insertSolicitudEliminacion(conn, clientes.southernPe, users.operadorCo);
 
-    console.log('\n✓ Dataset demo cargado correctamente.');
+    console.log(
+      FORCE
+        ? '\n✓ Dataset demo regenerado (--force).'
+        : '\n✓ Dataset demo cargado correctamente.',
+    );
   } finally {
     await conn.end();
   }

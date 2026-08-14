@@ -1,9 +1,6 @@
 <section class="page">
   <header class="page__header">
-    <div>
-      <h1>Mi bandeja</h1>
-      <p>Elementos fijados organizados por urgencia según sus fechas clave.</p>
-    </div>
+    <h1>Mi bandeja</h1>
   </header>
 
   @if (loading()) {
@@ -36,6 +33,10 @@
         <article class="card">
           <span class="card__label">Relacionamientos</span>
           <strong class="card__value">{{ r.totalRelacionamientos }}</strong>
+        </article>
+        <article class="card">
+          <span class="card__label">KAMs</span>
+          <strong class="card__value">{{ r.totalKams }}</strong>
         </article>
       </div>
 

@@ -27,6 +27,7 @@ import {
   SearchableSelectComponent,
   SearchableSelectOption,
 } from '../../../shared/components/searchable-select/searchable-select.component';
+import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 
 const PROCESOS_LIST_FILTERS_KEY = 'abbi.procesos-list.filters';
 
@@ -59,7 +60,7 @@ const PROCESOS_LIST_FILTER_QUERY_KEYS = [
 @Component({
   selector: 'app-procesos-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, SearchableSelectComponent],
+  imports: [RouterLink, FormsModule, SearchableSelectComponent, TablePaginationComponent],
   templateUrl: './procesos-list.component.html',
   styleUrl: './procesos-list.component.scss',
 })
@@ -101,6 +102,8 @@ export class ProcesosListComponent implements OnInit {
   protected readonly fechaCierreDesde = signal('');
   protected readonly fechaCierreHasta = signal('');
   protected readonly filtroEliminados = signal<FiltroEliminados>('activos');
+  protected readonly page = signal(1);
+  protected readonly limit = signal(50);
   protected readonly total = signal(0);
   protected readonly exportando = signal(false);
   protected readonly exportError = signal<string | null>(null);
@@ -132,7 +135,19 @@ export class ProcesosListComponent implements OnInit {
   }
 
   protected onFilter(): void {
+    this.page.set(1);
     void this.persistFiltersInUrl();
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
+    this.load();
+  }
+
+  protected onLimitChange(limit: number): void {
+    this.limit.set(limit);
+    this.page.set(1);
     this.load();
   }
 
@@ -152,6 +167,7 @@ export class ProcesosListComponent implements OnInit {
     this.fechaCierreDesde.set('');
     this.fechaCierreHasta.set('');
     this.filtroEliminados.set('activos');
+    this.page.set(1);
     sessionStorage.removeItem(PROCESOS_LIST_FILTERS_KEY);
     void this.router.navigate([], {
       relativeTo: this.route,
@@ -228,8 +244,8 @@ export class ProcesosListComponent implements OnInit {
 
   private buildParams() {
     return {
-      page: 1,
-      limit: 50,
+      page: this.page(),
+      limit: this.limit(),
       search: this.search().trim() || undefined,
       estado: this.estado() || undefined,
       segmento: this.segmento() || undefined,
