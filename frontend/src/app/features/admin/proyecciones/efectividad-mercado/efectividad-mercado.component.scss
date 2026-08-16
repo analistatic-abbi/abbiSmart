@@ -79,7 +79,7 @@
   color: var(--color-on-surface-variant);
 
   &--warning {
-    color: #6b4a12;
+    color: var(--color-warning-text);
   }
 }
 
@@ -187,5 +187,33 @@
     font-weight: 600;
     color: var(--color-emphasis);
     text-align: right;
+  }
+}
+
+@media (max-width: 768px) {
+  .help-toggle {
+    min-height: 44px;
+  }
+
+  .toolbar {
+    justify-content: stretch;
+
+    > button,
+    > a {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
+  }
+
+  .report-table {
+    min-width: 620px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-row {
+    grid-template-columns: 60px minmax(0, 1fr) 46px;
+    gap: 8px;
   }
 }

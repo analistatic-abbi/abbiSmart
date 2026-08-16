@@ -16,3 +16,29 @@
   font-weight: 500;
   color: var(--color-emphasis);
 }
+
+@media (max-width: 768px) {
+  .header-actions {
+    width: 100%;
+
+    > a {
+      min-height: 44px;
+    }
+  }
+
+  .table-wrap table {
+    min-width: 1180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    > a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

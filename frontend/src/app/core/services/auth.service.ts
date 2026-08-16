@@ -9,6 +9,7 @@ import {
   SessionInfo,
   UsuarioSesion,
 } from '../models/auth.model';
+import { ToastService } from './toast.service';
 
 const STORAGE_KEY = 'abbi_auth_state';
 const PRE_AUTH_KEY = 'abbi_pre_auth';
@@ -30,6 +31,7 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
+    private readonly toast: ToastService,
   ) {}
 
   login(correo: string, password: string): Observable<LoginResponse> {
@@ -52,6 +54,7 @@ export class AuthService {
 
           if (response.accessToken && response.usuario && response.session) {
             this.setSession(response.accessToken, response.usuario, response.session);
+            this.showWelcome(response.usuario);
             void this.router.navigate(['/dashboard']);
           }
         }),
@@ -76,10 +79,14 @@ export class AuthService {
       )
       .pipe(
         tap((response) => {
+          const isCountryChange = this.isCountryChangeMode();
           sessionStorage.removeItem(PRE_AUTH_KEY);
           this.clearCountryChangeMode();
           if (response.accessToken && response.usuario && response.session) {
             this.setSession(response.accessToken, response.usuario, response.session);
+            if (!isCountryChange) {
+              this.showWelcome(response.usuario);
+            }
             void this.router.navigate(['/dashboard']);
           }
         }),
@@ -265,6 +272,10 @@ export class AuthService {
       paisCodigoIso: this.state().paisCodigoIso,
     });
     this.persistState();
+  }
+
+  private showWelcome(usuario: UsuarioSesion): void {
+    this.toast.info(`¡Bienvenido, ${usuario.nombre}! Rol: ${usuario.rol}.`, 6000);
   }
 
   clearSession(): void {

@@ -1,5 +1,5 @@
 @use '../../shared/admin-page';
-@use '../../../../../styles/forms' as forms;
+@use '../../../../../styles/form-mixins' as forms;
 
 .back-link {
   display: inline-block;
@@ -65,7 +65,7 @@
     padding: 0.35rem 0;
 
     &.ok {
-      color: #15803d;
+      color: var(--color-success-text);
     }
   }
 }
@@ -83,7 +83,7 @@
 
 .advertencias {
   margin: 1rem 0;
-  color: #b45309;
+  color: var(--color-warning-text);
 }
 
 .admin-tools {
@@ -283,4 +283,80 @@
 
 tr.inactiva {
   opacity: 0.72;
+}
+
+@media (max-width: 768px) {
+  .pais-title {
+    align-items: flex-start;
+
+    h1 {
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .tabs {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    overscroll-behavior-inline: contain;
+
+    button {
+      flex: 0 0 auto;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+  }
+
+  .card,
+  .tarea-form,
+  .catalogo-form {
+    padding: 1rem;
+  }
+
+  .tool-card {
+    &__content,
+    &__actions,
+    &__select {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+    }
+
+    &__actions {
+      align-items: stretch;
+    }
+  }
+
+  .field-inline {
+    align-items: stretch;
+    flex-direction: column;
+
+    input {
+      max-width: none;
+    }
+  }
+
+  .input-nombre {
+    min-width: 0;
+  }
+
+  .table-wrap table {
+    min-width: 600px;
+  }
+
+  .estado-badge,
+  .filter-toggle {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tool-card__actions {
+    flex-direction: column;
+
+    > button,
+    > select {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
 }

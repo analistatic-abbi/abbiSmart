@@ -2,4 +2,17 @@
 
 .actions { display: flex; gap: 8px; }
 .link { border: none; background: none; color: var(--color-primary); cursor: pointer; font-weight: 600; }
-.link.danger { color: #b3261e; }
+.link.danger { color: var(--color-error); }
+
+@media (max-width: 768px) {
+  .actions {
+    flex-wrap: wrap;
+    min-width: 10rem;
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}

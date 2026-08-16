@@ -36,6 +36,24 @@ export type CrmTab = 'clientes' | 'contactos' | 'relacionamientos';
         }
       }
     }
+
+    @media (max-width: 768px) {
+      .crm-tabs {
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+        overflow-x: auto;
+        scroll-snap-type: inline proximity;
+        overscroll-behavior-inline: contain;
+
+        a {
+          flex: 0 0 auto;
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          scroll-snap-align: start;
+        }
+      }
+    }
   `,
 })
 export class CrmTabsComponent {

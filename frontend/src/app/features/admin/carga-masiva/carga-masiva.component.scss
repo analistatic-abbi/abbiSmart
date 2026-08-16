@@ -205,7 +205,11 @@ h2 {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
-    background: color-mix(in srgb, var(--color-alert-error-text) 12%, white);
+    background: color-mix(
+      in srgb,
+      var(--color-alert-error-text) 12%,
+      var(--color-surface-container-lowest)
+    );
   }
 
   &__mensaje {
@@ -336,7 +340,11 @@ h2 {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
-    background: color-mix(in srgb, var(--color-primary) 12%, white);
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 12%,
+      var(--color-surface-container-lowest)
+    );
     color: var(--color-primary);
   }
 
@@ -468,5 +476,66 @@ h2 {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+@media (max-width: 768px) {
+  .carga-toolbar__actions {
+    width: 100%;
+
+    > button,
+    > a {
+      min-height: 44px;
+    }
+  }
+
+  .guia-encabezado code {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+  }
+
+  .fila-error__mensaje {
+    min-width: 0;
+  }
+
+  .creados-panel__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .logs-table {
+    min-width: 880px;
+  }
+
+  .acciones-cell__links a,
+  .acciones-cell__links button,
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .modal {
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+
+    &__check {
+      min-height: 44px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .carga-toolbar__actions,
+  .modal__actions {
+    align-items: stretch;
+    flex-direction: column;
+
+    > button,
+    > a {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
   }
 }

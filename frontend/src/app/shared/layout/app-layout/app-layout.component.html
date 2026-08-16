@@ -1,5 +1,13 @@
-<app-header />
-<app-sidebar />
+<app-header [mobileMenuOpen]="mobileMenuOpen()" (mobileMenuToggle)="toggleMobileMenu()" />
+<app-sidebar [mobileOpen]="mobileMenuOpen()" (mobileClose)="closeMobileMenu()" />
+@if (mobileMenuOpen()) {
+  <button
+    type="button"
+    class="app-layout__backdrop"
+    aria-label="Cerrar menú de navegación"
+    (click)="closeMobileMenu()"
+  ></button>
+}
 <main class="app-layout__content">
   <router-outlet />
 </main>

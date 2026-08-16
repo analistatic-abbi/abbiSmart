@@ -1,5 +1,5 @@
 @forward '../../crm/shared/crm-page';
-@use '../../../../styles/forms' as forms;
+@use '../../../../styles/form-mixins' as forms;
 
 .btn-primary,
 .btn-secondary,
@@ -22,9 +22,9 @@
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary-container);
 
   &:hover {
     filter: brightness(1.05);
@@ -123,7 +123,11 @@
   padding: 0 14px;
   border-radius: var(--radius-prime);
   border: 1px solid var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 12%, white);
+  background: color-mix(
+    in srgb,
+    var(--color-accent) 12%,
+    var(--color-surface-container-lowest)
+  );
   color: var(--color-accent);
   font-weight: 700;
   font-size: 13px;
@@ -131,7 +135,7 @@
 
   &--active {
     background: var(--color-accent);
-    color: #fff;
+    color: var(--color-on-primary);
   }
 
   &__count {
@@ -156,7 +160,7 @@
 .accordion__item {
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-prime);
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   overflow: hidden;
 }
 

@@ -2,9 +2,9 @@
   margin: 12px 0;
   padding: 12px 14px;
   border-radius: var(--radius-prime);
-  border: 1px solid #e8c9a0;
+  border: 1px solid var(--cal-relacionamiento-border);
   background: var(--color-duplicado-bg);
-  color: #6b4a12;
+  color: var(--cal-relacionamiento-text);
   font-size: 13px;
 
   ul {
@@ -39,6 +39,7 @@
 }
 
 .muted {
-  color: #8a6a3f;
+  color: inherit;
+  opacity: 0.8;
   font-size: 12px;
 }

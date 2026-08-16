@@ -1,6 +1,6 @@
 @use '../shared/kam-page';
 @use '../estado-kam-badges';
-@use '../../../../styles/forms' as forms;
+@use '../../../../styles/form-mixins' as forms;
 
 .detail__header {
   display: flex;
@@ -294,12 +294,12 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  background: #fff3e0;
-  color: #e65100;
+  background: var(--color-alert-warning-bg);
+  color: var(--color-alert-warning-text);
 
   &--completo {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
   }
 }
 
@@ -435,6 +435,101 @@
   font-size: 13px;
 
   &--danger {
-    color: #b3261e;
+    color: var(--color-error);
+  }
+}
+
+@media (max-width: 767px) {
+  .detail__header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .detail__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .detail__actions > * {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .detail__objeto,
+  .detail__cliente,
+  .archivo-actual span {
+    overflow-wrap: anywhere;
+  }
+
+  .panel,
+  .ronda-card__body,
+  .ronda-section {
+    padding: 14px;
+  }
+
+  .ronda-card__header {
+    min-height: 44px;
+    padding: 12px 14px;
+  }
+
+  .ronda-card__footer,
+  .form-actions--section,
+  .encuesta-block__actions {
+    justify-content: stretch;
+  }
+
+  .ronda-card__footer button,
+  .form-actions--section button,
+  .encuesta-block__actions > *,
+  .archivo-actual .link {
+    min-height: 44px;
+  }
+
+  .ronda-card__footer button,
+  .form-actions--section button {
+    width: 100%;
+  }
+
+  .encuesta-block__header {
+    flex-direction: column;
+  }
+
+  .estado-chip {
+    align-self: flex-start;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .contactos-checkboxes {
+    grid-template-columns: 1fr;
+    padding: 8px;
+  }
+
+  .contacto-checkbox {
+    min-height: 44px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .ronda-section__content table {
+    min-width: 560px;
+  }
+}
+
+@media (max-width: 420px) {
+  .detail__actions {
+    flex-direction: column;
+  }
+
+  .detail__actions > * {
+    width: 100%;
+  }
+
+  .archivo-actual {
+    align-items: flex-start;
   }
 }

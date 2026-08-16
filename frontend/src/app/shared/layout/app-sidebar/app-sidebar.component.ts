@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CatalogosService } from '../../../core/services/catalogos.service';
@@ -25,6 +25,9 @@ interface NavSection {
   styleUrl: './app-sidebar.component.scss',
 })
 export class AppSidebarComponent implements OnInit {
+  readonly mobileOpen = input(false);
+  readonly mobileClose = output<void>();
+
   private readonly auth = inject(AuthService);
   private readonly catalogos = inject(CatalogosService);
   private readonly supportUi = inject(SupportUiService);
@@ -65,7 +68,7 @@ export class AppSidebarComponent implements OnInit {
     {
       title: 'KAM',
       items: [
-        { label: 'KAM', icon: 'support_agent', route: '/kam' },
+        { label: 'KAM', icon: 'supervisor_account', route: '/kam' },
         { label: 'Calendario KAM', icon: 'calendar_month', route: '/kam/calendario' },
         {
           label: 'Formatos de encuesta',

@@ -1,4 +1,7 @@
-<nav class="app-sidebar">
+<nav
+  class="app-sidebar"
+  [class.app-sidebar--mobile-open]="mobileOpen()"
+>
   <div class="app-sidebar__main">
     @for (section of sections(); track section.title) {
       <div
@@ -26,6 +29,7 @@
                 [routerLink]="item.route"
                 routerLinkActive="app-sidebar__item--active"
                 [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+                (click)="mobileClose.emit()"
               >
                 <span class="material-symbols-outlined">{{ item.icon }}</span>
                 <span>{{ item.label }}</span>
@@ -38,7 +42,7 @@
   </div>
 
   <div class="app-sidebar__footer">
-    <button class="app-sidebar__item app-sidebar__item--button" type="button" (click)="openSupport()">
+    <button class="app-sidebar__item app-sidebar__item--button" type="button" (click)="openSupport(); mobileClose.emit()">
       <span class="material-symbols-outlined">support_agent</span>
       <span>Soporte</span>
     </button>

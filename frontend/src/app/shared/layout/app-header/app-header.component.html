@@ -1,5 +1,14 @@
 <header class="app-header">
   <div class="app-header__brand">
+    <button
+      class="icon-btn app-header__menu"
+      type="button"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      [attr.aria-label]="mobileMenuOpen() ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'"
+      (click)="mobileMenuToggle.emit()"
+    >
+      <span class="material-symbols-outlined">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
+    </button>
     <img class="app-header__logo" [src]="logoUrl" alt="abbi — construyendo progreso" />
   </div>
 
@@ -8,7 +17,7 @@
       @if (canChangeCountry()) {
         <button type="button" class="pill pill--clickable" (click)="toggleCountryMenu()">
           <img class="flag-img" [src]="flagUrl()" [alt]="'Bandera de ' + paisLabel()" width="20" height="15" />
-          <span>{{ paisLabel() }}</span>
+          <span class="country-name">{{ paisLabel() }}</span>
           @if (paisCodigo()) {
             <span class="country-code">{{ paisCodigo() }}</span>
           }
@@ -16,7 +25,7 @@
       } @else {
         <div class="pill">
           <img class="flag-img" [src]="flagUrl()" [alt]="'Bandera de ' + paisLabel()" width="20" height="15" />
-          <span>{{ paisLabel() }}</span>
+          <span class="country-name">{{ paisLabel() }}</span>
           @if (paisCodigo()) {
             <span class="country-code">{{ paisCodigo() }}</span>
           }

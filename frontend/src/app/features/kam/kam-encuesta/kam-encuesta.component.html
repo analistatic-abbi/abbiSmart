@@ -85,9 +85,14 @@
                             Observación
                             <textarea
                               rows="2"
-                              placeholder="Comentario (opcional)"
+                              [placeholder]="
+                                item.requiereCalificacion
+                                  ? 'Comentario (opcional)'
+                                  : 'Observación requerida'
+                              "
                               [ngModel]="getObservacion(+item.id)"
                               (ngModelChange)="setObservacion(+item.id, $event)"
+                              [required]="!item.requiereCalificacion"
                             ></textarea>
                           </label>
                         } @else {

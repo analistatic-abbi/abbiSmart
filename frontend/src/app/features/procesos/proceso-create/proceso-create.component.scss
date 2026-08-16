@@ -151,14 +151,14 @@
   margin-bottom: 16px;
   padding: 10px 12px;
   border-radius: var(--radius-prime);
-  background: #ffdad6;
-  color: var(--color-error);
+  background: var(--color-alert-error-bg);
+  color: var(--color-alert-error-text);
 }
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay);
   display: grid;
   place-items: center;
   z-index: 100;
@@ -185,4 +185,119 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .wizard__header h1 {
+    font-size: 24px;
+  }
+
+  .wizard__steps {
+    gap: 8px;
+    padding-bottom: 8px;
+    overflow-x: auto;
+    scroll-snap-type: inline proximity;
+    overscroll-behavior-inline: contain;
+
+    span {
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: 10px 12px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius-prime);
+      background: var(--color-surface-container-low);
+      scroll-snap-align: start;
+    }
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    > * {
+      min-width: 0;
+    }
+  }
+
+  .indicadores-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+
+    input {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .panel:has(.indicadores) {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+
+    &::after {
+      content: 'Deslice horizontalmente para editar todos los indicadores';
+      display: block;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--color-on-surface-variant);
+    }
+  }
+
+  .indicadores {
+    min-width: 560px;
+
+    input {
+      min-height: 44px;
+    }
+  }
+
+  .wizard__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 12px 0;
+    background: var(--color-surface);
+
+    .btn-primary,
+    .btn-secondary {
+      min-height: 44px;
+    }
+  }
+
+  .modal-backdrop {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel {
+    padding: 12px;
+  }
+
+  .wizard__footer,
+  .modal__actions {
+    flex-direction: column-reverse;
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+    }
+  }
+
+  .modal-backdrop {
+    padding: 0;
+    place-items: end center;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100dvh - var(--header-height));
+    padding: 16px;
+    overflow-y: auto;
+    border-radius: var(--radius-prime) var(--radius-prime) 0 0;
+  }
 }

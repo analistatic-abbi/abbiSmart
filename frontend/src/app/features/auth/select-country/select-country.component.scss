@@ -134,3 +134,49 @@
   font-size: 14px;
   text-align: center;
 }
+
+@media (max-width: 639px) {
+  .country-page {
+    min-height: 100dvh;
+    align-items: flex-start;
+    padding:
+      calc(20px + env(safe-area-inset-top))
+      16px
+      calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .country-content {
+    gap: 20px;
+  }
+
+  .country-header__logo {
+    height: 56px;
+    max-width: 200px;
+  }
+
+  .country-grid {
+    gap: 12px;
+  }
+
+  .country-option {
+    min-height: 132px;
+    padding: 16px;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .country-option__flag-wrap {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+
+  .country-option__flag {
+    width: 56px;
+    height: 56px;
+  }
+
+  .country-option__name {
+    font-size: 19px;
+  }
+}

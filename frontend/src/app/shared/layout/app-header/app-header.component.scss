@@ -18,6 +18,10 @@
   align-items: center;
 }
 
+.app-header__menu {
+  display: none;
+}
+
 .app-header__logo {
   height: 44px;
   max-width: 180px;
@@ -198,16 +202,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  .user__name {
-    display: none;
-  }
-
-  .logout-btn__label {
-    display: none;
-  }
-}
-
 .notif-wrap {
   position: relative;
 }
@@ -241,6 +235,8 @@
 }
 
 .link {
+  display: inline-flex;
+  align-items: center;
   border: none;
   background: none;
   color: var(--color-primary);
@@ -296,4 +292,103 @@
   margin: 0;
   text-align: center;
   color: var(--color-on-surface-variant);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .app-header__brand {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .app-header__menu {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 40px;
+  }
+
+  .app-header__logo {
+    height: 36px;
+    max-width: 130px;
+  }
+
+  .app-header__actions {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .pill {
+    min-height: 40px;
+    padding: 6px 8px;
+  }
+
+  .pill--role,
+  .user__name,
+  .logout-btn__label {
+    display: none;
+  }
+
+  .logout-btn {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .notif-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 8px);
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: calc(100dvh - var(--header-height) - 16px);
+  }
+
+  .notif-panel__header {
+    gap: 8px;
+  }
+
+  .notif-panel__actions {
+    flex-wrap: nowrap;
+    gap: 8px;
+
+    .link {
+      white-space: nowrap;
+    }
+  }
+
+  .country-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 8px);
+    right: 8px;
+    left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header__logo {
+    max-width: 92px;
+  }
+
+  .country-name,
+  .country-code,
+  .user,
+  .logout-btn {
+    display: none;
+  }
+
+  .pill {
+    width: 40px;
+    justify-content: center;
+    padding: 0;
+  }
 }

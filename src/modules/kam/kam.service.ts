@@ -660,6 +660,12 @@ export class KamService {
             HttpStatus.BAD_REQUEST,
           );
         }
+      } else if (!respuesta.observacion?.trim()) {
+        throw new BusinessException(
+          ErrorCode.VALIDATION_ERROR,
+          `El ítem ${respuesta.itemId} es solo de observación y requiere un comentario`,
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
@@ -942,8 +948,8 @@ export class KamService {
     for (const encuesta of encuestas) {
       const secciones = encuesta.formato.secciones ?? [];
       const items = this.flattenItems(secciones);
-      const totalItems = items.length;
       const requiredItems = items.filter((i) => i.requiereCalificacion);
+      const observationOnlyItems = items.filter((i) => !i.requiereCalificacion);
 
       const contactos = encuesta.contactos.map((item) => {
         const respuestas = encuesta.respuestas.filter(
@@ -956,7 +962,17 @@ export class KamService {
               typeof resp.puntaje === 'number',
           ),
         );
-        const answeredAll = respuestas.length >= totalItems && totalItems > 0;
+        const answeredObservations = observationOnlyItems.every((req) =>
+          respuestas.some(
+            (resp) =>
+              Number(resp.itemId) === Number(req.id) &&
+              Boolean(resp.observacion?.trim()),
+          ),
+        );
+        const completo =
+          answeredRequired &&
+          answeredObservations &&
+          (requiredItems.length > 0 || observationOnlyItems.length > 0);
         const resumen = this.calcularResumenFormato(
           secciones,
           respuestas.map((resp) => ({
@@ -968,7 +984,7 @@ export class KamService {
         return {
           contactoId: Number(item.contactoId),
           nombre: item.contacto.nombre,
-          completo: answeredRequired && answeredAll,
+          completo,
           resumen,
           respuestas: respuestas.map((resp) => ({
             itemId: Number(resp.itemId),

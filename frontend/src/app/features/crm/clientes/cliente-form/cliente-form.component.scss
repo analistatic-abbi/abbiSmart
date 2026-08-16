@@ -1,1 +1,16 @@
 @use '../../shared/crm-page';
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    > * {
+      min-width: 0;
+    }
+  }
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
+  }
+}

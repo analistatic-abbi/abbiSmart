@@ -35,3 +35,34 @@
     color: var(--color-on-surface);
   }
 }
+
+@media (max-width: 768px) {
+  .admin-links {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    overscroll-behavior-inline: contain;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+  }
+
+  .config-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 44px;
+    }
+
+    button {
+      justify-content: center;
+    }
+  }
+}

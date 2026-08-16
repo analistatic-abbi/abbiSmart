@@ -40,8 +40,12 @@
   }
 
   &--overdue {
-    border-color: var(--color-error, #b3261e);
-    background: color-mix(in srgb, var(--color-error, #b3261e) 8%, white);
+    border-color: var(--color-error);
+    background: color-mix(
+      in srgb,
+      var(--color-error) 8%,
+      var(--color-surface-container-lowest)
+    );
   }
 }
 
@@ -192,18 +196,18 @@
   border-radius: 999px;
 
   &--alta {
-    color: #8a1f17;
-    background: #fde8e6;
+    color: var(--color-danger-text);
+    background: var(--color-danger-bg);
   }
 
   &--media {
-    color: #7a5a00;
-    background: #fff4cc;
+    color: var(--color-warning-text);
+    background: var(--color-warning-bg);
   }
 
   &--baja {
-    color: #1f5f3f;
-    background: #e6f4ea;
+    color: var(--color-success-text);
+    background: var(--color-success-bg);
   }
 
   &--sin_fecha {
@@ -246,5 +250,68 @@
 
   &--vencido {
     color: var(--color-error, #b3261e);
+  }
+}
+
+@media (max-width: 767px) {
+  .page__header h1 {
+    font-size: 24px;
+  }
+
+  .page__header p {
+    margin-bottom: 16px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .card__value {
+    font-size: 22px;
+  }
+
+  .segment-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .segment-item,
+  .evento-card {
+    min-height: 44px;
+  }
+
+  .bandeja-grid {
+    gap: 14px;
+  }
+
+  .bandeja-grupo {
+    padding: 12px;
+  }
+
+  .bandeja-grupo__header h2 {
+    font-size: 16px;
+  }
+
+  .evento-card__top {
+    align-items: flex-start;
+  }
+
+  .evento-card__titulo,
+  .evento-card__sub,
+  .evento-card__objeto {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 360px) {
+  .cards {
+    grid-template-columns: 1fr;
   }
 }

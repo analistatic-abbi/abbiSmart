@@ -77,8 +77,8 @@ h2 {
   &__body {
     white-space: pre-wrap;
     word-break: break-word;
-    background: #f4f7fb;
-    border: 1px solid #d7e3ef;
+    background: var(--color-surface-container-low);
+    border: 1px solid var(--color-outline-variant);
     border-radius: 8px;
     padding: 12px 14px;
     font-size: 14px;
@@ -92,8 +92,8 @@ h2 {
   align-items: center;
   gap: 6px;
   border: 1px solid var(--color-outline-variant);
-  background: #eef6fb;
-  color: var(--color-primary-container);
+  background: var(--cal-proyeccion-bg);
+  color: var(--cal-proyeccion-text);
   border-radius: var(--radius-prime);
   padding: 8px 12px;
   font-size: 13px;
@@ -106,7 +106,7 @@ h2 {
   }
 
   &:hover {
-    background: #e0eef8;
+    background: var(--color-surface-container);
   }
 }
 
@@ -120,8 +120,8 @@ h2 {
   color: var(--color-primary);
 
   &--ok {
-    background: #e8f5e9;
-    color: #1b5e20;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
   }
 }
 
@@ -146,7 +146,7 @@ h2 {
 
 .warn {
   margin: 12px 0 0;
-  color: #8b4513;
+  color: var(--color-alert-warning-text);
   font-size: 13px;
 }
 
@@ -161,5 +161,28 @@ h2 {
     margin: 0;
     color: var(--color-on-surface-variant);
     font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .evidencia-card {
+    padding: 14px;
+
+    &__head {
+      flex-direction: column;
+    }
+  }
+
+  .btn-evidencia {
+    min-height: 44px;
+  }
+
+  .table-wrap table {
+    min-width: 720px;
   }
 }

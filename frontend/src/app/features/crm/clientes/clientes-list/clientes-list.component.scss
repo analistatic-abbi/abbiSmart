@@ -1,1 +1,64 @@
 @use '../../shared/crm-page';
+
+@media (max-width: 768px) {
+  .page__header .btn-primary {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+    width: 100%;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tr {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-prime);
+    background: var(--color-surface-container-lowest);
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: minmax(90px, 38%) minmax(0, 1fr);
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-outline-variant);
+    overflow-wrap: anywhere;
+
+    &::before {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-on-surface-variant);
+    }
+
+    &:nth-child(1)::before { content: 'Empresa'; }
+    &:nth-child(2)::before { content: 'Segmento'; }
+    &:nth-child(3)::before { content: 'Creación'; }
+    &:nth-child(4)::before { content: 'Acción'; }
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &[colspan] {
+      display: block;
+
+      &::before { content: none; }
+    }
+  }
+}

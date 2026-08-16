@@ -25,6 +25,27 @@
 }
 
 .badge--referido {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+
+    > * {
+      min-width: 0;
+    }
+  }
+
+  .actions,
+  app-searchable-select {
+    display: block;
+    width: 100%;
+  }
+
+  .referido-vinculado {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
