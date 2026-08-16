@@ -160,4 +160,44 @@
 
 }
 
+@media (max-width: 768px) {
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .cadena__steps {
+    padding-left: 18px;
+
+    a,
+    span {
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .modal__search {
+    input,
+    button {
+      min-height: 44px;
+    }
+  }
+
+  .modal__results button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal__search,
+  .modal__footer {
+    align-items: stretch;
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
 

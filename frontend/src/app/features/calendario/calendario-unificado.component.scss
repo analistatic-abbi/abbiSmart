@@ -109,3 +109,31 @@
   font-weight: 500;
   color: var(--color-on-surface-variant);
 }
+
+@media (max-width: 767px) {
+  .toolbar-nav {
+    margin-bottom: 16px;
+  }
+
+  .filter-toggle {
+    min-height: 44px;
+    padding: 4px 0;
+  }
+
+  .filter-toggle input {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .evento-card {
+    min-height: 44px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page__header h1 {
+    font-size: 24px;
+  }
+}

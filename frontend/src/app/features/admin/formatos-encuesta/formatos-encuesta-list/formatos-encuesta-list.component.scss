@@ -1,5 +1,5 @@
 @use '../../shared/admin-page';
-@use '../../../../../styles/forms' as forms;
+@use '../../../../../styles/form-mixins' as forms;
 
 .header-actions {
   display: flex;
@@ -29,7 +29,11 @@
 
   &--active {
     border-color: var(--color-primary);
-    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface-container-low)
+    );
   }
 
   &__input {
@@ -396,7 +400,7 @@
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-prime);
   background: var(--color-surface);
-  color: #b3261e;
+  color: var(--color-error);
   cursor: pointer;
 
   &:disabled {
@@ -496,14 +500,97 @@
   }
 
   &--danger {
-    color: #b3261e;
+    color: var(--color-error);
   }
 }
 
 .badge--aprobado {
-  background: var(--color-tertiary-container, #c8e6c9);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .badge--no-aprobado {
-  background: var(--color-error-container, #ffcdd2);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+@media (max-width: 768px) {
+  .lista-toolbar input {
+    max-width: none;
+    min-height: 44px;
+  }
+
+  .detalle-panel {
+    &__header,
+    &__actions,
+    .form-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+
+  .pregunta-row,
+  .item-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pregunta-row__orden {
+    text-align: left;
+  }
+
+  .items-editor {
+    padding-left: 0;
+  }
+
+  .checkbox-inline {
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .actions-menu,
+  .actions-menu__trigger {
+    width: 100%;
+  }
+
+  .actions-menu__trigger {
+    justify-content: space-between;
+  }
+
+  .actions-menu__panel {
+    position: static;
+    width: 100%;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
+  .actions-menu__item {
+    display: flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .nuevo-formato-panel .form-actions,
+  .detalle-panel__actions,
+  .detalle-panel .form-actions,
+  .estructura-editor__header,
+  .preguntas-editor__header {
+    flex-direction: column;
+    align-items: stretch;
+
+    > button {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+    }
+  }
 }

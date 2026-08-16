@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, effect, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
@@ -22,9 +23,23 @@ import { CatalogosService } from '../../../core/services/catalogos.service';
   templateUrl: './app-layout.component.html',
   styleUrl: './app-layout.component.scss',
 })
-export class AppLayoutComponent implements OnInit {
+export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly catalogos = inject(CatalogosService);
+  private readonly document = inject(DOCUMENT);
+  protected readonly mobileMenuOpen = signal(false);
+  private readonly scrollLockEffect = effect(() => {
+    this.document.body.classList.toggle('mobile-menu-open', this.mobileMenuOpen());
+  });
+
+  @HostListener('document:keydown.escape')
+  protected closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
+
+  protected toggleMobileMenu(): void {
+    this.mobileMenuOpen.update((open) => !open);
+  }
 
   ngOnInit(): void {
     const session = this.auth.session();
@@ -43,5 +58,10 @@ export class AppLayoutComponent implements OnInit {
         },
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.document.body.classList.remove('mobile-menu-open');
+    this.scrollLockEffect.destroy();
   }
 }

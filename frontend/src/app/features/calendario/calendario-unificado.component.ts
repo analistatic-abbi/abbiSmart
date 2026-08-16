@@ -226,6 +226,8 @@ export class CalendarioUnificadoComponent implements OnInit {
     const vistaParam = params.get('vista') as CalendarView | null;
     if (vistaParam === 'anio' || vistaParam === 'mes' || vistaParam === 'agenda') {
       this.vista.set(vistaParam);
+    } else if (initial && typeof window !== 'undefined' && window.matchMedia('(max-width: 599px)').matches) {
+      this.vista.set('agenda');
     }
 
     this.ocultarVacios.set(params.get('ocultarVacios') === 'true');

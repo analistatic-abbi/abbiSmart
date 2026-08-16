@@ -28,7 +28,7 @@
 h1 { margin: 0 0 8px; text-align: center; font-size: 24px; color: var(--color-emphasis); }
 p { text-align: center; color: var(--color-on-surface-variant); }
 .hint { font-size: 13px; margin-top: -4px; }
-.success { color: #1b5e20; text-align: center; }
+.success { color: var(--color-success-text); text-align: center; }
 .error { color: var(--color-error); text-align: center; }
 
 form {
@@ -46,3 +46,34 @@ form {
 }
 
 a { display: block; text-align: center; margin-top: 16px; }
+
+@media (max-width: 767px) {
+  .auth-page {
+    min-height: 100dvh;
+    align-items: start;
+    padding:
+      calc(20px + env(safe-area-inset-top))
+      16px
+      calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .auth-card {
+    padding: 24px 18px;
+  }
+
+  .auth-card__logo {
+    height: 56px;
+    max-width: 200px;
+  }
+
+  .btn-primary,
+  a {
+    min-height: 44px;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

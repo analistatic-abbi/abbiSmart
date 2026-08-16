@@ -186,17 +186,17 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #166534;
-  background: #dcfce7;
+  color: var(--badge-publicado-text);
+  background: var(--badge-publicado-bg);
 
   &--inactive {
-    color: #991b1b;
-    background: #fee2e2;
+    color: var(--badge-proc-descartado-text);
+    background: var(--badge-proc-descartado-bg);
   }
 
   &--ubicaciones {
-    color: #1e40af;
-    background: #dbeafe;
+    color: var(--badge-proc-en-proceso-text);
+    background: var(--badge-proc-en-proceso-bg);
   }
 }
 
@@ -288,5 +288,73 @@
     background: var(--color-surface);
     color: var(--color-on-surface);
     font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pais-picker {
+    padding: 1rem;
+
+    &__results {
+      grid-template-columns: minmax(0, 1fr);
+      max-height: min(50dvh, 360px);
+    }
+
+    &__option {
+      min-height: 52px;
+    }
+
+    &__preview {
+      align-items: flex-start;
+    }
+
+    &__actions {
+      align-items: stretch;
+
+      > button {
+        min-height: 44px;
+      }
+    }
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .actions-menu,
+  .actions-menu__trigger {
+    width: 100%;
+  }
+
+  .actions-menu__trigger {
+    justify-content: space-between;
+  }
+
+  .actions-menu__panel {
+    position: static;
+    width: 100%;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
+  .actions-menu__item {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pais-picker__preview {
+    flex-direction: column;
+  }
+
+  .pais-picker__actions {
+    flex-direction: column;
+
+    > button {
+      width: 100%;
+      justify-content: center;
+    }
   }
 }

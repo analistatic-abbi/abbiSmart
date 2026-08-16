@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificacionesService, Notificacion } from '../../../core/services/notificaciones.service';
@@ -17,6 +17,9 @@ import { resolverRutaNotificacion } from '../../../core/utils/notificacion-navig
   styleUrl: './app-header.component.scss',
 })
 export class AppHeaderComponent implements OnInit, OnDestroy {
+  readonly mobileMenuOpen = input(false);
+  readonly mobileMenuToggle = output<void>();
+
   protected readonly auth = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   private readonly notificaciones = inject(NotificacionesService);

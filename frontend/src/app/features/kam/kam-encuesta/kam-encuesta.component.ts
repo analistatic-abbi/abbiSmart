@@ -132,6 +132,19 @@ export class KamEncuestaComponent implements OnInit {
 
     const respuestasState = this.respuestas();
     const items = this.flattenItems(formato.secciones ?? []);
+
+    const faltantes = items.filter((item) => {
+      if (item.requiereCalificacion) return false;
+      return !(respuestasState[item.id]?.observacion ?? '').trim();
+    });
+
+    if (faltantes.length > 0) {
+      this.toast.error(
+        'Las preguntas solo de observación requieren un comentario. Complete todas antes de guardar.',
+      );
+      return;
+    }
+
     const payload: GuardarRespuestasPayload = {
       contactoId: contacto.contactoId,
       respuestas: items.map((item) => {
@@ -139,7 +152,7 @@ export class KamEncuestaComponent implements OnInit {
         return {
           itemId: item.id,
           puntaje: item.requiereCalificacion ? (state?.puntaje ?? 3) : undefined,
-          observacion: state?.observacion || undefined,
+          observacion: state?.observacion?.trim() || undefined,
         };
       }),
     };

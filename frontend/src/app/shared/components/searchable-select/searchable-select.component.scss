@@ -68,6 +68,9 @@
   border-radius: var(--radius-prime);
   box-shadow: 0 8px 24px var(--color-shadow);
   overflow: hidden;
+  max-height: min(360px, 55dvh);
+  display: flex;
+  flex-direction: column;
 }
 
 .searchable-select__search-wrap {
@@ -105,6 +108,12 @@
   padding: 4px 0;
   max-height: 240px;
   overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .searchable-select__option {
+    min-height: 44px;
+  }
 }
 
 .searchable-select__option {

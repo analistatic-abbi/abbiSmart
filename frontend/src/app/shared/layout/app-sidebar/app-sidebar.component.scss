@@ -140,3 +140,27 @@
     background: var(--color-logout-bg-hover);
   }
 }
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    width: min(86vw, 320px);
+    z-index: 40;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0.2s;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+
+    &--mobile-open {
+      transform: translateX(0);
+      visibility: visible;
+    }
+  }
+
+  .app-sidebar__item,
+  .app-sidebar__section-toggle,
+  .app-sidebar__logout {
+    min-height: 44px;
+  }
+}

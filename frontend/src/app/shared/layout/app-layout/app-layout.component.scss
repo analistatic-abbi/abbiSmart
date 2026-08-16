@@ -4,4 +4,34 @@
   min-height: calc(100vh - var(--header-height));
   padding: 24px 32px;
   background: var(--color-background);
+  overflow-x: clip;
+}
+
+.app-layout__backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app-layout__content {
+    margin-left: 0;
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .app-layout__backdrop {
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    z-index: 35;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--color-overlay);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-layout__content {
+    padding: 12px;
+  }
 }

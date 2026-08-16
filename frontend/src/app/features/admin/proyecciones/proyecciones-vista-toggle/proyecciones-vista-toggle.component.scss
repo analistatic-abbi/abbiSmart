@@ -31,3 +31,16 @@
     background: var(--color-surface-container);
   }
 }
+
+@media (max-width: 768px) {
+  .vista-toggle {
+    width: 100%;
+  }
+
+  .btn-secondary {
+    flex: 1 1 0;
+    justify-content: center;
+    height: 44px;
+    padding-inline: 10px;
+  }
+}

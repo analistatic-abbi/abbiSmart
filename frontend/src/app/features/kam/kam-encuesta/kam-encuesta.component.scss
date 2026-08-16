@@ -1,6 +1,6 @@
 @use '../shared/kam-page';
 @use '../estado-kam-badges';
-@use '../../../../styles/forms' as forms;
+@use '../../../../styles/form-mixins' as forms;
 
 .encuesta-page {
   max-width: 820px;
@@ -92,9 +92,9 @@
 
 .pregunta-card {
   padding: 18px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-prime);
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -236,9 +236,9 @@
   &__btn {
     width: 44px;
     height: 44px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-outline-variant);
     border-radius: var(--radius-prime);
-    background: #fff;
+    background: var(--color-surface-container-lowest);
     font-size: 16px;
     font-weight: 700;
     color: var(--color-emphasis);
@@ -246,9 +246,9 @@
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
     &--activo {
-      background: #2e8ec2;
-      border-color: #2e8ec2;
-      color: #fff;
+      background: var(--color-primary-container);
+      border-color: var(--color-primary-container);
+      color: var(--color-on-primary);
     }
   }
 }
@@ -259,10 +259,10 @@
   right: 0;
   bottom: 0;
   z-index: 20;
-  padding: 12px 24px;
-  background: #fff;
-  border-top: 1px solid #d1d5db;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
+  background: var(--color-surface-container-lowest);
+  border-top: 1px solid var(--color-outline-variant);
+  box-shadow: 0 -4px 12px var(--color-shadow);
 
   &__inner {
     max-width: 820px;
@@ -276,4 +276,87 @@
 
 .page-loading {
   padding: 24px;
+}
+
+@media (max-width: 767px) {
+  .encuesta-page {
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+
+  .encuesta-page__header {
+    margin-bottom: 16px;
+
+    h1 {
+      font-size: 22px;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .encuesta-form,
+  .pregunta-card,
+  .item-block--nested,
+  .resumen-panel {
+    padding: 14px;
+  }
+
+  .secciones-lista,
+  .preguntas-lista {
+    gap: 14px;
+  }
+
+  .escala__botones {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    gap: 6px;
+  }
+
+  .escala__btn {
+    width: 100%;
+    min-width: 44px;
+  }
+
+  .resumen-panel__header {
+    align-items: flex-start;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .table-wrap table {
+    min-width: 520px;
+  }
+
+  .encuesta-barra {
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .encuesta-barra__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 8px;
+  }
+
+  .encuesta-barra__inner > * {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .encuesta-form,
+  .pregunta-card,
+  .item-block--nested,
+  .resumen-panel {
+    padding: 12px;
+  }
+
+  .escala__botones {
+    gap: 4px;
+  }
+
+  .encuesta-barra__inner {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,5 +1,5 @@
 @use '../../shared/admin-page';
-@use '../../../../../styles/forms' as forms;
+@use '../../../../../styles/form-mixins' as forms;
 
 .nuevo-formato-panel {
   display: flex;
@@ -166,7 +166,7 @@
   }
 
   &--danger {
-    color: #b3261e;
+    color: var(--color-error);
   }
 }
 
@@ -191,9 +191,49 @@
 }
 
 .badge--aprobado {
-  background: var(--color-tertiary-container, #c8e6c9);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .badge--no-aprobado {
-  background: var(--color-error-container, #ffcdd2);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+@media (max-width: 768px) {
+  .nuevo-formato-panel {
+    input {
+      min-height: 44px;
+    }
+  }
+
+  .detalle-panel__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .actions-menu,
+  .actions-menu__trigger {
+    width: 100%;
+  }
+
+  .actions-menu__trigger {
+    justify-content: space-between;
+  }
+
+  .actions-menu__panel {
+    position: static;
+    width: 100%;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
+  .actions-menu__item {
+    display: flex;
+    align-items: center;
+  }
 }

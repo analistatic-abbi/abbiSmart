@@ -86,6 +86,33 @@
   }
 }
 
+@media (max-width: 480px) {
+  .support-modal {
+    top: var(--header-height);
+    left: 0;
+    width: 100%;
+    height: calc(100dvh - var(--header-height));
+    max-height: none;
+    transform: none;
+    border-radius: 0;
+
+    &__header,
+    .support-faq,
+    .support-cta {
+      padding: 16px;
+    }
+
+    &__close {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  .support-cta__button {
+    width: 100%;
+  }
+}
+
 .support-faq {
   border-right: 1px solid var(--color-outline-variant);
 

@@ -70,8 +70,8 @@
   margin: 0 0 12px;
   padding: 10px 12px;
   border-radius: var(--radius-prime);
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
   font-size: 14px;
 }
 
@@ -79,10 +79,37 @@
   margin: 0 0 12px;
   padding: 10px 12px;
   border-radius: var(--radius-prime);
-  background: #fdecea;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   font-size: 14px;
 }
 
 .form-actions {
   margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .filters label {
+    width: 100%;
+
+    input[type='number'] {
+      width: 100%;
+      min-height: 44px;
+    }
+
+    &.checkbox {
+      min-height: 44px;
+      height: auto;
+    }
+  }
+
+  .table-wrap {
+    table {
+      min-width: 620px;
+    }
+
+    select {
+      min-height: 44px;
+    }
+  }
 }

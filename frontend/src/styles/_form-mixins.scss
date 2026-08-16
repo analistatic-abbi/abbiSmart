@@ -1,0 +1,112 @@
+@mixin form-container-root {
+  @each $container in '.form-grid', '.grid', '.modal.form-grid' {
+    #{$container} {
+      @content;
+    }
+  }
+}
+
+@mixin abbi-text-field($full-width: true) {
+  @if $full-width {
+    width: 100%;
+  }
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-prime);
+  background-color: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-emphasis);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: var(--color-input-placeholder);
+  }
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: var(--color-input-border-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-input-border-focus);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  &:disabled {
+    background: var(--color-surface-container-low);
+    color: var(--color-on-surface-variant);
+    cursor: not-allowed;
+  }
+
+  &.ng-invalid.ng-touched,
+  &[aria-invalid='true'] {
+    border-color: var(--color-error);
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+  }
+}
+
+@mixin abbi-select($full-width: true) {
+  @include abbi-text-field($full-width);
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23233E5E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+
+  &:has(option[value='']:checked) {
+    color: var(--color-input-placeholder);
+  }
+
+  option {
+    color: var(--color-emphasis);
+  }
+
+  option[value=''] {
+    color: var(--color-input-placeholder);
+  }
+}
+
+@mixin abbi-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-input-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-input-border-focus);
+  }
+
+  &:checked {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}

@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--color-overlay);
 }
 
 .confirm-dialog {
@@ -14,7 +14,7 @@
   padding: 1.25rem 1.5rem;
   border-radius: var(--radius-prime);
   background: var(--color-surface);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 32px var(--color-shadow-strong);
 
   h3 {
     margin: 0 0 0.5rem;
@@ -46,5 +46,27 @@
 
   &:hover {
     background: #9a1f18;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .confirm-dialog {
+    width: 100%;
+    padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+    border-radius: var(--radius-prime) var(--radius-prime) 0 0;
+
+    &__actions {
+      flex-direction: column-reverse;
+
+      > button {
+        width: 100%;
+        min-height: 44px;
+      }
+    }
   }
 }

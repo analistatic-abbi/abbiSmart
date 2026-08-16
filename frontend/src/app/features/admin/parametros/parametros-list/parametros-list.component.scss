@@ -1,5 +1,5 @@
 @use '../../shared/admin-page';
-@use '../../../../../styles/forms' as forms;
+@use '../../../../../styles/form-mixins' as forms;
 
 .parametros-toolbar {
   display: flex;
@@ -154,8 +154,8 @@
   color: var(--color-primary);
 
   &--menor {
-    background: #e8f4fc;
-    color: #0e3b65;
+    background: var(--cal-proyeccion-bg);
+    color: var(--cal-proyeccion-text);
   }
 }
 
@@ -224,4 +224,51 @@
 .btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .parametros-toolbar {
+    align-items: stretch;
+    padding: 16px;
+
+    &__field,
+    &__actions {
+      width: 100%;
+      min-width: 0;
+      margin-left: 0;
+    }
+
+    &__actions {
+      > button {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+      }
+    }
+  }
+
+  .field-input--year {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .parametros-table {
+    min-width: 700px;
+  }
+
+  .field-input--valor,
+  .field-select,
+  .btn-link {
+    min-height: 44px;
+  }
+
+  .historial-modal {
+    max-width: 100%;
+  }
+
+  .historial-item__cambios li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
 }

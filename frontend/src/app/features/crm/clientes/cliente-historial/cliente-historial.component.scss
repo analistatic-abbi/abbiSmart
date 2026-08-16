@@ -25,7 +25,7 @@
 }
 
 .timeline__item--relacionamiento .timeline__marker {
-  background: #7a5c2e;
+  background: var(--cal-relacionamiento-text);
 }
 
 .timeline__content {
@@ -59,4 +59,28 @@
 
 .muted {
   color: var(--color-on-surface-variant);
+}
+
+@media (max-width: 768px) {
+  .timeline__item {
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .timeline__content {
+    min-width: 0;
+    padding: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .btn-secondary {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
 }

@@ -60,3 +60,14 @@
 .audit-historial__status--error {
   color: var(--color-error);
 }
+
+@media (max-width: 480px) {
+  .audit-historial-item {
+    padding: 12px;
+  }
+
+  .audit-historial-item__cambios li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
