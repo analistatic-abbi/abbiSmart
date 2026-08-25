@@ -1,0 +1,333 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Analítica</h1>
+    <div class="page__actions">
+      @if (modulo() === 'proyecciones' || modulo() === 'procesos') {
+        <app-year-selector
+          [anio]="anio()"
+          (anterior)="cambiarAnio(-1)"
+          (siguiente)="cambiarAnio(1)"
+        />
+      }
+      <button type="button" class="btn-secondary" [disabled]="loading()" (click)="cargar()">
+        {{ loading() ? 'Actualizando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </header>
+
+  <nav class="module-tabs" aria-label="Módulo analítico">
+    @for (item of modulos; track item.id) {
+      <button
+        type="button"
+        [class.active]="modulo() === item.id"
+        (click)="seleccionarModulo(item.id)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </nav>
+
+  <div class="date-filters">
+    <label class="date-filter">
+      <span>Desde</span>
+      <input type="date" [value]="desde()" (change)="onDesdeChange($event)" />
+    </label>
+    <label class="date-filter">
+      <span>Hasta</span>
+      <input type="date" [value]="hasta()" (change)="onHastaChange($event)" />
+    </label>
+    @if (desde() || hasta()) {
+      <button type="button" class="btn-text" (click)="limpiarFechas()">Limpiar</button>
+    }
+  </div>
+
+  @if (loading() && !data()) {
+    <p class="page__status">Cargando indicadores...</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (data()) {
+    <section class="kpi-grid" [attr.data-count]="kpis().length" aria-label="Indicadores clave">
+      @for (kpi of kpis(); track kpi.key) {
+        <button type="button" class="kpi-card" (click)="navegarKpi(kpi)">
+          <span class="kpi-card__label">{{ kpi.label }}</span>
+          <strong class="kpi-card__value">{{ kpi.value }}</strong>
+        </button>
+      }
+    </section>
+
+    @if (modulo() === 'procesos') {
+      <section
+        class="gauges-block"
+        [class.gauges-block--with-form]="puedeEditarMetas()"
+        aria-label="Avance frente a la meta anual"
+      >
+        <div class="gauges-grid">
+          <app-gauge
+            titulo="Adjudicación"
+            subtitulo="Real"
+            [valor]="gauges().real.adjudicacion"
+            [meta]="gauges().metaAdjudicacion"
+          />
+          <app-gauge
+            titulo="Facturación"
+            subtitulo="Real"
+            [valor]="gauges().real.facturacion"
+            [meta]="gauges().metaFacturacion"
+          />
+          <app-gauge
+            titulo="Adjudicación"
+            subtitulo="Proyectada"
+            [valor]="gauges().proyectada.adjudicacion"
+            [meta]="gauges().metaAdjudicacion"
+          />
+          <app-gauge
+            titulo="Facturación"
+            subtitulo="Proyectada"
+            [valor]="gauges().proyectada.facturacion"
+            [meta]="gauges().metaFacturacion"
+          />
+        </div>
+
+        @if (puedeEditarMetas()) {
+          <form class="metas-form" (submit)="guardarMetas($event)">
+            <h2>Meta {{ anio() }}</h2>
+            <p class="metas-form__hint">Tope anual del país de sesión. Los relojes miden Real y Proyectada contra estos valores.</p>
+            <label>
+              Meta adjudicación
+              <input
+                type="number"
+                name="metaAdjudicacion"
+                min="0.01"
+                step="0.01"
+                [ngModel]="metaAdjudicacionDraft()"
+                (ngModelChange)="metaAdjudicacionDraft.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </label>
+            <label>
+              Meta facturación
+              <input
+                type="number"
+                name="metaFacturacion"
+                min="0.01"
+                step="0.01"
+                [ngModel]="metaFacturacionDraft()"
+                (ngModelChange)="metaFacturacionDraft.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </label>
+            <button type="submit" class="btn-primary" [disabled]="guardandoMetas()">
+              {{ guardandoMetas() ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </form>
+        }
+      </section>
+
+      <div class="charts-row-compact">
+        <article class="chart-panel chart-panel--funnel">
+          <div class="chart-panel__header">
+            <h2>Embudo comercial</h2>
+            <span class="chart-panel__hint">Clic en una etapa para ver el detalle</span>
+          </div>
+          <div class="funnel" role="list">
+            @for (etapa of data()?.embudo ?? []; track etapa.clave; let i = $index) {
+              <button type="button" class="funnel__row" role="listitem" (click)="onEmbudoClick(etapa)">
+                <span class="funnel__bar-wrap">
+                  <span
+                    class="funnel__bar"
+                    [style.width.%]="funnelWidth(i)"
+                    [style.background]="funnelColor(i)"
+                  ></span>
+                </span>
+                <span class="funnel__meta">
+                  <span class="funnel__label">{{ etapa.etapa }}</span>
+                  <strong>{{ etapa.total | number }}</strong>
+                </span>
+              </button>
+            }
+          </div>
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Cierres próximos por ventana</h2>
+          </div>
+          @if (cierresChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="220"
+              (chartClick)="onCierresClick($event)"
+            />
+          }
+        </article>
+      </div>
+
+      <div class="charts-grid">
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Procesos por estado</h2>
+            <button type="button" class="link" (click)="toggleCerradosDonut()">
+              {{ incluirCerradosDonut() ? 'Ocultar cerrados/descartados' : 'Incluir cerrados/descartados' }}
+            </button>
+          </div>
+          @if (donutChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+              (chartClick)="onDonutClick($event)"
+            />
+          }
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Procesos por segmento</h2>
+          </div>
+          @if (segmentoChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+              (chartClick)="onSegmentoClick($event)"
+            />
+          }
+        </article>
+      </div>
+    }
+
+    @if (modulo() === 'proyecciones') {
+      <div class="charts-row-compact">
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Proyecciones por estado</h2>
+            <span class="chart-panel__meta">Año {{ data()?.anio }}</span>
+          </div>
+          @if (proyeccionesChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="280"
+            />
+          }
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Efectividad de mercado</h2>
+            <a routerLink="/proyecciones/efectividad-mercado" class="link">Ver detalle →</a>
+          </div>
+          @if (efectividadChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="280"
+            />
+          }
+          <p class="chart-panel__footnote">
+            General: {{ data()?.efectividadMercado?.general?.ganadas ?? 0 }} ganadas de
+            {{ data()?.efectividadMercado?.general?.materializadas ?? 0 }} materializadas · Objetivo:
+            {{ data()?.efectividadMercado?.objetivo?.ganadas ?? 0 }} de
+            {{ data()?.efectividadMercado?.objetivo?.materializadas ?? 0 }}
+          </p>
+        </article>
+      </div>
+
+      <div class="charts-row-compact" style="margin-top: 0; max-width: 400px; margin-left: auto; margin-right: auto">
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Proyecciones por mercado</h2>
+          </div>
+          @if (mercadoChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="240"
+            />
+          }
+        </article>
+      </div>
+    }
+
+    @if (modulo() === 'crm') {
+      <div class="charts-grid">
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Relacionamientos por canal</h2>
+          </div>
+          @if (canalChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+            />
+          }
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Relacionamientos por resultado</h2>
+          </div>
+          @if (resultadoChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+            />
+          }
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Clientes por segmento</h2>
+          </div>
+          @if (segmentoClienteChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+            />
+          }
+        </article>
+
+        <article class="chart-panel">
+          <div class="chart-panel__header">
+            <h2>Estado de respuesta</h2>
+          </div>
+          @if (estadoRespuestaChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="300"
+            />
+          }
+        </article>
+
+        <article class="chart-panel chart-panel--wide">
+          <div class="chart-panel__header">
+            <h2>Actividad de relacionamiento</h2>
+          </div>
+          @if (actividadCrmChart(); as chart) {
+            <app-chart
+              [type]="chart.type"
+              [data]="chartData(chart)"
+              [options]="chart.options"
+              [height]="260"
+            />
+          }
+        </article>
+      </div>
+    }
+  }
+</section>

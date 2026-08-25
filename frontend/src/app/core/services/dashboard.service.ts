@@ -47,6 +47,82 @@ export interface ReporteGenerado {
   generadoPor: string;
 }
 
+export interface AnaliticaKpis {
+  procesosActivos: number;
+  proyeccionesActivas: number;
+  cierresProximos30Dias: number;
+  validacionesPendientes: number;
+  relacionamientosVencidos: number;
+  clientesActivos: number;
+  contactosActivos: number;
+  relacionamientosTotal: number;
+  reunionesProgramadas: number;
+}
+
+export interface AnaliticaConteo {
+  etiqueta: string;
+  total: number;
+}
+
+export interface AnaliticaEmbudoEtapa {
+  etapa: string;
+  clave: string;
+  total: number;
+}
+
+export interface AnaliticaCierresVentana {
+  ventana: string;
+  label: string;
+  total: number;
+}
+
+export interface AnaliticaEfectividadMercadoResumen {
+  pctGanadasDeMaterializadas: number | null;
+  materializadas: number;
+  ganadas: number;
+}
+
+export interface AnaliticaProyeccionEstadoMercado {
+  estado: string;
+  general: number;
+  objetivo: number;
+}
+
+export interface AnaliticaGaugesMontos {
+  adjudicacion: string;
+  facturacion: string;
+}
+
+export interface AnaliticaGauges {
+  metaAdjudicacion: string | null;
+  metaFacturacion: string | null;
+  real: AnaliticaGaugesMontos;
+  proyectada: AnaliticaGaugesMontos;
+}
+
+export interface AnaliticaDashboard {
+  anio: number;
+  kpis: AnaliticaKpis;
+  resumen: DashboardResumen;
+  proyecciones: DashboardProyecciones;
+  gauges: AnaliticaGauges;
+  embudo: AnaliticaEmbudoEtapa[];
+  cierresPorVentana: AnaliticaCierresVentana[];
+  proyeccionesPorEstadoMercado: AnaliticaProyeccionEstadoMercado[];
+  efectividadMercado: {
+    anio: number;
+    general: AnaliticaEfectividadMercadoResumen;
+    objetivo: AnaliticaEfectividadMercadoResumen;
+  };
+  crm: {
+    porCanal: AnaliticaConteo[];
+    porResultado: AnaliticaConteo[];
+    porSegmentoCliente: AnaliticaConteo[];
+    estadoRespuesta: AnaliticaConteo[];
+    actividadPorVentana: AnaliticaCierresVentana[];
+  };
+}
+
 export interface DashboardProcesosFilters {
   search?: string;
   estado?: string;
@@ -79,6 +155,28 @@ export class DashboardService {
     const params: Record<string, number> = {};
     if (anio) params['anio'] = anio;
     return this.http.get<{ data: DashboardProyecciones }>(`${this.base}/proyecciones`, { params });
+  }
+
+  getAnalitica(anio?: number, desde?: string, hasta?: string): Observable<{ data: AnaliticaDashboard }> {
+    const params: Record<string, string | number> = {};
+    if (anio) params['anio'] = anio;
+    if (desde) params['desde'] = desde;
+    if (hasta) params['hasta'] = hasta;
+    return this.http.get<{ data: AnaliticaDashboard }>(`${this.base}/analitica`, { params });
+  }
+
+  putMetas(payload: {
+    anio: number;
+    metaAdjudicacion: number;
+    metaFacturacion: number;
+  }): Observable<{
+    message: string;
+    data: { anio: number; metaAdjudicacion: string; metaFacturacion: string };
+  }> {
+    return this.http.put<{
+      message: string;
+      data: { anio: number; metaAdjudicacion: string; metaFacturacion: string };
+    }>(`${this.base}/metas`, payload);
   }
 
   exportar(

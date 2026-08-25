@@ -4,29 +4,56 @@
   </header>
 
   <div class="filters">
+    <div class="filters__usuario">
+      <app-searchable-select
+        [options]="usuarioOptions()"
+        [ngModel]="usuarioId()"
+        (ngModelChange)="onUsuarioChange($event)"
+        placeholder="Todos los usuarios"
+        searchPlaceholder="Buscar usuario..."
+        [minOptionsForSearch]="0"
+      />
+    </div>
     <label>
-      Día
+      Desde
       <input
         type="date"
-        [ngModel]="fecha()"
-        (ngModelChange)="fecha.set($event); onFilter()"
+        [ngModel]="fechaDesde()"
+        (ngModelChange)="fechaDesde.set($event); onFilter()"
       />
     </label>
-    <input
-      type="text"
-      placeholder="Tipo de entidad (ej. proceso)"
+    <label>
+      Hasta
+      <input
+        type="date"
+        [ngModel]="fechaHasta()"
+        (ngModelChange)="fechaHasta.set($event); onFilter()"
+      />
+    </label>
+    <select
       [ngModel]="entidadTipo()"
-      (ngModelChange)="entidadTipo.set($event)"
-      (keyup.enter)="onFilter()"
-    />
-    <input
-      type="text"
-      placeholder="Acción (ej. proceso_fecha_editar)"
+      (ngModelChange)="entidadTipo.set($event); onFilter()"
+      aria-label="Tipo de entidad"
+    >
+      <option value="">Todas las entidades</option>
+      @for (opt of entidadOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+    <select
       [ngModel]="accion()"
-      (ngModelChange)="accion.set($event)"
-      (keyup.enter)="onFilter()"
-    />
+      (ngModelChange)="accion.set($event); onFilter()"
+      aria-label="Acción"
+    >
+      <option value="">Todas las acciones</option>
+      @for (opt of accionOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
   </div>
 
   @if (error()) {
@@ -57,7 +84,15 @@
               <td>{{ log.detalle ?? '—' }}</td>
             </tr>
           } @empty {
-            <tr><td colspan="5">No hay registros para los filtros seleccionados.</td></tr>
+            <tr>
+              <td colspan="5">
+                @if (tieneFiltrosActivos()) {
+                  No hay registros para los filtros seleccionados.
+                } @else {
+                  No hay registros de auditoría.
+                }
+              </td>
+            </tr>
           }
         </tbody>
       </table>

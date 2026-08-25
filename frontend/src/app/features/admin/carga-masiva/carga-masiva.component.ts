@@ -9,6 +9,7 @@ import {
   CargaMasivaDetalleCreado,
   CargaMasivaFilaError,
   CargaMasivaLog,
+  CargaMasivaResult,
   LogPanelExpandido,
 } from '../../../core/models/carga-masiva.model';
 import {
@@ -193,6 +194,9 @@ export class CargaMasivaComponent implements OnInit {
   protected readonly detalleCreados = signal<CargaMasivaDetalleCreado[]>([]);
   protected readonly logIdActual = signal<number | null>(null);
   protected readonly entidadTipoActual = signal<string | null>(null);
+  protected readonly archivoValidado = signal<File | null>(null);
+  protected readonly entidadValidada = signal<Entidad | null>(null);
+  protected readonly esVistaPrevia = signal(false);
   protected readonly loading = signal(false);
   protected readonly logExpandido = signal<{ id: number; panel: LogPanelExpandido } | null>(null);
   protected readonly revertModalLog = signal<CargaMasivaLog | null>(null);
@@ -207,6 +211,16 @@ export class CargaMasivaComponent implements OnInit {
   );
 
   protected readonly guia = computed(() => GUIAS_CARGA_MASIVA[this.entidad()]);
+  protected readonly puedeConfirmar = computed(() => {
+    const resumen = this.resumen();
+    return (
+      !!resumen &&
+      resumen.filasExitosas > 0 &&
+      resumen.filasRechazadas === 0 &&
+      this.archivoValidado() === this.archivo() &&
+      this.entidadValidada() === this.entidad()
+    );
+  });
 
   protected readonly avisoTipo = computed((): AvisoCargaMasivaTipo | null => {
     const resumen = this.resumen();
@@ -231,6 +245,12 @@ export class CargaMasivaComponent implements OnInit {
       return '';
     }
 
+    if (this.esVistaPrevia()) {
+      return resumen.filasRechazadas === 0
+        ? 'Archivo validado correctamente'
+        : 'La validación encontró errores';
+    }
+
     return tituloAvisoCargaMasiva(resumen.filasExitosas, resumen.filasRechazadas);
   });
 
@@ -238,6 +258,12 @@ export class CargaMasivaComponent implements OnInit {
     const resumen = this.resumen();
     if (!resumen) {
       return '';
+    }
+
+    if (this.esVistaPrevia()) {
+      return resumen.filasRechazadas === 0
+        ? `${resumen.filasExitosas} fila(s) están listas para importar. Confirme la importación para guardar los registros.`
+        : `${resumen.filasExitosas} fila(s) válidas y ${resumen.filasRechazadas} fila(s) con errores. Corrija el archivo y vuelva a validarlo.`;
     }
 
     return mensajeResumenCargaMasiva(resumen.filasExitosas, resumen.filasRechazadas);
@@ -278,6 +304,12 @@ export class CargaMasivaComponent implements OnInit {
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.archivo.set(input.files?.[0] ?? null);
+    this.invalidarValidacion();
+  }
+
+  protected onEntidadChange(entidad: Entidad): void {
+    this.entidad.set(entidad);
+    this.invalidarValidacion();
   }
 
   protected sugerenciaFila(error: CargaMasivaFilaError): string | null {
@@ -380,43 +412,64 @@ export class CargaMasivaComponent implements OnInit {
       });
   }
 
-  protected subir(): void {
+  protected validarArchivo(): void {
     const file = this.archivo();
     if (!file) return;
 
+    const entidad = this.entidad();
+    this.prepararSolicitud(true);
+    this.importar(file, entidad, true).subscribe({
+      next: (r) => {
+        this.aplicarResultado(r, true);
+        if (
+          r.filasExitosas > 0 &&
+          r.filasRechazadas === 0 &&
+          this.archivo() === file &&
+          this.entidad() === entidad
+        ) {
+          this.archivoValidado.set(file);
+          this.entidadValidada.set(entidad);
+          this.toast.success(
+            `Archivo validado: ${r.filasExitosas} fila(s) lista(s) para importar.`,
+          );
+        } else {
+          this.archivoValidado.set(null);
+          this.entidadValidada.set(null);
+        }
+        this.loading.set(false);
+      },
+      error: (err) => this.manejarError(err, 'No fue posible validar el archivo.'),
+    });
+  }
+
+  protected confirmarImportacion(): void {
+    const file = this.archivo();
+    const entidad = this.entidad();
+    if (!file || !this.puedeConfirmar()) return;
+
     void confirmarAccion(this.confirmDialog, {
-      title: 'Confirmar carga masiva',
-      message: `¿Desea procesar el archivo «${file.name}» para ${etiquetaEntidadCarga(this.entidad())}?`,
-      confirmLabel: 'Procesar archivo',
+      title: 'Confirmar importación',
+      message: `¿Desea importar las filas validadas del archivo «${file.name}» para ${etiquetaEntidadCarga(entidad)}?`,
+      confirmLabel: 'Confirmar importación',
     }).then((ok) => {
       if (!ok) return;
 
-      this.loading.set(true);
-      this.resumen.set(null);
-      this.errorGeneral.set(null);
-      this.erroresDetalle.set([]);
-      this.detalleCreados.set([]);
-      this.logIdActual.set(null);
-      this.entidadTipoActual.set(null);
-      this.revertExito.set(null);
+      if (
+        this.archivo() !== file ||
+        this.entidad() !== entidad ||
+        this.archivoValidado() !== file ||
+        this.entidadValidada() !== entidad
+      ) {
+        this.invalidarValidacion();
+        return;
+      }
 
-      const req =
-        this.entidad() === 'clientes'
-          ? this.cargaMasiva.importClientes(file)
-          : this.entidad() === 'contactos'
-            ? this.cargaMasiva.importContactos(file)
-            : this.cargaMasiva.importProyecciones(file);
-
-      req.subscribe({
+      this.prepararSolicitud(false);
+      this.importar(file, entidad, false).subscribe({
         next: (r) => {
-          this.resumen.set({
-            filasExitosas: r.filasExitosas,
-            filasRechazadas: r.filasRechazadas,
-          });
-          this.erroresDetalle.set(r.detalleErrores ?? []);
-          this.detalleCreados.set(r.detalleCreados ?? []);
-          this.logIdActual.set(r.logId ?? null);
-          this.entidadTipoActual.set(ENTIDAD_API[this.entidad()]);
+          this.aplicarResultado(r, false);
+          this.archivoValidado.set(null);
+          this.entidadValidada.set(null);
           this.toast.success(
             mensajeExitoApi(
               r,
@@ -428,13 +481,61 @@ export class CargaMasivaComponent implements OnInit {
           this.loading.set(false);
           this.cargaMasiva.getLogs().subscribe((res) => this.logs.set(this.normalizarLogs(res.data)));
         },
-        error: (err) => {
-          this.errorGeneral.set(mensajeErrorApi(err, 'No fue posible procesar el archivo.'));
-          this.toast.error(mensajeErrorApi(err, 'No fue posible procesar el archivo.'));
-          this.loading.set(false);
-        },
+        error: (err) => this.manejarError(err, 'No fue posible importar el archivo.'),
       });
     });
+  }
+
+  private importar(file: File, entidad: Entidad, dryRun: boolean) {
+    return entidad === 'clientes'
+      ? this.cargaMasiva.importClientes(file, dryRun)
+      : entidad === 'contactos'
+        ? this.cargaMasiva.importContactos(file, dryRun)
+        : this.cargaMasiva.importProyecciones(file, dryRun);
+  }
+
+  private prepararSolicitud(esVistaPrevia: boolean): void {
+    this.loading.set(true);
+    this.resumen.set(null);
+    this.errorGeneral.set(null);
+    this.erroresDetalle.set([]);
+    this.detalleCreados.set([]);
+    this.logIdActual.set(null);
+    this.entidadTipoActual.set(ENTIDAD_API[this.entidad()]);
+    this.esVistaPrevia.set(esVistaPrevia);
+    this.revertExito.set(null);
+  }
+
+  private aplicarResultado(r: CargaMasivaResult, esVistaPrevia: boolean): void {
+    this.resumen.set({
+      filasExitosas: r.filasExitosas,
+      filasRechazadas: r.filasRechazadas,
+    });
+    this.erroresDetalle.set(r.detalleErrores ?? []);
+    this.detalleCreados.set(r.detalleCreados ?? []);
+    this.logIdActual.set(r.logId ?? null);
+    this.esVistaPrevia.set(esVistaPrevia);
+  }
+
+  private manejarError(error: unknown, fallback: string): void {
+    const mensaje = mensajeErrorApi(error, fallback);
+    this.errorGeneral.set(mensaje);
+    this.toast.error(mensaje);
+    this.loading.set(false);
+    this.archivoValidado.set(null);
+    this.entidadValidada.set(null);
+  }
+
+  private invalidarValidacion(): void {
+    this.archivoValidado.set(null);
+    this.entidadValidada.set(null);
+    this.resumen.set(null);
+    this.errorGeneral.set(null);
+    this.erroresDetalle.set([]);
+    this.detalleCreados.set([]);
+    this.logIdActual.set(null);
+    this.entidadTipoActual.set(null);
+    this.esVistaPrevia.set(false);
   }
 
   private normalizarLogs(logs: CargaMasivaLog[]): CargaMasivaLog[] {

@@ -29,4 +29,10 @@ export const LOGIN_FAQ_ITEMS: LoginFaqItem[] = [
     answer:
       'Tras varios intentos fallidos de inicio de sesión la cuenta se bloquea por seguridad. En ese caso debe contactar a un administrador del sistema; el restablecimiento automático no envía correo.',
   },
+  {
+    id: 'soporte',
+    question: '¿Cómo reporto un problema o solicito soporte?',
+    answer:
+      'Use el botón «Ir al HelpDesk TIC» al final de este panel. Abrirá el formulario de tickets (Jotform) para registrar su solicitud; no necesita haber iniciado sesión.',
+  },
 ];

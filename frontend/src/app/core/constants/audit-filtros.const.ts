@@ -1,0 +1,105 @@
+export interface AuditFiltroOption {
+  value: string;
+  label: string;
+}
+
+const ACCION_OPTIONS_RAW: AuditFiltroOption[] = [
+  { value: 'login', label: 'Inicio de sesión' },
+  { value: 'logout', label: 'Cierre de sesión' },
+  { value: 'login_fallido', label: 'Intento de inicio fallido' },
+  { value: 'cuenta_bloqueada', label: 'Cuenta bloqueada' },
+  { value: 'activacion', label: 'Activación de cuenta' },
+  { value: 'reset_password', label: 'Restablecimiento de contraseña' },
+  { value: 'reset_password_solicitud', label: 'Solicitud de restablecimiento' },
+  { value: 'usuario_crear', label: 'Creación de usuario' },
+  { value: 'usuario_editar', label: 'Edición de usuario' },
+  { value: 'usuario_desbloquear', label: 'Desbloqueo de usuario' },
+  { value: 'usuario_desactivar', label: 'Desactivación de usuario' },
+  { value: 'pais_crear', label: 'Creación de país' },
+  { value: 'pais_editar', label: 'Edición de país' },
+  { value: 'pais_config_editar', label: 'Edición de configuración de país' },
+  { value: 'plantilla_tarea_editar', label: 'Edición de plantilla de tarea' },
+  { value: 'catalogo_pais_editar', label: 'Edición de catálogo de país' },
+  { value: 'catalogo_pais_crear', label: 'Creación de catálogo de país' },
+  { value: 'ubicacion_crear', label: 'Creación de ubicación' },
+  { value: 'ubicacion_editar', label: 'Edición de ubicación' },
+  { value: 'configuracion_editar', label: 'Edición de configuración' },
+  { value: 'cliente_crear', label: 'Creación de cliente' },
+  { value: 'cliente_editar', label: 'Edición de cliente' },
+  { value: 'cliente_eliminar', label: 'Eliminación de cliente' },
+  { value: 'contacto_crear', label: 'Creación de contacto' },
+  { value: 'contacto_editar', label: 'Edición de contacto' },
+  { value: 'contacto_eliminar', label: 'Eliminación de contacto' },
+  { value: 'relacionamiento_crear', label: 'Creación de relacionamiento' },
+  { value: 'relacionamiento_editar', label: 'Edición de relacionamiento' },
+  { value: 'relacionamiento_eliminar', label: 'Eliminación de relacionamiento' },
+  { value: 'carga_masiva', label: 'Carga masiva' },
+  { value: 'carga_masiva_revertir', label: 'Reversión de carga masiva' },
+  { value: 'parametro_crear', label: 'Creación de parámetro' },
+  { value: 'parametro_editar', label: 'Edición de parámetro' },
+  { value: 'parametro_eliminar', label: 'Eliminación de parámetro' },
+  { value: 'meta_anual_upsert', label: 'Actualización de meta anual' },
+  { value: 'proceso_crear', label: 'Creación de proceso' },
+  { value: 'proceso_editar', label: 'Edición de proceso' },
+  { value: 'proceso_fecha_editar', label: 'Edición de fecha de proceso' },
+  { value: 'proceso_cambiar_estado', label: 'Cambio de estado de proceso' },
+  { value: 'proceso_eliminar', label: 'Eliminación de proceso' },
+  { value: 'tarea_completar', label: 'Tarea completada' },
+  { value: 'tarea_editar', label: 'Tarea editada' },
+  { value: 'validacion_asignar', label: 'Asignación de validador' },
+  { value: 'validacion_veredicto', label: 'Veredicto de validación' },
+  { value: 'solicitud_eliminacion_crear', label: 'Solicitud de eliminación' },
+  { value: 'solicitud_eliminacion_resolver', label: 'Resolución de solicitud de eliminación' },
+  { value: 'proyeccion_crear', label: 'Creación de proyección' },
+  { value: 'proyeccion_editar', label: 'Edición de proyección' },
+  { value: 'proyeccion_eliminar', label: 'Eliminación de proyección' },
+  { value: 'proyeccion_generar_auto', label: 'Generación automática de proyección' },
+  { value: 'proyeccion_vincular_proceso', label: 'Vinculación de proceso resultante' },
+  { value: 'proyeccion_cerrar', label: 'Cierre de proyección' },
+  { value: 'proyeccion_asignar_mercado', label: 'Asignación de mercado' },
+  { value: 'kam_crear_auto', label: 'Creación automática de KAM' },
+  { value: 'kam_ronda_crear', label: 'Creación de ronda KAM' },
+  { value: 'kam_ronda_editar', label: 'Edición de ronda KAM' },
+  { value: 'kam_ronda_ejecutar', label: 'Ejecución de ronda KAM' },
+  { value: 'kam_ronda_socializar', label: 'Socialización de ronda KAM' },
+  { value: 'kam_encuesta_crear', label: 'Creación de encuesta KAM' },
+  { value: 'kam_encuesta_responder', label: 'Respuesta de encuesta KAM' },
+  { value: 'formato_encuesta_crear', label: 'Creación de formato de encuesta' },
+  { value: 'formato_encuesta_editar', label: 'Edición de formato de encuesta' },
+  { value: 'formato_encuesta_clonar', label: 'Clonación de formato de encuesta' },
+];
+
+const ENTIDAD_OPTIONS_RAW: AuditFiltroOption[] = [
+  { value: 'auth', label: 'Autenticación' },
+  { value: 'usuario', label: 'Usuario' },
+  { value: 'pais', label: 'País' },
+  { value: 'ubicacion_geografica', label: 'Ubicación geográfica' },
+  { value: 'configuracion_sistema', label: 'Configuración del sistema' },
+  { value: 'configuracion_pais', label: 'Configuración de país' },
+  { value: 'catalogo_pais', label: 'Catálogo de país' },
+  { value: 'plantilla_tarea_pais', label: 'Plantilla de tarea por país' },
+  { value: 'cliente', label: 'Cliente' },
+  { value: 'contacto', label: 'Contacto' },
+  { value: 'relacionamiento', label: 'Relacionamiento' },
+  { value: 'carga_masiva', label: 'Carga masiva' },
+  { value: 'parametro_financiero', label: 'Parámetro financiero' },
+  { value: 'meta_anual', label: 'Meta anual' },
+  { value: 'proceso', label: 'Proceso' },
+  { value: 'proceso_tarea', label: 'Tarea de proceso' },
+  { value: 'validacion_proceso', label: 'Validación de proceso' },
+  { value: 'solicitud_eliminacion', label: 'Solicitud de eliminación' },
+  { value: 'proyeccion', label: 'Proyección' },
+  { value: 'kam', label: 'KAM' },
+  { value: 'formato_encuesta', label: 'Formato de encuesta' },
+  { value: 'notificacion', label: 'Notificación' },
+];
+
+function byLabel(a: AuditFiltroOption, b: AuditFiltroOption): number {
+  return a.label.localeCompare(b.label, 'es');
+}
+
+/** Opciones de filtro de acción (ordenadas por etiqueta). */
+export const AUDIT_ACCION_OPTIONS: AuditFiltroOption[] = [...ACCION_OPTIONS_RAW].sort(byLabel);
+
+/** Opciones de filtro de tipo de entidad (ordenadas por etiqueta). */
+export const AUDIT_ENTIDAD_OPTIONS: AuditFiltroOption[] = [...ENTIDAD_OPTIONS_RAW].sort(byLabel);

@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rol } from '../../common/enums/rol.enum';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import {
   AuditAccion,
   AuditEntidadTipo,
@@ -12,6 +12,7 @@ import {
   normalizeEntityName,
   rankBySimilarity,
 } from '../../common/utils/text-similarity.util';
+import { buildSingleSheetBuffer } from '../../common/utils/spreadsheet-writer';
 import { Contacto } from '../../database/entities/contacto.entity';
 import { AuditService } from '../audit/audit.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -63,7 +64,7 @@ export class ContactosService {
 
     if (query.search) {
       qb.andWhere(
-        '(co.nombre LIKE :search OR co.cargo LIKE :search OR co.correo LIKE :search OR cl.empresa LIKE :search)',
+        '(co.nombre LIKE :search OR co.cargo LIKE :search OR co.correo LIKE :search)',
         { search: `%${query.search}%` },
       );
     }
@@ -79,6 +80,47 @@ export class ContactosService {
       total,
       page,
       limit,
+    };
+  }
+
+  async exportarXlsx(
+    query: ContactosQueryDto,
+    paisSesionId: number,
+  ): Promise<{ buffer: Buffer; filename: string; truncado: boolean }> {
+    const exportQuery: ContactosQueryDto = {
+      ...query,
+      page: 1,
+      limit: 10_000,
+    };
+    const page = await this.findAll(exportQuery, paisSesionId);
+    const contactos = page.data.length
+      ? await this.contactoRepository.find({
+          where: { id: In(page.data.map((contacto) => contacto.id)) },
+          relations: { cliente: true },
+        })
+      : [];
+    const empresaPorContacto = new Map(
+      contactos.map((contacto) => [Number(contacto.id), contacto.cliente.empresa]),
+    );
+    const fecha = new Date().toISOString().slice(0, 10);
+    const rows = page.data.map((contacto) => ({
+      Nombre: contacto.nombre,
+      Empresa: empresaPorContacto.get(Number(contacto.id)) ?? '',
+      Cargo: contacto.cargo,
+      Teléfono: contacto.telefono,
+      Correo: contacto.correo,
+      Referido: contacto.esReferido
+        ? contacto.referidoPorNombre
+          ? `Sí, por ${contacto.referidoPorNombre}`
+          : 'Sí'
+        : 'No',
+      Genérico: contacto.esGenerico ? 'Sí' : 'No',
+    }));
+
+    return {
+      buffer: buildSingleSheetBuffer('Contactos', rows),
+      filename: `contactos-${fecha}.xlsx`,
+      truncado: page.total > exportQuery.limit!,
     };
   }
 
@@ -208,19 +250,7 @@ export class ContactosService {
     paisSesionId: number,
     manager?: EntityManager,
   ): Promise<ContactoResponseDto> {
-    await this.clientesService.getClienteActivoOrFail(clienteId, paisSesionId);
-    await this.clientesService.validateUbicacionInPais(
-      dto.ubicacionId,
-      paisSesionId,
-    );
-
-    if (dto.referidoPorContactoId) {
-      await this.validateReferido(
-        dto.referidoPorContactoId,
-        clienteId,
-        paisSesionId,
-      );
-    }
+    await this.validateCreate(clienteId, dto, paisSesionId);
 
     const repo = manager
       ? manager.getRepository(Contacto)
@@ -252,6 +282,26 @@ export class ContactosService {
     }
 
     return this.toResponse(saved);
+  }
+
+  async validateCreate(
+    clienteId: number,
+    dto: CreateContactoDto,
+    paisSesionId: number,
+  ): Promise<void> {
+    await this.clientesService.getClienteActivoOrFail(clienteId, paisSesionId);
+    await this.clientesService.validateUbicacionInPais(
+      dto.ubicacionId,
+      paisSesionId,
+    );
+
+    if (dto.referidoPorContactoId) {
+      await this.validateReferido(
+        dto.referidoPorContactoId,
+        clienteId,
+        paisSesionId,
+      );
+    }
   }
 
   async update(

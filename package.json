@@ -29,6 +29,7 @@
     "repair:kams-huerfanos": "ts-node scripts/repair-kams-huerfanos.ts",
     "docker:dev": "docker compose --profile dev up --build",
     "docker:dev:down": "docker compose --profile dev down",
+    "docker:dev:reset-frontend": "docker compose stop frontend && docker compose rm -f frontend && docker volume rm -f smartlicitaciones-back_frontend_node_modules && docker compose --profile dev up -d --build frontend",
     "docker:reload-api": "npm run build && docker compose restart api",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
     "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down"

@@ -1,0 +1,78 @@
+.gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gauge__header {
+  text-align: center;
+
+  h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-emphasis);
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--color-on-surface-variant);
+  }
+}
+
+.gauge__svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
+.gauge__track {
+  stroke: var(--color-outline-variant);
+}
+
+.gauge__arc {
+  stroke: var(--color-accent);
+}
+
+.gauge__needle {
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.gauge__pivot {
+  fill: var(--color-primary);
+}
+
+.gauge__value {
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--color-emphasis);
+}
+
+.gauge__pct {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--color-accent);
+}
+
+.gauge__empty,
+.gauge__meta {
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--color-on-surface-variant);
+}
+
+.gauge--empty {
+  .gauge__value {
+    fill: var(--color-on-surface-variant);
+  }
+}
+
+.gauge__empty {
+  color: var(--color-primary);
+  font-weight: 600;
+}

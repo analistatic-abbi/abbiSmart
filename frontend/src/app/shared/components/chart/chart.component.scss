@@ -1,0 +1,9 @@
+.chart-host {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}

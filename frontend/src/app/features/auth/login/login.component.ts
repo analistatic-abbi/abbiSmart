@@ -9,6 +9,7 @@ import { LOGO_ABBI, LOGIN_HERO_EQUIPO, LOGIN_OPERADOR } from '../../../core/cons
 import { DEV_LOGIN_ACCOUNTS, DevLoginAccount } from '../../../core/constants/dev-login';
 import { environment } from '../../../../environments/environment';
 import { LOGIN_FAQ_ITEMS } from './login-faq';
+import { SUPPORT_JOTFORM_URL } from '../../../shared/components/support-center/support-faq';
 import { ThemeService, ThemeMode } from '../../../core/services/theme.service';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import { animateCountUp } from '../../../core/utils/count-up.util';
@@ -36,6 +37,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly errorType = signal<'credentials' | 'blocked' | 'generic' | null>(null);
   protected readonly faqItems = LOGIN_FAQ_ITEMS;
+  protected readonly jotformUrl = SUPPORT_JOTFORM_URL;
   protected readonly expandedFaq = signal<string | null>(null);
   protected readonly faqOpen = signal(false);
   protected readonly statYear = signal(2003);
@@ -67,6 +69,10 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   protected toggleFaq(id: string): void {
     this.expandedFaq.update((current) => (current === id ? null : id));
+  }
+
+  protected openHelpDesk(): void {
+    window.open(this.jotformUrl, '_blank', 'noopener,noreferrer');
   }
 
   protected readonly form = this.fb.nonNullable.group({

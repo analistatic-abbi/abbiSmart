@@ -10,8 +10,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { Rol } from '../../common/enums/rol.enum';
@@ -62,6 +64,30 @@ export class ContactosController {
       message: 'Contactos obtenidos correctamente',
       ...result,
     };
+  }
+
+  @Get('contactos/export')
+  @ApiOperation({ summary: 'Exportar listado de contactos a Excel (.xlsx)' })
+  async exportar(
+    @Query() query: ContactosQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename, truncado } = await this.contactosService.exportarXlsx(
+      query,
+      user.paisSesionId!,
+    );
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    if (truncado) {
+      res.setHeader('X-Export-Truncated', 'true');
+    }
+
+    return res.send(buffer);
   }
 
   @Get('clientes/:clienteId/contactos')

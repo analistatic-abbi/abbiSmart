@@ -9,19 +9,23 @@
   </header>
 
   <div class="filters">
+    <div class="filters__empresa">
+      <app-searchable-select
+        [options]="clienteSelectOptions()"
+        [ngModel]="clienteId()"
+        (ngModelChange)="onEmpresaChange($event)"
+        placeholder="Todas las empresas"
+        searchPlaceholder="Buscar empresa..."
+        [minOptionsForSearch]="0"
+      />
+    </div>
     <input
       type="search"
-      placeholder="Buscar por nombre, cargo, correo o empresa..."
+      placeholder="Buscar por nombre, cargo o correo..."
       [ngModel]="search()"
       (ngModelChange)="search.set($event)"
       (keyup.enter)="onFilter()"
     />
-    <select [ngModel]="clienteId()" (ngModelChange)="clienteId.set($event); onFilter()">
-      <option value="">Todas las empresas</option>
-      @for (cliente of clientesOptions(); track cliente.id) {
-        <option [value]="cliente.id">{{ cliente.empresa }}</option>
-      }
-    </select>
     <select [ngModel]="esGenerico()" (ngModelChange)="esGenerico.set($event); onFilter()">
       <option value="">Todos los contactos</option>
       <option value="false">Solo específicos</option>
@@ -31,7 +35,14 @@
     @if (tieneFiltrosActivos()) {
       <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
     }
+    <button type="button" class="btn-secondary" [disabled]="exportando()" (click)="exportar()">
+      {{ exportando() ? 'Exportando...' : 'Exportar' }}
+    </button>
   </div>
+
+  @if (exportError()) {
+    <p class="error">{{ exportError() }}</p>
+  }
 
   @if (loading()) {
     <p>Cargando contactos...</p>

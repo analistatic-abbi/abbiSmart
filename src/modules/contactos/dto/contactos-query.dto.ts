@@ -16,7 +16,7 @@ export class ContactosQueryDto extends PaginationQueryDto {
   @IsInt()
   clienteId?: number;
 
-  @ApiPropertyOptional({ description: 'Búsqueda por nombre, cargo, correo o empresa' })
+  @ApiPropertyOptional({ description: 'Búsqueda por nombre, cargo o correo' })
   @IsOptional()
   @IsString()
   @MaxLength(255)

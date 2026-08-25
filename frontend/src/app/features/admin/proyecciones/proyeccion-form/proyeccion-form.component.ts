@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
@@ -19,6 +19,7 @@ import { SearchableSelectComponent } from '../../../../shared/components/searcha
   styleUrl: './proyeccion-form.component.scss',
 })
 export class ProyeccionFormComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly proyecciones = inject(ProyeccionesService);
   private readonly catalogos = inject(CatalogosService);
@@ -50,6 +51,15 @@ export class ProyeccionFormComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
+    const empresaClienteId = Number(
+      this.route.snapshot.queryParamMap.get('empresaClienteId'),
+    );
+    if (Number.isInteger(empresaClienteId) && empresaClienteId > 0) {
+      this.empresaClienteId.set(empresaClienteId);
+      this.usarEmpresaOtro.set(false);
+      this.empresaOtro.set('');
+    }
+
     this.catalogos.getClientes().subscribe((r) => this.clientes.set(r.data));
     this.catalogos.getCatalogoSesion('segmento_proceso').subscribe({
       next: (r) => {

@@ -138,6 +138,7 @@ export interface Relacionamiento {
 
 export interface RelacionamientoVencido extends Relacionamiento {
   fechaLimiteRespuesta: string;
+  clienteId?: number;
 }
 
 export interface ContactoReferidoPayload {

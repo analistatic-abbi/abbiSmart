@@ -13,6 +13,13 @@ export class RelacionamientosQueryDto extends PaginationQueryDto {
   @IsPositive()
   contactoId?: number;
 
+  @ApiPropertyOptional({ description: 'Filtrar por empresa (cliente registrado)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  clienteId?: number;
+
   @ApiPropertyOptional({ enum: CanalRelacionamiento })
   @IsOptional()
   @IsEnum(CanalRelacionamiento)
@@ -84,4 +91,7 @@ export class RelacionamientoResponseDto {
 export class RelacionamientoVencidoResponseDto extends RelacionamientoResponseDto {
   @ApiProperty()
   fechaLimiteRespuesta: string;
+
+  @ApiPropertyOptional()
+  clienteId?: number;
 }

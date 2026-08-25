@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Repository } from 'typeorm';
+import { AuditAccion, AuditEntidadTipo } from '../../common/enums/audit-accion.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { EstadoProceso } from '../../common/enums/estado-proceso.enum';
 import { EstadoProyeccion } from '../../common/enums/estado-proyeccion.enum';
 import { EstadoUsuario } from '../../common/enums/estado-usuario.enum';
 import { FiltroEliminados } from '../../common/enums/filtro-eliminados.enum';
+import { MercadoProyeccion } from '../../common/enums/mercado-proyeccion.enum';
+import { ResultadoRelacionamiento } from '../../common/enums/resultado-relacionamiento.enum';
 import { Rol } from '../../common/enums/rol.enum';
 import { PermisosService } from '../../common/services/permisos.service';
 import { resolveFiltroEliminados } from '../../common/utils/filtro-eliminados.util';
@@ -16,12 +19,24 @@ import {
   buildWorkbookBuffer,
   type SpreadsheetSheet,
 } from '../../common/utils/spreadsheet-writer';
+import { MetaAnual } from '../../database/entities/meta-anual.entity';
 import { Pais } from '../../database/entities/pais.entity';
 import { Proceso } from '../../database/entities/proceso.entity';
 import { Proyeccion } from '../../database/entities/proyeccion.entity';
 import { ReporteGenerado } from '../../database/entities/reporte-generado.entity';
+import { AuditService } from '../audit/audit.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { ProyeccionesService } from '../proyecciones/proyecciones.service';
+import {
+  AnaliticaCierresVentanaDto,
+  AnaliticaConteoDto,
+  AnaliticaDashboardDto,
+  AnaliticaEmbudoEtapaDto,
+  AnaliticaGaugesDto,
+  AnaliticaProyeccionEstadoMercadoDto,
+} from './dto/analitica-dashboard.dto';
 import { DashboardExportQueryDto, DashboardProcesosQueryDto } from './dto/dashboard-query.dto';
+import { UpsertMetasAnualesDto } from './dto/upsert-metas.dto';
 
 export const EXPORT_MAX_ROWS = 10_000;
 export const DASHBOARD_PROCESOS_MAX_ROWS = 200;
@@ -60,6 +75,55 @@ export interface DashboardProyeccionesDto {
 
 const RFI_FILTER = `p.tipo_instrumento <> 'RFI'`;
 
+function buildDateFilter(
+  column: string,
+  desde?: string,
+  hasta?: string,
+): { sql: string; params: string[] } {
+  const parts: string[] = [];
+  const params: string[] = [];
+  if (desde) {
+    parts.push(`${column} >= ?`);
+    params.push(desde);
+  }
+  if (hasta) {
+    parts.push(`${column} <= ?`);
+    params.push(hasta);
+  }
+  return { sql: parts.length ? ' AND ' + parts.join(' AND ') : '', params };
+}
+
+const ESTADOS_GAUGE_PROYECTADA = [
+  EstadoProceso.ADJUDICADO,
+  EstadoProceso.PRESENTADO,
+  EstadoProceso.SUBSANACION,
+];
+
+export function porcentajeVsMeta(
+  valor: string | number,
+  meta: string | number | null | undefined,
+): number | null {
+  const techo = Number(meta);
+  if (!Number.isFinite(techo) || techo <= 0) {
+    return null;
+  }
+
+  const monto = Number(valor);
+  if (!Number.isFinite(monto)) {
+    return 0;
+  }
+
+  return (monto / techo) * 100;
+}
+
+function toMoneyString(value: unknown): string {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) {
+    return '0';
+  }
+  return n.toFixed(2);
+}
+
 export interface ReporteGeneradoDto {
   id: number;
   tipo: string;
@@ -82,34 +146,40 @@ export class DashboardService {
     private readonly reporteRepository: Repository<ReporteGenerado>,
     @InjectRepository(Pais)
     private readonly paisRepository: Repository<Pais>,
+    @InjectRepository(MetaAnual)
+    private readonly metaAnualRepository: Repository<MetaAnual>,
     private readonly notificacionesService: NotificacionesService,
     private readonly permisosService: PermisosService,
+    private readonly proyeccionesService: ProyeccionesService,
+    private readonly auditService: AuditService,
   ) {}
 
-  async getResumen(paisSesionId: number): Promise<DashboardResumenDto> {
+  async getResumen(paisSesionId: number, desde?: string, hasta?: string): Promise<DashboardResumenDto> {
+    const df = buildDateFilter('p.fecha_apertura', desde, hasta);
+
     const totalRows = await this.procesoRepository.query(
       `SELECT COUNT(*) AS total
        FROM procesos p
-       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}`,
-      [paisSesionId],
+       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}${df.sql}`,
+      [paisSesionId, ...df.params],
     );
 
     const porEstado = await this.procesoRepository.query(
       `SELECT p.estado, COUNT(*) AS total
        FROM procesos p
-       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}
+       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}${df.sql}
        GROUP BY p.estado
        ORDER BY p.estado ASC`,
-      [paisSesionId],
+      [paisSesionId, ...df.params],
     );
 
     const porSegmento = await this.procesoRepository.query(
       `SELECT p.segmento, COUNT(*) AS total
        FROM procesos p
-       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}
+       WHERE p.eliminado = FALSE AND p.pais_id = ? AND ${RFI_FILTER}${df.sql}
        GROUP BY p.segmento
        ORDER BY p.segmento ASC`,
-      [paisSesionId],
+      [paisSesionId, ...df.params],
     );
 
     return {
@@ -147,12 +217,15 @@ export class DashboardService {
   async getProyecciones(
     paisSesionId: number,
     anio?: number,
+    desde?: string,
+    hasta?: string,
   ): Promise<DashboardProyeccionesDto> {
     const anioFiltro = anio ?? new Date().getFullYear();
     const estadosExcluidos = [
       EstadoProyeccion.CERRADO,
       EstadoProyeccion.PUBLICADO,
     ];
+    const df = buildDateFilter('fecha_estimada_publicacion', desde, hasta);
 
     const totalRows = await this.proyeccionRepository.query(
       `SELECT
@@ -163,8 +236,8 @@ export class DashboardService {
        WHERE eliminado = FALSE
          AND pais_id = ?
          AND anio_proyectado = ?
-         AND estado NOT IN (?, ?)`,
-      [paisSesionId, anioFiltro, ...estadosExcluidos],
+         AND estado NOT IN (?, ?)${df.sql}`,
+      [paisSesionId, anioFiltro, ...estadosExcluidos, ...df.params],
     );
 
     const porEstado = await this.proyeccionRepository.query(
@@ -176,10 +249,10 @@ export class DashboardService {
        WHERE eliminado = FALSE
          AND pais_id = ?
          AND anio_proyectado = ?
-         AND estado NOT IN (?, ?)
+         AND estado NOT IN (?, ?)${df.sql}
        GROUP BY estado
        ORDER BY estado ASC`,
-      [paisSesionId, anioFiltro, ...estadosExcluidos],
+      [paisSesionId, anioFiltro, ...estadosExcluidos, ...df.params],
     );
 
     const porMercado = await this.proyeccionRepository.query(
@@ -191,10 +264,10 @@ export class DashboardService {
        WHERE eliminado = FALSE
          AND pais_id = ?
          AND anio_proyectado = ?
-         AND estado NOT IN (?, ?)
+         AND estado NOT IN (?, ?)${df.sql}
        GROUP BY mercado
        ORDER BY mercado ASC`,
-      [paisSesionId, anioFiltro, ...estadosExcluidos],
+      [paisSesionId, anioFiltro, ...estadosExcluidos, ...df.params],
     );
 
     return {
@@ -228,6 +301,161 @@ export class DashboardService {
           sumaFacturacion: String(row.sumaFacturacion),
         }),
       ),
+    };
+  }
+
+  async getAnalitica(
+    paisSesionId: number,
+    anio?: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaDashboardDto> {
+    const anioFiltro = anio ?? new Date().getFullYear();
+
+    const [
+      resumen,
+      proyecciones,
+      kpisRow,
+      cierresRows,
+      proyeccionesEstadoMercadoRows,
+      efectividadMercado,
+      crmPorCanal,
+      crmPorResultado,
+      crmPorSegmento,
+      crmEstadoRespuesta,
+      crmActividad,
+      gauges,
+    ] = await Promise.all([
+      this.getResumen(paisSesionId, desde, hasta),
+      this.getProyecciones(paisSesionId, anioFiltro, desde, hasta),
+      this.queryAnaliticaKpis(paisSesionId, desde, hasta),
+      this.queryCierresPorVentana(paisSesionId, desde, hasta),
+      this.queryProyeccionesPorEstadoMercado(paisSesionId, anioFiltro, desde, hasta),
+      this.proyeccionesService.getEfectividadMercado(anioFiltro, paisSesionId),
+      this.queryCrmPorCampo(paisSesionId, 'r.canal', desde, hasta),
+      this.queryCrmPorCampo(paisSesionId, 'r.resultado', desde, hasta),
+      this.queryCrmPorSegmentoCliente(paisSesionId),
+      this.queryCrmEstadoRespuesta(paisSesionId, desde, hasta),
+      this.queryCrmActividad(paisSesionId, desde, hasta),
+      this.queryGauges(paisSesionId, anioFiltro),
+    ]);
+
+    const embudoRows = await this.queryEmbudoComercial(
+      paisSesionId,
+      proyecciones.totalProyeccionesActivas,
+    );
+
+    return {
+      anio: anioFiltro,
+      kpis: {
+        procesosActivos: Number(kpisRow.procesosActivos ?? 0),
+        proyeccionesActivas: proyecciones.totalProyeccionesActivas,
+        cierresProximos30Dias: Number(kpisRow.cierresProximos30Dias ?? 0),
+        validacionesPendientes: Number(kpisRow.validacionesPendientes ?? 0),
+        relacionamientosVencidos: Number(kpisRow.relacionamientosVencidos ?? 0),
+        clientesActivos: Number(kpisRow.clientesActivos ?? 0),
+        contactosActivos: Number(kpisRow.contactosActivos ?? 0),
+        relacionamientosTotal: Number(kpisRow.relacionamientosTotal ?? 0),
+        reunionesProgramadas: Number(kpisRow.reunionesProgramadas ?? 0),
+      },
+      resumen,
+      proyecciones,
+      gauges,
+      embudo: embudoRows,
+      cierresPorVentana: cierresRows,
+      proyeccionesPorEstadoMercado: proyeccionesEstadoMercadoRows,
+      efectividadMercado: {
+        anio: anioFiltro,
+        general: {
+          pctGanadasDeMaterializadas:
+            efectividadMercado.general.pctGanadasDeMaterializadas,
+          materializadas: efectividadMercado.general.materializadas,
+          ganadas: efectividadMercado.general.ganadas,
+        },
+        objetivo: {
+          pctGanadasDeMaterializadas:
+            efectividadMercado.objetivo.pctGanadasDeMaterializadas,
+          materializadas: efectividadMercado.objetivo.materializadas,
+          ganadas: efectividadMercado.objetivo.ganadas,
+        },
+      },
+      crm: {
+        porCanal: crmPorCanal,
+        porResultado: crmPorResultado,
+        porSegmentoCliente: crmPorSegmento,
+        estadoRespuesta: crmEstadoRespuesta,
+        actividadPorVentana: crmActividad,
+      },
+    };
+  }
+
+  async upsertMetas(
+    paisSesionId: number,
+    dto: UpsertMetasAnualesDto,
+    actorId: number,
+  ): Promise<{
+    anio: number;
+    metaAdjudicacion: string;
+    metaFacturacion: string;
+  }> {
+    if (dto.metaAdjudicacion <= 0 || dto.metaFacturacion <= 0) {
+      throw new BusinessException(
+        ErrorCode.VALIDATION_ERROR,
+        'Las metas de adjudicación y facturación deben ser mayores que cero',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const metaAdjudicacion = toMoneyString(dto.metaAdjudicacion);
+    const metaFacturacion = toMoneyString(dto.metaFacturacion);
+
+    const existente = await this.metaAnualRepository.findOne({
+      where: { paisId: paisSesionId, anio: dto.anio },
+    });
+
+    const anterior = existente
+      ? JSON.stringify({
+          anio: existente.anio,
+          metaAdjudicacion: existente.metaAdjudicacion,
+          metaFacturacion: existente.metaFacturacion,
+        })
+      : null;
+
+    const registro = existente
+      ? this.metaAnualRepository.merge(existente, {
+          metaAdjudicacion,
+          metaFacturacion,
+          actualizadoPorId: actorId,
+          fechaActualizacion: new Date(),
+        })
+      : this.metaAnualRepository.create({
+          paisId: paisSesionId,
+          anio: dto.anio,
+          metaAdjudicacion,
+          metaFacturacion,
+          actualizadoPorId: actorId,
+          fechaActualizacion: new Date(),
+        });
+
+    const saved = await this.metaAnualRepository.save(registro);
+
+    await this.auditService.log({
+      usuarioId: actorId,
+      accion: AuditAccion.META_ANUAL_UPSERT,
+      entidadTipo: AuditEntidadTipo.META_ANUAL,
+      entidadId: saved.id,
+      valorAnterior: anterior,
+      valorNuevo: JSON.stringify({
+        anio: saved.anio,
+        metaAdjudicacion: saved.metaAdjudicacion,
+        metaFacturacion: saved.metaFacturacion,
+      }),
+    });
+
+    return {
+      anio: saved.anio,
+      metaAdjudicacion: toMoneyString(saved.metaAdjudicacion),
+      metaFacturacion: toMoneyString(saved.metaFacturacion),
     };
   }
 
@@ -610,5 +838,468 @@ export class DashboardService {
     );
 
     return rows.map((row: { id: number }) => Number(row.id));
+  }
+
+  private async queryGauges(
+    paisSesionId: number,
+    anio: number,
+  ): Promise<AnaliticaGaugesDto> {
+    const facturacionAnio = `COALESCE(ROUND(
+      (p.cuantia / NULLIF(p.plazo_ejecucion_meses, 0)) *
+      GREATEST(0, COALESCE(TIMESTAMPDIFF(MONTH,
+        GREATEST(p.fecha_inicio_ejecucion, MAKEDATE(?, 1)),
+        LEAST(p.fecha_finalizacion, MAKEDATE(?, 1))
+      ), 0))
+    , 2), 0)`;
+
+    const [meta, rows] = await Promise.all([
+      this.metaAnualRepository.findOne({
+        where: { paisId: paisSesionId, anio },
+      }),
+      this.procesoRepository.query(
+        `SELECT
+           COALESCE(SUM(CASE WHEN p.estado = ? THEN p.cuantia ELSE 0 END), 0) AS real_adjudicacion,
+           COALESCE(SUM(CASE WHEN p.estado IN (?, ?, ?) THEN p.cuantia ELSE 0 END), 0) AS proyectada_adjudicacion,
+           COALESCE(SUM(CASE WHEN p.estado = ? THEN ${facturacionAnio} ELSE 0 END), 0) AS real_facturacion,
+           COALESCE(SUM(CASE WHEN p.estado IN (?, ?, ?) THEN ${facturacionAnio} ELSE 0 END), 0) AS proyectada_facturacion
+         FROM procesos p
+         WHERE p.eliminado = FALSE
+           AND p.pais_id = ?
+           AND ${RFI_FILTER}
+           AND (
+             (
+               p.fecha_inicio_ejecucion IS NOT NULL
+               AND p.fecha_finalizacion IS NOT NULL
+               AND p.fecha_inicio_ejecucion < MAKEDATE(?, 1)
+               AND p.fecha_finalizacion > MAKEDATE(?, 1)
+             )
+             OR (
+               (p.fecha_inicio_ejecucion IS NULL OR p.fecha_finalizacion IS NULL)
+               AND YEAR(p.fecha_cierre) = ?
+             )
+           )`,
+        [
+          EstadoProceso.ADJUDICADO,
+          ...ESTADOS_GAUGE_PROYECTADA,
+          EstadoProceso.ADJUDICADO,
+          anio,
+          anio + 1,
+          ...ESTADOS_GAUGE_PROYECTADA,
+          anio,
+          anio + 1,
+          paisSesionId,
+          anio + 1,
+          anio,
+          anio,
+        ],
+      ),
+    ]);
+
+    const row = (rows[0] ?? {}) as {
+      real_adjudicacion?: string;
+      real_facturacion?: string;
+      proyectada_adjudicacion?: string;
+      proyectada_facturacion?: string;
+    };
+
+    return {
+      metaAdjudicacion: meta ? toMoneyString(meta.metaAdjudicacion) : null,
+      metaFacturacion: meta ? toMoneyString(meta.metaFacturacion) : null,
+      real: {
+        adjudicacion: toMoneyString(row.real_adjudicacion),
+        facturacion: toMoneyString(row.real_facturacion),
+      },
+      proyectada: {
+        adjudicacion: toMoneyString(row.proyectada_adjudicacion),
+        facturacion: toMoneyString(row.proyectada_facturacion),
+      },
+    };
+  }
+
+  private async queryAnaliticaKpis(
+    paisSesionId: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<Record<string, unknown>> {
+    const dfProc = buildDateFilter('p.fecha_apertura', desde, hasta);
+    const dfRel = buildDateFilter('r.fecha_mensaje', desde, hasta);
+
+    const rows = await this.procesoRepository.query(
+      `SELECT
+         (
+           SELECT COUNT(*)
+           FROM procesos p
+           WHERE p.eliminado = FALSE
+             AND p.pais_id = ?
+             AND ${RFI_FILTER}
+             AND p.estado NOT IN (?, ?)${dfProc.sql}
+         ) AS procesosActivos,
+         (
+           SELECT COUNT(*)
+           FROM procesos p
+           WHERE p.eliminado = FALSE
+             AND p.pais_id = ?
+             AND ${RFI_FILTER}
+             AND p.estado NOT IN (?, ?)
+             AND p.fecha_cierre IS NOT NULL
+             AND p.fecha_cierre >= CURDATE()
+             AND p.fecha_cierre <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)${dfProc.sql}
+         ) AS cierresProximos30Dias,
+         (
+           SELECT COUNT(*)
+           FROM vista_procesos_por_validar v
+           INNER JOIN procesos p ON p.id = v.proceso_id
+           WHERE p.pais_id = ?
+             AND p.eliminado = FALSE${dfProc.sql}
+         ) AS validacionesPendientes,
+         (
+           SELECT COUNT(*)
+           FROM vista_relacionamientos_vencidos v
+           INNER JOIN relacionamientos r ON r.id = v.id
+           INNER JOIN contactos co ON co.id = r.contacto_id
+           INNER JOIN clientes cl ON cl.id = co.cliente_id
+           WHERE cl.pais_id = ?${dfRel.sql}
+         ) AS relacionamientosVencidos,
+         (
+           SELECT COUNT(*)
+           FROM clientes cl
+           WHERE cl.pais_id = ?
+             AND cl.eliminado = FALSE
+         ) AS clientesActivos,
+         (
+           SELECT COUNT(*)
+           FROM contactos co
+           INNER JOIN clientes cl ON cl.id = co.cliente_id
+           WHERE cl.pais_id = ?
+             AND cl.eliminado = FALSE
+             AND co.eliminado = FALSE
+         ) AS contactosActivos,
+         (
+           SELECT COUNT(*)
+           FROM relacionamientos r
+           INNER JOIN contactos co ON co.id = r.contacto_id
+           INNER JOIN clientes cl ON cl.id = co.cliente_id
+           WHERE cl.pais_id = ?
+             AND r.eliminado = FALSE${dfRel.sql}
+         ) AS relacionamientosTotal,
+         (
+           SELECT COUNT(*)
+           FROM relacionamientos r
+           INNER JOIN contactos co ON co.id = r.contacto_id
+           INNER JOIN clientes cl ON cl.id = co.cliente_id
+           WHERE cl.pais_id = ?
+             AND r.eliminado = FALSE
+             AND r.resultado = ?${dfRel.sql}
+         ) AS reunionesProgramadas`,
+      [
+        paisSesionId,
+        EstadoProceso.CERRADO,
+        EstadoProceso.DESCARTADO,
+        ...dfProc.params,
+        paisSesionId,
+        EstadoProceso.CERRADO,
+        EstadoProceso.DESCARTADO,
+        ...dfProc.params,
+        paisSesionId,
+        ...dfProc.params,
+        paisSesionId,
+        ...dfRel.params,
+        paisSesionId,
+        paisSesionId,
+        paisSesionId,
+        ...dfRel.params,
+        paisSesionId,
+        ResultadoRelacionamiento.REUNION_PROGRAMADA,
+        ...dfRel.params,
+      ],
+    );
+
+    return rows[0] ?? {};
+  }
+
+  private async queryEmbudoComercial(
+    paisSesionId: number,
+    proyeccionesActivas: number,
+  ): Promise<AnaliticaEmbudoEtapaDto[]> {
+    const estadoRows = await this.procesoRepository.query(
+      `SELECT p.estado, COUNT(*) AS total
+       FROM procesos p
+       WHERE p.eliminado = FALSE
+         AND p.pais_id = ?
+         AND ${RFI_FILTER}
+         AND p.estado IN (?, ?, ?, ?, ?)
+       GROUP BY p.estado`,
+      [
+        paisSesionId,
+        EstadoProceso.EN_PROCESO,
+        EstadoProceso.EN_VALIDACION,
+        EstadoProceso.PRESENTADO,
+        EstadoProceso.SUBSANACION,
+        EstadoProceso.ADJUDICADO,
+      ],
+    );
+
+    const porEstado = new Map<string, number>(
+      estadoRows.map((row: { estado: string; total: string }) => [
+        row.estado,
+        Number(row.total),
+      ]),
+    );
+
+    const presentadoSubsanacion =
+      (porEstado.get(EstadoProceso.PRESENTADO) ?? 0) +
+      (porEstado.get(EstadoProceso.SUBSANACION) ?? 0);
+
+    return [
+      {
+        etapa: 'Proyecciones activas',
+        clave: 'proyecciones_activas',
+        total: proyeccionesActivas,
+      },
+      {
+        etapa: 'En proceso',
+        clave: 'en_proceso',
+        total: porEstado.get(EstadoProceso.EN_PROCESO) ?? 0,
+      },
+      {
+        etapa: 'En validación',
+        clave: 'en_validacion',
+        total: porEstado.get(EstadoProceso.EN_VALIDACION) ?? 0,
+      },
+      {
+        etapa: 'Presentado / Subsanación',
+        clave: 'presentado_subsanacion',
+        total: presentadoSubsanacion,
+      },
+      {
+        etapa: 'Adjudicado',
+        clave: 'adjudicado',
+        total: porEstado.get(EstadoProceso.ADJUDICADO) ?? 0,
+      },
+    ];
+  }
+
+  private async queryCierresPorVentana(
+    paisSesionId: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaCierresVentanaDto[]> {
+    const df = buildDateFilter('p.fecha_apertura', desde, hasta);
+    const rows = await this.procesoRepository.query(
+      `SELECT
+         SUM(CASE
+           WHEN DATEDIFF(p.fecha_cierre, CURDATE()) BETWEEN 0 AND 30 THEN 1
+           ELSE 0 END) AS ventana0_30,
+         SUM(CASE
+           WHEN DATEDIFF(p.fecha_cierre, CURDATE()) BETWEEN 31 AND 60 THEN 1
+           ELSE 0 END) AS ventana31_60,
+         SUM(CASE
+           WHEN DATEDIFF(p.fecha_cierre, CURDATE()) BETWEEN 61 AND 90 THEN 1
+           ELSE 0 END) AS ventana61_90
+       FROM procesos p
+       WHERE p.eliminado = FALSE
+         AND p.pais_id = ?
+         AND ${RFI_FILTER}
+         AND p.estado NOT IN (?, ?)
+         AND p.fecha_cierre IS NOT NULL
+         AND DATEDIFF(p.fecha_cierre, CURDATE()) BETWEEN 0 AND 90${df.sql}`,
+      [paisSesionId, EstadoProceso.CERRADO, EstadoProceso.DESCARTADO, ...df.params],
+    );
+
+    const row = rows[0] ?? {};
+
+    return [
+      {
+        ventana: '0_30',
+        label: '0–30 días',
+        total: Number(row.ventana0_30 ?? 0),
+      },
+      {
+        ventana: '31_60',
+        label: '31–60 días',
+        total: Number(row.ventana31_60 ?? 0),
+      },
+      {
+        ventana: '61_90',
+        label: '61–90 días',
+        total: Number(row.ventana61_90 ?? 0),
+      },
+    ];
+  }
+
+  private async queryProyeccionesPorEstadoMercado(
+    paisSesionId: number,
+    anio: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaProyeccionEstadoMercadoDto[]> {
+    const estadosExcluidos = [
+      EstadoProyeccion.CERRADO,
+      EstadoProyeccion.PUBLICADO,
+    ];
+    const df = buildDateFilter('fecha_estimada_publicacion', desde, hasta);
+
+    const rows = await this.proyeccionRepository.query(
+      `SELECT estado, mercado, COUNT(*) AS total
+       FROM proyecciones
+       WHERE eliminado = FALSE
+         AND pais_id = ?
+         AND anio_proyectado = ?
+         AND estado NOT IN (?, ?)
+         AND mercado IN (?, ?)${df.sql}
+       GROUP BY estado, mercado
+       ORDER BY estado ASC`,
+      [
+        paisSesionId,
+        anio,
+        ...estadosExcluidos,
+        MercadoProyeccion.GENERAL,
+        MercadoProyeccion.OBJETIVO,
+        ...df.params,
+      ],
+    );
+
+    const porEstado = new Map<string, { general: number; objetivo: number }>();
+
+    for (const row of rows as Array<{
+      estado: string;
+      mercado: string;
+      total: string;
+    }>) {
+      const current = porEstado.get(row.estado) ?? { general: 0, objetivo: 0 };
+      if (row.mercado === MercadoProyeccion.GENERAL) {
+        current.general = Number(row.total);
+      } else if (row.mercado === MercadoProyeccion.OBJETIVO) {
+        current.objetivo = Number(row.total);
+      }
+      porEstado.set(row.estado, current);
+    }
+
+    const ordenEstados = [
+      EstadoProyeccion.LEJANO,
+      EstadoProyeccion.PROXIMO,
+      EstadoProyeccion.SALE_ESTE_MES,
+    ];
+
+    return ordenEstados.map((estado) => {
+      const counts = porEstado.get(estado) ?? { general: 0, objetivo: 0 };
+      return {
+        estado,
+        general: counts.general,
+        objetivo: counts.objetivo,
+      };
+    });
+  }
+
+  private async queryCrmPorCampo(
+    paisSesionId: number,
+    campo: 'r.canal' | 'r.resultado',
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaConteoDto[]> {
+    const df = buildDateFilter('r.fecha_mensaje', desde, hasta);
+    const rows = await this.procesoRepository.query(
+      `SELECT ${campo} AS etiqueta, COUNT(*) AS total
+       FROM relacionamientos r
+       INNER JOIN contactos co ON co.id = r.contacto_id
+       INNER JOIN clientes cl ON cl.id = co.cliente_id
+       WHERE cl.pais_id = ?
+         AND r.eliminado = FALSE${df.sql}
+       GROUP BY ${campo}
+       ORDER BY total DESC`,
+      [paisSesionId, ...df.params],
+    );
+
+    return (rows as Array<{ etiqueta: string | null; total: string }>).map((row) => ({
+      etiqueta: row.etiqueta ?? 'Sin asignar',
+      total: Number(row.total),
+    }));
+  }
+
+  private async queryCrmPorSegmentoCliente(
+    paisSesionId: number,
+  ): Promise<AnaliticaConteoDto[]> {
+    const rows = await this.procesoRepository.query(
+      `SELECT cl.segmento AS etiqueta, COUNT(*) AS total
+       FROM clientes cl
+       WHERE cl.pais_id = ?
+         AND cl.eliminado = FALSE
+       GROUP BY cl.segmento
+       ORDER BY total DESC`,
+      [paisSesionId],
+    );
+
+    return (rows as Array<{ etiqueta: string | null; total: string }>).map((row) => ({
+      etiqueta: row.etiqueta ?? 'Sin asignar',
+      total: Number(row.total),
+    }));
+  }
+
+  private async queryCrmEstadoRespuesta(
+    paisSesionId: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaConteoDto[]> {
+    const df = buildDateFilter('r.fecha_mensaje', desde, hasta);
+    const rows = await this.procesoRepository.query(
+      `SELECT
+         SUM(CASE
+           WHEN r.respuesta IS NOT NULL AND TRIM(r.respuesta) <> '' THEN 1
+           ELSE 0 END) AS conRespuesta,
+         SUM(CASE
+           WHEN (r.respuesta IS NULL OR TRIM(r.respuesta) = '')
+            AND v.id IS NULL THEN 1
+           ELSE 0 END) AS pendientes,
+         SUM(CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END) AS vencidos
+       FROM relacionamientos r
+       INNER JOIN contactos co ON co.id = r.contacto_id
+       INNER JOIN clientes cl ON cl.id = co.cliente_id
+       LEFT JOIN vista_relacionamientos_vencidos v ON v.id = r.id
+       WHERE cl.pais_id = ?
+         AND r.eliminado = FALSE${df.sql}`,
+      [paisSesionId, ...df.params],
+    );
+
+    const row = rows[0] ?? {};
+    return [
+      { etiqueta: 'Con respuesta', total: Number(row.conRespuesta ?? 0) },
+      { etiqueta: 'Pendientes', total: Number(row.pendientes ?? 0) },
+      { etiqueta: 'Vencidos', total: Number(row.vencidos ?? 0) },
+    ];
+  }
+
+  private async queryCrmActividad(
+    paisSesionId: number,
+    desde?: string,
+    hasta?: string,
+  ): Promise<AnaliticaCierresVentanaDto[]> {
+    const df = buildDateFilter('r.fecha_mensaje', desde, hasta);
+    const rows = await this.procesoRepository.query(
+      `SELECT
+         SUM(CASE
+           WHEN DATEDIFF(CURDATE(), r.fecha_mensaje) BETWEEN 0 AND 30 THEN 1
+           ELSE 0 END) AS ventana0_30,
+         SUM(CASE
+           WHEN DATEDIFF(CURDATE(), r.fecha_mensaje) BETWEEN 31 AND 60 THEN 1
+           ELSE 0 END) AS ventana31_60,
+         SUM(CASE
+           WHEN DATEDIFF(CURDATE(), r.fecha_mensaje) BETWEEN 61 AND 90 THEN 1
+           ELSE 0 END) AS ventana61_90
+       FROM relacionamientos r
+       INNER JOIN contactos co ON co.id = r.contacto_id
+       INNER JOIN clientes cl ON cl.id = co.cliente_id
+       WHERE cl.pais_id = ?
+         AND r.eliminado = FALSE
+         AND r.fecha_mensaje IS NOT NULL
+         AND DATEDIFF(CURDATE(), r.fecha_mensaje) BETWEEN 0 AND 90${df.sql}`,
+      [paisSesionId, ...df.params],
+    );
+
+    const row = rows[0] ?? {};
+    return [
+      { ventana: '0_30', label: 'Últimos 30 días', total: Number(row.ventana0_30 ?? 0) },
+      { ventana: '31_60', label: '31–60 días', total: Number(row.ventana31_60 ?? 0) },
+      { ventana: '61_90', label: '61–90 días', total: Number(row.ventana61_90 ?? 0) },
+    ];
   }
 }

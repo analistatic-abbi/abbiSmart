@@ -225,14 +225,7 @@ export class ClientesService {
     actorId: number,
     paisSesionId: number,
   ): Promise<ClienteResponseDto> {
-    this.validateSegmentoOtro(dto.segmento, dto.segmentoOtro);
-    await this.catalogoPaisService.assertCodigoActivo(
-      paisSesionId,
-      CatalogoPaisTipo.SEGMENTO_CLIENTE,
-      dto.segmento,
-      'segmento',
-    );
-    await this.validateUbicacionInPais(dto.ubicacionId, paisSesionId);
+    await this.validateCreate(dto, paisSesionId);
 
     const saved = await this.dataSource.transaction(async (manager) => {
       const cliente = manager.create(Cliente, {
@@ -247,7 +240,6 @@ export class ClientesService {
       });
 
       const clienteGuardado = await manager.save(cliente);
-
       const contactoGenerico = manager.create(Contacto, {
         clienteId: clienteGuardado.id,
         nombre: `Contacto General - ${clienteGuardado.empresa}`,
@@ -260,7 +252,6 @@ export class ClientesService {
       });
 
       await manager.save(contactoGenerico);
-
       return clienteGuardado;
     });
 
@@ -273,6 +264,20 @@ export class ClientesService {
     });
 
     return this.toResponse(saved);
+  }
+
+  async validateCreate(
+    dto: CreateClienteDto,
+    paisSesionId: number,
+  ): Promise<void> {
+    this.validateSegmentoOtro(dto.segmento, dto.segmentoOtro);
+    await this.catalogoPaisService.assertCodigoActivo(
+      paisSesionId,
+      CatalogoPaisTipo.SEGMENTO_CLIENTE,
+      dto.segmento,
+      'segmento',
+    );
+    await this.validateUbicacionInPais(dto.ubicacionId, paisSesionId);
   }
 
   async update(

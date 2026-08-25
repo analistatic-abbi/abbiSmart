@@ -21,6 +21,7 @@ export class RelacionamientosService {
     limit?: number;
     search?: string;
     contactoId?: number;
+    clienteId?: number;
     canal?: CanalRelacionamiento;
     resultado?: ResultadoRelacionamiento;
     fechaMensajeDesde?: string;
@@ -32,6 +33,7 @@ export class RelacionamientosService {
     };
     if (params.search) query['search'] = params.search;
     if (params.contactoId) query['contactoId'] = params.contactoId;
+    if (params.clienteId) query['clienteId'] = params.clienteId;
     if (params.canal) query['canal'] = params.canal;
     if (params.resultado) query['resultado'] = params.resultado;
     if (params.fechaMensajeDesde) query['fechaMensajeDesde'] = params.fechaMensajeDesde;
@@ -40,8 +42,10 @@ export class RelacionamientosService {
     return this.http.get<{ data: Relacionamiento[]; total: number }>(this.base, { params: query });
   }
 
-  listVencidos(): Observable<{ data: RelacionamientoVencido[] }> {
-    return this.http.get<{ data: RelacionamientoVencido[] }>(`${this.base}/vencidos`);
+  listVencidos(clienteId?: number): Observable<{ data: RelacionamientoVencido[] }> {
+    const params: Record<string, string | number> = {};
+    if (clienteId) params['clienteId'] = clienteId;
+    return this.http.get<{ data: RelacionamientoVencido[] }>(`${this.base}/vencidos`, { params });
   }
 
   getById(id: number): Observable<{ relacionamiento: Relacionamiento }> {

@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Contacto, CreateContactoPayload } from '../models/crm.model';
+import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 
 @Injectable({ providedIn: 'root' })
 export class ContactosService {
@@ -29,6 +30,57 @@ export class ContactosService {
     return this.http.get<{ data: Contacto[]; total: number }>(`${this.base}/contactos`, {
       params: query,
     });
+  }
+
+  exportar(params: {
+    search?: string;
+    clienteId?: number;
+    esGenerico?: boolean;
+  } = {}, onError?: (message: string) => void): void {
+    const query: Record<string, string> = {};
+    if (params.search?.trim()) query['search'] = params.search.trim();
+    if (params.clienteId) query['clienteId'] = String(params.clienteId);
+    if (params.esGenerico !== undefined) {
+      query['esGenerico'] = params.esGenerico ? 'true' : 'false';
+    }
+
+    this.http
+      .get(`${this.base}/contactos/export`, {
+        params: query,
+        responseType: 'blob',
+        observe: 'response',
+      })
+      .subscribe({
+        next: async (response) => {
+          const blob = response.body;
+          if (!blob || blob.size === 0) {
+            onError?.('La exportación no devolvió datos.');
+            return;
+          }
+
+          const contentType = response.headers.get('Content-Type') ?? '';
+          if (contentType.includes('application/json')) {
+            const text = await blob.text();
+            try {
+              const json = JSON.parse(text) as { message?: string };
+              onError?.(json.message ?? 'No fue posible exportar los contactos.');
+            } catch {
+              onError?.('No fue posible exportar los contactos.');
+            }
+            return;
+          }
+
+          const fecha = new Date().toISOString().slice(0, 10);
+          await descargarBlob(blob, `contactos-${fecha}.xlsx`);
+        },
+        error: async (err: HttpErrorResponse) => {
+          const message = await parseBlobErrorMessage(
+            err,
+            'No fue posible exportar los contactos.',
+          );
+          onError?.(message);
+        },
+      });
   }
 
   listByCliente(clienteId: number): Observable<{ data: Contacto[] }> {

@@ -10,8 +10,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
@@ -50,6 +52,31 @@ export class ProyeccionesController {
       message: 'Proyecciones obtenidas correctamente',
       ...result,
     };
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Exportar listado de proyecciones a Excel (.xlsx)' })
+  async exportar(
+    @Query() query: ProyeccionesQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename, truncado } = await this.proyeccionesService.exportarXlsx(
+      query,
+      user.paisSesionId!,
+      user.rol,
+    );
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    if (truncado) {
+      res.setHeader('X-Export-Truncated', 'true');
+    }
+
+    return res.send(buffer);
   }
 
   @Patch('asignar-mercado')

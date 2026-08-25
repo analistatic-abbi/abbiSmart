@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -13,6 +13,7 @@ import {
   KamRonda,
   UpdateVeredictoPayload,
 } from '../models/kam.model';
+import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 
 @Injectable({ providedIn: 'root' })
 export class KamService {
@@ -28,6 +29,9 @@ export class KamService {
   }> {
     let params = new HttpParams();
     if (query.search) params = params.set('search', query.search);
+    if (query.empresaClienteId) {
+      params = params.set('empresaClienteId', String(query.empresaClienteId));
+    }
     if (query.estadoRonda) params = params.set('estadoRonda', query.estadoRonda);
     if (query.sinReunionAgendada) params = params.set('sinReunionAgendada', 'true');
     if (query.page) params = params.set('page', String(query.page));
@@ -40,6 +44,47 @@ export class KamService {
       limit: number;
       message: string;
     }>(this.base, { params });
+  }
+
+  exportar(query: KamListQuery = {}, onError?: (message: string) => void): void {
+    let params = new HttpParams();
+    if (query.search?.trim()) params = params.set('search', query.search.trim());
+    if (query.empresaClienteId) {
+      params = params.set('empresaClienteId', String(query.empresaClienteId));
+    }
+    if (query.estadoRonda) params = params.set('estadoRonda', query.estadoRonda);
+    if (query.sinReunionAgendada) params = params.set('sinReunionAgendada', 'true');
+
+    this.http
+      .get(`${this.base}/export`, { params, responseType: 'blob', observe: 'response' })
+      .subscribe({
+        next: async (response) => {
+          const blob = response.body;
+          if (!blob || blob.size === 0) {
+            onError?.('La exportación no devolvió datos.');
+            return;
+          }
+
+          const contentType = response.headers.get('Content-Type') ?? '';
+          if (contentType.includes('application/json')) {
+            const text = await blob.text();
+            try {
+              const json = JSON.parse(text) as { message?: string };
+              onError?.(json.message ?? 'No fue posible exportar los KAM.');
+            } catch {
+              onError?.('No fue posible exportar los KAM.');
+            }
+            return;
+          }
+
+          const fecha = new Date().toISOString().slice(0, 10);
+          await descargarBlob(blob, `kam-${fecha}.xlsx`);
+        },
+        error: async (err: HttpErrorResponse) => {
+          const message = await parseBlobErrorMessage(err, 'No fue posible exportar los KAM.');
+          onError?.(message);
+        },
+      });
   }
 
   getById(id: number): Observable<{ data: KamDetail; message: string }> {

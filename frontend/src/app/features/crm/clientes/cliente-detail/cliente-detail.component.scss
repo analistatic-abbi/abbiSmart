@@ -89,6 +89,20 @@
   color: var(--color-error);
 }
 
+.empty-state-cell {
+  text-align: center;
+
+  span {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--color-on-surface-variant);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+  }
+}
+
 @media (max-width: 768px) {
   .actions {
     width: 100%;

@@ -5,7 +5,7 @@
 
   <div class="panel form-grid">
     <label>Entidad
-      <select [ngModel]="entidad()" (ngModelChange)="entidad.set($event)">
+      <select [ngModel]="entidad()" (ngModelChange)="onEntidadChange($event)">
         <option value="clientes">Clientes</option>
         <option value="contactos">Contactos</option>
         <option value="proyecciones">Proyecciones</option>
@@ -16,8 +16,16 @@
       <button type="button" class="btn-secondary" (click)="descargarPlantilla()">
         Descargar plantilla CSV
       </button>
-      <button type="button" class="btn-primary" [disabled]="loading() || !archivo()" (click)="subir()">
-        {{ loading() ? 'Procesando...' : 'Subir archivo' }}
+      <button type="button" class="btn-primary" [disabled]="loading() || !archivo()" (click)="validarArchivo()">
+        {{ loading() ? 'Procesando...' : 'Validar archivo' }}
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="loading() || !puedeConfirmar()"
+        (click)="confirmarImportacion()"
+      >
+        Confirmar importación
       </button>
     </div>
   </div>
@@ -105,9 +113,13 @@
     <div class="panel creados-panel">
       <div class="creados-panel__header">
         <div>
-          <h2>Registros creados en esta carga</h2>
+          <h2>{{ esVistaPrevia() ? 'Vista previa de registros por crear' : 'Registros creados en esta carga' }}</h2>
           <p class="creados-panel__intro">
-            Revise lo importado antes de continuar. Si se equivocó, puede revertir toda la carga.
+            @if (esVistaPrevia()) {
+              Revise estas filas. Ningún registro se ha guardado todavía.
+            } @else {
+              Revise lo importado antes de continuar. Si se equivocó, puede revertir toda la carga.
+            }
           </p>
         </div>
 
@@ -122,7 +134,7 @@
         @for (item of detalleCreados(); track item.fila) {
           <article class="fila-creada">
             <span class="fila-creada__badge">Fila {{ item.fila }}</span>
-            @if (entidadTipoActual(); as tipo) {
+            @if (!esVistaPrevia() && entidadTipoActual(); as tipo) {
               @if (rutaCreado(tipo, item); as ruta) {
                 <a class="fila-creada__enlace" [routerLink]="ruta">{{ item.etiqueta }}</a>
               } @else {
@@ -135,7 +147,7 @@
         }
       </div>
 
-      @if (!puedeRevertir()) {
+      @if (!esVistaPrevia() && !puedeRevertir()) {
         <p class="creados-panel__nota">
           Solo un Administrador puede revertir una carga masiva y eliminar los registros importados.
         </p>

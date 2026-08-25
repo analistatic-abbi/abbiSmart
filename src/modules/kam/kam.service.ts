@@ -13,6 +13,7 @@ import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { Rol } from '../../common/enums/rol.enum';
 import { PermisosService } from '../../common/services/permisos.service';
+import { buildSingleSheetBuffer } from '../../common/utils/spreadsheet-writer';
 import { FormatoEncuestaItem } from '../../database/entities/formato-encuesta-item.entity';
 import { FormatoEncuestaSeccion } from '../../database/entities/formato-encuesta-seccion.entity';
 import { FormatoEncuesta } from '../../database/entities/formato-encuesta.entity';
@@ -144,9 +145,14 @@ export class KamService {
 
     if (query.search?.trim()) {
       where +=
-        ' AND (p.codigo LIKE ? OR p.id_digitado LIKE ? OR c.empresa LIKE ? OR p.objeto LIKE ?)';
+        ' AND (p.codigo LIKE ? OR p.id_digitado LIKE ? OR p.objeto LIKE ?)';
       const term = `%${query.search.trim()}%`;
-      params.push(term, term, term, term);
+      params.push(term, term, term);
+    }
+
+    if (query.empresaClienteId) {
+      where += ' AND k.empresa_cliente_id = ?';
+      params.push(query.empresaClienteId);
     }
 
     if (query.estadoRonda) {
@@ -211,6 +217,33 @@ export class KamService {
       total: Number(countRows[0]?.total ?? 0),
       page,
       limit,
+    };
+  }
+
+  async exportarXlsx(
+    query: KamQueryDto,
+    paisSesionId: number,
+  ): Promise<{ buffer: Buffer; filename: string; truncado: boolean }> {
+    const exportQuery: KamQueryDto = {
+      ...query,
+      page: 1,
+      limit: 10_000,
+    };
+    const page = await this.findAll(exportQuery, paisSesionId);
+    const fecha = new Date().toISOString().slice(0, 10);
+    const rows = page.data.map((kam) => ({
+      Proceso: kam.procesoCodigo ?? kam.procesoIdDigitado,
+      Objeto: kam.procesoObjeto,
+      Cliente: kam.empresaMostrar,
+      'Ronda actual': kam.rondaActualNumero,
+      'Estado ronda': kam.rondaActualEstado,
+      'Fecha reunión': kam.fechaReunionSocializacion,
+    }));
+
+    return {
+      buffer: buildSingleSheetBuffer('KAM', rows),
+      filename: `kam-${fecha}.xlsx`,
+      truncado: page.total > exportQuery.limit!,
     };
   }
 

@@ -70,6 +70,7 @@ export class ValidacionService {
     paisSesionId: number,
     rol: Rol,
     search?: string,
+    empresaClienteId?: number,
   ): Promise<ValidacionPendienteDto[]> {
     if (!this.permisosService.puedeAccederModuloValidacion(rol)) {
       throw new BusinessException(
@@ -89,10 +90,15 @@ export class ValidacionService {
     if (search?.trim()) {
       const term = `%${search.trim()}%`;
       const searchFields = esSupervision
-        ? `(v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ? OR u.nombre LIKE ? OR u.correo LIKE ?)`
-        : `(v.codigo LIKE ? OR v.empresa_mostrar LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ?)`;
+        ? `(v.codigo LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ? OR u.nombre LIKE ? OR u.correo LIKE ?)`
+        : `(v.codigo LIKE ? OR CAST(v.proceso_id AS CHAR) LIKE ?)`;
       searchClause = ` AND ${searchFields}`;
-      params.push(...(esSupervision ? [term, term, term, term, term] : [term, term, term]));
+      params.push(...(esSupervision ? [term, term, term, term] : [term, term]));
+    }
+
+    if (empresaClienteId) {
+      searchClause += ' AND p.empresa_cliente_id = ?';
+      params.push(empresaClienteId);
     }
 
     const validadorFilter = esSupervision ? '' : 'v.validador_id = ? AND ';

@@ -73,6 +73,12 @@ export class RelacionamientosService {
       });
     }
 
+    if (query.clienteId) {
+      qb.andWhere('co.cliente_id = :clienteId', {
+        clienteId: query.clienteId,
+      });
+    }
+
     if (query.canal) {
       qb.andWhere('r.canal = :canal', { canal: query.canal });
     }
@@ -116,11 +122,20 @@ export class RelacionamientosService {
 
   async findVencidos(
     paisSesionId: number,
+    clienteId?: number,
   ): Promise<RelacionamientoVencidoResponseDto[]> {
+    const params: unknown[] = [paisSesionId];
+    let clienteClause = '';
+    if (clienteId) {
+      clienteClause = ' AND co.cliente_id = ?';
+      params.push(clienteId);
+    }
+
     const rows = await this.relacionamientoRepository.query(
       `SELECT
          r.id,
          r.contacto_id AS contactoId,
+         co.cliente_id AS clienteId,
          r.emisor_usuario_id AS emisorUsuarioId,
          r.canal,
          r.mensaje,
@@ -136,9 +151,9 @@ export class RelacionamientosService {
        INNER JOIN relacionamientos r ON r.id = v.id
        INNER JOIN contactos co ON co.id = r.contacto_id
        INNER JOIN clientes cl ON cl.id = co.cliente_id
-       WHERE cl.pais_id = ?
+       WHERE cl.pais_id = ?${clienteClause}
        ORDER BY v.fecha_limite_respuesta ASC`,
-      [paisSesionId],
+      params,
     );
 
     return rows as RelacionamientoVencidoResponseDto[];

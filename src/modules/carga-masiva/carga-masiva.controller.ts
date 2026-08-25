@@ -12,7 +12,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { memoryStorage } from 'multer';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
@@ -86,9 +93,11 @@ export class CargaMasivaController {
     summary:
       'Importar clientes desde CSV o Excel (.xlsx). Columnas: empresa, pais, region/departamento, segmento (CLI-004)',
   })
+  @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
   async importClientes(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
+    @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     const { buffer, fileName } = this.readUpload(file, contentField, 'clientes.csv');
@@ -97,6 +106,7 @@ export class CargaMasivaController {
       buffer,
       actor.userId,
       actor.paisSesionId!,
+      this.isTrue(dryRun),
     );
 
     return {
@@ -127,9 +137,11 @@ export class CargaMasivaController {
     summary:
       'Importar contactos desde CSV o Excel (.xlsx). Columnas: empresa/cliente_id, nombre, region, referido_por_nombre (CON-003)',
   })
+  @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
   async importContactos(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
+    @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     const { buffer, fileName } = this.readUpload(file, contentField, 'contactos.csv');
@@ -138,6 +150,7 @@ export class CargaMasivaController {
       buffer,
       actor.userId,
       actor.paisSesionId!,
+      this.isTrue(dryRun),
     );
 
     return {
@@ -168,9 +181,11 @@ export class CargaMasivaController {
     summary:
       'Importar proyecciones manuales desde CSV o Excel (.xlsx). Columnas: anio_proyectado, fecha_estimada_publicacion, valor_venta, valor_facturacion, segmento, empresa o empresa_otro, mercado (opcional) (PRY-014)',
   })
+  @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
   async importProyecciones(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body('content') contentField: string | undefined,
+    @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
     const { buffer, fileName } = this.readUpload(
@@ -183,6 +198,7 @@ export class CargaMasivaController {
       buffer,
       actor.userId,
       actor.paisSesionId!,
+      this.isTrue(dryRun),
     );
 
     return {
@@ -219,5 +235,9 @@ export class CargaMasivaController {
         : 'Debe adjuntar un archivo CSV/Excel en el campo file o enviar el contenido en el campo content',
       HttpStatus.BAD_REQUEST,
     );
+  }
+
+  private isTrue(value: string | boolean | undefined): boolean {
+    return value === true || (typeof value === 'string' && value.toLowerCase() === 'true');
   }
 }
