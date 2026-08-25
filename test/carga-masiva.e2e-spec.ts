@@ -139,6 +139,52 @@ describe('Carga masiva (e2e)', () => {
     ).toBe(true);
   });
 
+  it('valida clientes en dry-run sin insertar ni registrar la carga', async () => {
+    const token = await setupAdminToken();
+    const empresa = `Empresa Dry Run ${Date.now()}`;
+    const csv = [
+      'empresa,segmento,pais,departamento,municipio,segmento_otro',
+      `${empresa},Minería,${paisNombre},Antioquia,,`,
+    ].join('\n');
+
+    const logsAntes = await request(app.getHttpServer())
+      .get('/api/v1/carga-masiva/logs')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/carga-masiva/clientes')
+      .query({ dryRun: true })
+      .set('Authorization', `Bearer ${token}`)
+      .field('content', csv)
+      .expect(200);
+
+    expect(res.body.filasExitosas).toBe(1);
+    expect(res.body.filasRechazadas).toBe(0);
+    expect(res.body.dryRun).toBe(true);
+    expect(res.body.logId).toBeUndefined();
+    expect(res.body.detalleCreados).toEqual([
+      expect.objectContaining({ fila: 2, etiqueta: empresa }),
+    ]);
+
+    const listRes = await request(app.getHttpServer())
+      .get('/api/v1/clientes')
+      .query({ search: empresa })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(
+      listRes.body.data.some(
+        (cliente: { empresa: string }) => cliente.empresa === empresa,
+      ),
+    ).toBe(false);
+
+    const logsDespues = await request(app.getHttpServer())
+      .get('/api/v1/carga-masiva/logs')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(logsDespues.body.data).toHaveLength(logsAntes.body.data.length);
+  });
+
   it('importa contactos con referido por nombre (CON-003)', async () => {
     const token = await setupAdminToken();
     const empresa = `Empresa Contacto Carga ${Date.now()}`;

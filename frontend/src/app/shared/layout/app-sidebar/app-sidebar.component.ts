@@ -40,6 +40,7 @@ export class AppSidebarComponent implements OnInit {
       title: 'Inicio',
       items: [
         { label: 'Panel de Control', icon: 'dashboard', route: '/dashboard' },
+        { label: 'Analítica', icon: 'insights', route: '/analitica' },
         { label: 'Calendario', icon: 'calendar_month', route: '/calendario' },
         { label: 'Procesos', icon: 'assignment', route: '/procesos' },
       ],

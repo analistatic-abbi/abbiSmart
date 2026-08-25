@@ -40,15 +40,19 @@ export class ValidacionController {
   @Roles(Rol.VALIDADOR, Rol.ADMINISTRADOR, Rol.SUPERVISOR_SISTEMA)
   @ApiOperation({ summary: 'Bandeja de procesos pendientes por validar (VAL-005)' })
   @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'empresaClienteId', required: false, type: Number })
   async findPendientes(
     @CurrentUser() user: AuthUserPayload,
     @Query('search') search?: string,
+    @Query('empresaClienteId', new ParseIntPipe({ optional: true }))
+    empresaClienteId?: number,
   ) {
     const data = await this.validacionService.findPendientes(
       user.userId,
       user.paisSesionId!,
       user.rol as Rol,
       search,
+      empresaClienteId,
     );
 
     return {

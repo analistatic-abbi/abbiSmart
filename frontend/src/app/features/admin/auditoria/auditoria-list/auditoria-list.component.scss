@@ -1,5 +1,16 @@
 @use '../../shared/admin-page';
 
+.filters__usuario {
+  flex: 0 1 260px;
+  min-width: 200px;
+  max-width: 320px;
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
+  }
+}
+
 .table-hint {
   margin: 12px 0 0;
   font-size: 13px;

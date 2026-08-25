@@ -19,7 +19,11 @@
         @if (puedeEscribir()) {
           <a class="btn-secondary" [routerLink]="['/crm/clientes', c.id, 'editar']">Editar</a>
           <a class="btn-primary" [routerLink]="['/crm/contactos/nuevo']" [queryParams]="{ clienteId: c.id }">Nuevo contacto</a>
+          <a class="btn-secondary" routerLink="/procesos/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nuevo proceso</a>
+          <a class="btn-secondary" routerLink="/proyecciones/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nueva proyección</a>
+          <a class="btn-secondary" routerLink="/crm/relacionamientos/nuevo" [queryParams]="{ clienteId: c.id }">Nuevo relacionamiento</a>
         }
+        <a class="btn-secondary" routerLink="/kam" [queryParams]="{ empresaClienteId: c.id }">Ver KAM</a>
         @if (puedeReasignar()) {
           <button type="button" class="btn-secondary" (click)="abrirReasignar()">Reasignar procesos</button>
         }
@@ -95,7 +99,14 @@
                 <td><a [routerLink]="['/procesos', proceso.id]">Ver</a></td>
               </tr>
             } @empty {
-              <tr><td colspan="5">Sin procesos registrados.</td></tr>
+              <tr>
+                <td colspan="5" class="empty-state-cell">
+                  <span>Sin procesos registrados.</span>
+                  @if (puedeEscribir()) {
+                    <a class="btn-primary" routerLink="/procesos/nuevo" [queryParams]="{ empresaClienteId: c.id }">Crear proceso</a>
+                  }
+                </td>
+              </tr>
             }
           </tbody>
         </table>
@@ -128,7 +139,14 @@
                 <td><a [routerLink]="['/proyecciones', proyeccion.id]">Ver</a></td>
               </tr>
             } @empty {
-              <tr><td colspan="7">Sin proyecciones registradas.</td></tr>
+              <tr>
+                <td colspan="7" class="empty-state-cell">
+                  <span>Sin proyecciones registradas.</span>
+                  @if (puedeEscribir()) {
+                    <a class="btn-primary" routerLink="/proyecciones/nuevo" [queryParams]="{ empresaClienteId: c.id }">Crear proyección</a>
+                  }
+                </td>
+              </tr>
             }
           </tbody>
         </table>
@@ -159,7 +177,14 @@
                 <td><a [routerLink]="['/crm/relacionamientos', rel.id]">Ver</a></td>
               </tr>
             } @empty {
-              <tr><td colspan="6">Sin relacionamientos registrados.</td></tr>
+              <tr>
+                <td colspan="6" class="empty-state-cell">
+                  <span>Sin relacionamientos registrados.</span>
+                  @if (puedeEscribir()) {
+                    <a class="btn-primary" routerLink="/crm/relacionamientos/nuevo" [queryParams]="{ clienteId: c.id }">Crear relacionamiento</a>
+                  }
+                </td>
+              </tr>
             }
           </tbody>
         </table>

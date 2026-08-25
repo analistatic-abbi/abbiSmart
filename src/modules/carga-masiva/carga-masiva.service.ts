@@ -39,7 +39,8 @@ export interface CargaMasivaResult {
   filasRechazadas: number;
   detalleErrores: CargaMasivaFilaError[];
   detalleCreados: CargaMasivaDetalleCreado[];
-  logId: number;
+  logId?: number;
+  dryRun?: boolean;
 }
 
 export interface CargaMasivaRevertResult {
@@ -340,6 +341,7 @@ export class CargaMasivaService {
     buffer: Buffer,
     actorId: number,
     paisSesionId: number,
+    dryRun = false,
   ): Promise<CargaMasivaResult> {
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
@@ -381,6 +383,17 @@ export class CargaMasivaService {
             this.getCell(headers, row, 'segmento_otro') || undefined,
         };
 
+        if (dryRun) {
+          await this.clientesService.validateCreate(dto, paisSesionId);
+          detalleCreados.push({
+            fila,
+            entidadId: 0,
+            etiqueta: empresa,
+          });
+          filasExitosas += 1;
+          continue;
+        }
+
         const created = await this.clientesService.create(dto, actorId, paisSesionId);
         detalleCreados.push({
           fila,
@@ -391,6 +404,10 @@ export class CargaMasivaService {
       } catch (error) {
         detalleErrores.push(this.buildRowError(fila, error));
       }
+    }
+
+    if (dryRun) {
+      return this.buildDryRunResult(detalleCreados, detalleErrores);
     }
 
     return this.persistLog(
@@ -407,6 +424,7 @@ export class CargaMasivaService {
     buffer: Buffer,
     actorId: number,
     paisSesionId: number,
+    dryRun = false,
   ): Promise<CargaMasivaResult> {
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
@@ -461,6 +479,22 @@ export class CargaMasivaService {
           referidoPorContactoId,
         };
 
+        if (dryRun) {
+          await this.contactosService.validateCreate(
+            clienteId,
+            dto,
+            paisSesionId,
+          );
+          detalleCreados.push({
+            fila,
+            entidadId: 0,
+            etiqueta: `${dto.nombre} (${empresaNombre})`,
+            clienteId,
+          });
+          filasExitosas += 1;
+          continue;
+        }
+
         const created = await this.contactosService.create(
           clienteId,
           dto,
@@ -479,6 +513,10 @@ export class CargaMasivaService {
       }
     }
 
+    if (dryRun) {
+      return this.buildDryRunResult(detalleCreados, detalleErrores);
+    }
+
     return this.persistLog(
       'contacto',
       fileName,
@@ -493,6 +531,7 @@ export class CargaMasivaService {
     buffer: Buffer,
     actorId: number,
     paisSesionId: number,
+    dryRun = false,
   ): Promise<CargaMasivaResult> {
     const rows = await readSpreadsheet(buffer, fileName);
     const headers = this.normalizeHeaderMap(rows[0]);
@@ -599,13 +638,26 @@ export class CargaMasivaService {
           objeto: this.getCell(headers, row, 'objeto') || undefined,
         };
 
+        const mercado = this.getCell(headers, row, 'mercado');
+
+        if (dryRun) {
+          await this.proyeccionesService.validateCreate(dto, paisSesionId);
+          const etiqueta = empresaOtro || this.getCell(headers, row, 'empresa');
+          detalleCreados.push({
+            fila,
+            entidadId: 0,
+            etiqueta: `${etiqueta} (${dto.anioProyectado})`,
+          });
+          filasExitosas += 1;
+          continue;
+        }
+
         const created = await this.proyeccionesService.create(
           dto,
           actorId,
           paisSesionId,
         );
 
-        const mercado = this.getCell(headers, row, 'mercado');
         if (mercado) {
           await this.proyeccionesService.setMercadoEnCargaMasiva(
             created.id,
@@ -627,6 +679,10 @@ export class CargaMasivaService {
       } catch (error) {
         detalleErrores.push(this.buildRowError(fila, error));
       }
+    }
+
+    if (dryRun) {
+      return this.buildDryRunResult(detalleCreados, detalleErrores);
     }
 
     return this.persistLog(
@@ -772,6 +828,19 @@ export class CargaMasivaService {
       detalleErrores,
       detalleCreados,
       logId: saved.id,
+    };
+  }
+
+  private buildDryRunResult(
+    detalleCreados: CargaMasivaDetalleCreado[],
+    detalleErrores: CargaMasivaFilaError[],
+  ): CargaMasivaResult {
+    return {
+      filasExitosas: detalleCreados.length,
+      filasRechazadas: detalleErrores.length,
+      detalleErrores,
+      detalleCreados,
+      dryRun: true,
     };
   }
 

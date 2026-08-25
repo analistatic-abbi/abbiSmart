@@ -132,6 +132,7 @@ export interface KamCalendarioEvento {
 
 export interface KamListQuery {
   search?: string;
+  empresaClienteId?: number;
   estadoRonda?: EstadoKamRonda;
   sinReunionAgendada?: boolean;
   page?: number;

@@ -4,8 +4,27 @@
   </header>
 
   <div class="filters">
-    <input type="search" placeholder="Buscar..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <div class="filters__empresa">
+      <app-searchable-select
+        [options]="clienteOptions()"
+        [ngModel]="empresaClienteId()"
+        (ngModelChange)="onEmpresaChange($event)"
+        placeholder="Todas las empresas"
+        searchPlaceholder="Buscar empresa..."
+        [minOptionsForSearch]="0"
+      />
+    </div>
+    <input
+      type="search"
+      placeholder="Buscar por código..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      (keyup.enter)="onFilter()"
+    />
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
   </div>
 
   @if (loading()) {

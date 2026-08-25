@@ -50,6 +50,30 @@ export class KamController {
     return { message: 'KAMs obtenidos correctamente', ...result };
   }
 
+  @Get('export')
+  @ApiOperation({ summary: 'Exportar listado de KAM a Excel (.xlsx)' })
+  async exportar(
+    @Query() query: KamQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename, truncado } = await this.kamService.exportarXlsx(
+      query,
+      user.paisSesionId!,
+    );
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    if (truncado) {
+      res.setHeader('X-Export-Truncated', 'true');
+    }
+
+    return res.send(buffer);
+  }
+
   @Get('calendario')
   @ApiOperation({ summary: 'Eventos de calendario KAM del año' })
   async getCalendario(

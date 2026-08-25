@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyeccionesService } from '../../../../core/services/proyecciones.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ClientesService } from '../../../../core/services/clientes.service';
 import { EstadoProyeccion, MercadoProyeccion, Proyeccion } from '../../../../core/models/admin.model';
 import {
   FILTRO_ELIMINADOS_OPCIONES,
@@ -13,29 +14,60 @@ import {
   formatMonedaAbreviada,
   tituloMonedaCompleta,
 } from '../../../../core/utils/currency.util';
+import {
+  SearchableSelectComponent,
+  SearchableSelectOption,
+} from '../../../../shared/components/searchable-select/searchable-select.component';
 import { ProyeccionesVistaToggleComponent } from '../proyecciones-vista-toggle/proyecciones-vista-toggle.component';
 
 @Component({
   selector: 'app-proyecciones-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, ProyeccionesVistaToggleComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    ProyeccionesVistaToggleComponent,
+    SearchableSelectComponent,
+  ],
   templateUrl: './proyecciones-list.component.html',
   styleUrl: './proyecciones-list.component.scss',
 })
 export class ProyeccionesListComponent implements OnInit {
   private readonly proyecciones = inject(ProyeccionesService);
   private readonly auth = inject(AuthService);
+  private readonly clientesService = inject(ClientesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   protected readonly items = signal<Proyeccion[]>([]);
   protected readonly loading = signal(true);
+  protected readonly exportando = signal(false);
+  protected readonly exportError = signal<string | null>(null);
   protected readonly search = signal('');
   protected readonly estados = Object.values(EstadoProyeccion);
   protected readonly mercados = Object.values(MercadoProyeccion);
   protected readonly estado = signal<EstadoProyeccion | ''>('');
   protected readonly mercado = signal('');
   protected readonly anio = signal<number | null>(null);
+  protected readonly empresaClienteId = signal<number | null>(null);
+  protected readonly clientes = signal<Array<{ id: number; empresa: string }>>([]);
+
+  protected readonly clienteOptions = computed<SearchableSelectOption<number>[]>(() =>
+    this.clientes().map((cliente) => ({
+      value: cliente.id,
+      label: cliente.empresa,
+    })),
+  );
+
+  protected readonly tieneFiltrosActivos = computed(
+    () =>
+      !!this.search().trim() ||
+      this.empresaClienteId() != null ||
+      !!this.estado() ||
+      !!this.mercado() ||
+      this.anio() != null ||
+      this.filtroEliminados() !== 'activos',
+  );
 
   protected readonly puedeAsignarMercado = () => this.auth.puedeAsignarMercadoProyeccion();
   protected readonly puedeEscribir = () => this.auth.puedeEscribir();
@@ -47,6 +79,10 @@ export class ProyeccionesListComponent implements OnInit {
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProyeccion(estado);
 
   ngOnInit(): void {
+    this.clientesService.list({ limit: 500 }).subscribe({
+      next: (r) =>
+        this.clientes.set(r.data.map((c) => ({ id: c.id, empresa: c.empresa }))),
+    });
     this.syncAnioFromRoute();
     this.load();
 
@@ -71,8 +107,48 @@ export class ProyeccionesListComponent implements OnInit {
     this.load();
   }
 
+  protected onEmpresaChange(value: number | null): void {
+    this.empresaClienteId.set(value);
+    this.onFilter();
+  }
+
+  protected limpiarFiltros(): void {
+    this.search.set('');
+    this.empresaClienteId.set(null);
+    this.estado.set('');
+    this.mercado.set('');
+    this.anio.set(null);
+    this.filtroEliminados.set('activos');
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { anio: null },
+      queryParamsHandling: 'merge',
+    });
+    this.load();
+  }
+
   protected estadoClass(estado: string): string {
     return claseBadgeEstadoProyeccion(estado);
+  }
+
+  protected exportar(): void {
+    this.exportando.set(true);
+    this.exportError.set(null);
+    this.proyecciones.exportar(
+      {
+        search: this.search().trim() || undefined,
+        empresaClienteId: this.empresaClienteId() ?? undefined,
+        estado: this.estado() || undefined,
+        mercado: this.mercado() || undefined,
+        anioProyectado: this.anio() ?? undefined,
+        filtroEliminados: this.filtroEliminados(),
+      },
+      (message) => {
+        this.exportError.set(message);
+        this.exportando.set(false);
+      },
+    );
+    setTimeout(() => this.exportando.set(false), 1500);
   }
 
   private load(): void {
@@ -80,6 +156,7 @@ export class ProyeccionesListComponent implements OnInit {
     this.proyecciones
       .list({
         search: this.search() || undefined,
+        empresaClienteId: this.empresaClienteId() ?? undefined,
         estado: this.estado() || undefined,
         mercado: this.mercado() || undefined,
         anioProyectado: this.anio() ?? undefined,

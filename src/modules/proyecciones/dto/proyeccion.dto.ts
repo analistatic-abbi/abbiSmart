@@ -38,10 +38,16 @@ export class ProyeccionesQueryDto extends PaginationQueryDto {
   @IsEnum(MercadoProyeccion)
   mercado?: MercadoProyeccion;
 
-  @ApiPropertyOptional({ description: 'Búsqueda por empresa o código de proceso' })
+  @ApiPropertyOptional({ description: 'Búsqueda por código o ID digitado de proceso' })
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar por empresa (cliente registrado)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  empresaClienteId?: number;
 
   @ApiPropertyOptional({ description: 'Filtrar por proceso origen (1:1)' })
   @IsOptional()

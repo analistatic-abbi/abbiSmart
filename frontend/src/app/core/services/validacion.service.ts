@@ -15,9 +15,16 @@ export class ValidacionService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
 
-  listPendientes(search?: string): Observable<{ data: ValidacionPendiente[] }> {
+  listPendientes(
+    search?: string,
+    empresaClienteId?: number,
+  ): Observable<{ data: ValidacionPendiente[] }> {
+    const params: Record<string, string | number> = {};
+    if (search) params['search'] = search;
+    if (empresaClienteId) params['empresaClienteId'] = empresaClienteId;
+
     return this.http.get<{ data: ValidacionPendiente[] }>(`${this.base}/validacion/pendientes`, {
-      params: search ? { search } : {},
+      params,
     });
   }
 

@@ -22,6 +22,7 @@ import {
   metricasMercadoVacias,
 } from '../../common/utils/efectividad-mercado.util';
 import { calcularEstadoSugerido } from '../../common/utils/proyeccion-calculos.util';
+import { buildSingleSheetBuffer } from '../../common/utils/spreadsheet-writer';
 import {
   resolveFiltroEliminados,
 } from '../../common/utils/filtro-eliminados.util';
@@ -116,11 +117,27 @@ export class ProyeccionesService {
     }
 
     if (query.search?.trim()) {
+      conditions.push('v.proceso_codigo LIKE ?');
+      params.push(`%${query.search.trim()}%`);
+    }
+
+    if (query.empresaClienteId) {
       conditions.push(
-        '(v.empresa LIKE ? OR v.proceso_codigo LIKE ? OR v.objeto LIKE ?)',
+        `(py.empresa_cliente_id = ?
+          OR EXISTS (
+            SELECT 1 FROM procesos po
+            WHERE po.id = py.proceso_origen_id AND po.empresa_cliente_id = ?
+          )
+          OR EXISTS (
+            SELECT 1 FROM procesos pr
+            WHERE pr.id = py.proceso_resultante_id AND pr.empresa_cliente_id = ?
+          ))`,
       );
-      const term = `%${query.search.trim()}%`;
-      params.push(term, term, term);
+      params.push(
+        query.empresaClienteId,
+        query.empresaClienteId,
+        query.empresaClienteId,
+      );
     }
 
     if (query.procesoOrigenId) {
@@ -156,6 +173,41 @@ export class ProyeccionesService {
     };
   }
 
+  async exportarXlsx(
+    query: ProyeccionesQueryDto,
+    paisSesionId: number,
+    rol: Rol,
+  ): Promise<{ buffer: Buffer; filename: string; truncado: boolean }> {
+    const exportQuery: ProyeccionesQueryDto = {
+      ...query,
+      page: 1,
+      limit: 10_000,
+    };
+    const page = await this.findAll(exportQuery, paisSesionId, rol);
+    const fecha = new Date().toISOString().slice(0, 10);
+    const rows = page.data.map((proyeccion) => ({
+      'Proceso origen':
+        proyeccion.procesoOrigenCodigo ??
+        proyeccion.procesoCodigo ??
+        (proyeccion.procesoOrigenId ? `ID ${proyeccion.procesoOrigenId}` : 'Manual'),
+      Objeto: proyeccion.objeto,
+      Empresa: proyeccion.empresa ?? proyeccion.empresaOtro,
+      Año: proyeccion.anioProyectado,
+      'Fecha est. publicación': proyeccion.fechaEstimadaPublicacion,
+      'Valor venta': proyeccion.valorVenta,
+      'Valor facturación': proyeccion.valorFacturacion,
+      Estado: proyeccion.estado,
+      Mercado: proyeccion.mercado,
+      'Días faltantes': proyeccion.diasFaltantes,
+    }));
+
+    return {
+      buffer: buildSingleSheetBuffer('Proyecciones', rows),
+      filename: `proyecciones-${fecha}.xlsx`,
+      truncado: page.total > exportQuery.limit!,
+    };
+  }
+
   async findById(
     id: number,
     paisSesionId: number,
@@ -170,49 +222,8 @@ export class ProyeccionesService {
     actorId: number,
     paisSesionId: number,
   ): Promise<ProyeccionResponseDto> {
-    let paisId = paisSesionId;
+    const paisId = await this.validateCreate(dto, paisSesionId);
     const esManual = !dto.procesoOrigenId;
-
-    if (dto.procesoOrigenId) {
-      const proceso = await this.procesosService.getProcesoActivoOrFail(
-        dto.procesoOrigenId,
-        paisSesionId,
-      );
-      paisId = proceso.paisId;
-
-      const existente = await this.proyeccionRepository.findOne({
-        where: { procesoOrigenId: proceso.id, eliminado: false },
-      });
-
-      if (existente) {
-        throw new BusinessException(
-          ErrorCode.PROYECCION_ORIGEN_DUPLICADA,
-          'El proceso origen ya tiene una proyección asociada',
-          HttpStatus.CONFLICT,
-        );
-      }
-    } else {
-      this.validateEmpresaManual(dto.empresaClienteId, dto.empresaOtro);
-      if (!dto.segmento) {
-        throw new BusinessException(
-          ErrorCode.PROCESO_EMPRESA_INVALIDA,
-          'Debe indicar el segmento en proyecciones manuales',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      await this.catalogoPaisService.assertCodigoActivo(
-        paisSesionId,
-        CatalogoPaisTipo.SEGMENTO_PROCESO,
-        dto.segmento,
-        'segmento',
-      );
-      if (dto.empresaClienteId) {
-        await this.clientesService.getClienteActivoOrFail(
-          dto.empresaClienteId,
-          paisSesionId,
-        );
-      }
-    }
 
     const estado = calcularEstadoSugerido(dto.fechaEstimadaPublicacion);
 
@@ -258,6 +269,54 @@ export class ProyeccionesService {
     });
 
     return this.toResponseWithVista(saved.id);
+  }
+
+  async validateCreate(
+    dto: CreateProyeccionDto,
+    paisSesionId: number,
+  ): Promise<number> {
+    if (dto.procesoOrigenId) {
+      const proceso = await this.procesosService.getProcesoActivoOrFail(
+        dto.procesoOrigenId,
+        paisSesionId,
+      );
+      const existente = await this.proyeccionRepository.findOne({
+        where: { procesoOrigenId: proceso.id, eliminado: false },
+      });
+
+      if (existente) {
+        throw new BusinessException(
+          ErrorCode.PROYECCION_ORIGEN_DUPLICADA,
+          'El proceso origen ya tiene una proyección asociada',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      return proceso.paisId;
+    }
+
+    this.validateEmpresaManual(dto.empresaClienteId, dto.empresaOtro);
+    if (!dto.segmento) {
+      throw new BusinessException(
+        ErrorCode.PROCESO_EMPRESA_INVALIDA,
+        'Debe indicar el segmento en proyecciones manuales',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await this.catalogoPaisService.assertCodigoActivo(
+      paisSesionId,
+      CatalogoPaisTipo.SEGMENTO_PROCESO,
+      dto.segmento,
+      'segmento',
+    );
+    if (dto.empresaClienteId) {
+      await this.clientesService.getClienteActivoOrFail(
+        dto.empresaClienteId,
+        paisSesionId,
+      );
+    }
+
+    return paisSesionId;
   }
 
   async setMercadoEnCargaMasiva(

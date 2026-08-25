@@ -1,15 +1,18 @@
-import { Controller, Get, Param, ParseIntPipe, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Put, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Rol } from '../../common/enums/rol.enum';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
+import { AnaliticaQueryDto } from './dto/analitica-dashboard.dto';
 import {
   DashboardExportQueryDto,
   DashboardProcesosQueryDto,
   DashboardProyeccionesQueryDto,
 } from './dto/dashboard-query.dto';
+import { UpsertMetasAnualesDto } from './dto/upsert-metas.dto';
 import { DashboardService } from './dashboard.service';
 
 @ApiTags('Dashboard')
@@ -43,6 +46,45 @@ export class DashboardController {
 
     return {
       message: 'Procesos del dashboard obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Get('analitica')
+  @ApiOperation({ summary: 'KPIs y datos agregados para la pestaña Analítica' })
+  async getAnalitica(
+    @Query() query: AnaliticaQueryDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.dashboardService.getAnalitica(
+      user.paisSesionId!,
+      query.anio,
+      query.desde,
+      query.hasta,
+    );
+
+    return {
+      message: 'Datos analíticos obtenidos correctamente',
+      data,
+    };
+  }
+
+  @Put('metas')
+  @Roles(Rol.ADMINISTRADOR)
+  @RequireWriteAccess()
+  @ApiOperation({ summary: 'Definir metas anuales de adjudicación y facturación del país' })
+  async upsertMetas(
+    @Body() dto: UpsertMetasAnualesDto,
+    @CurrentUser() user: AuthUserPayload,
+  ) {
+    const data = await this.dashboardService.upsertMetas(
+      user.paisSesionId!,
+      dto,
+      user.userId,
+    );
+
+    return {
+      message: 'Metas anuales guardadas correctamente',
       data,
     };
   }

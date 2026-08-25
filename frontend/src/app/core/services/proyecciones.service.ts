@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -9,6 +9,7 @@ import {
   Proyeccion,
 } from '../models/admin.model';
 import { FiltroEliminados } from '../models/filtro-eliminados.model';
+import { descargarBlob, parseBlobErrorMessage } from '../utils/blob-download.util';
 
 @Injectable({ providedIn: 'root' })
 export class ProyeccionesService {
@@ -19,6 +20,7 @@ export class ProyeccionesService {
     page?: number;
     limit?: number;
     search?: string;
+    empresaClienteId?: number;
     estado?: EstadoProyeccion;
     anioProyectado?: number;
     mercado?: string;
@@ -31,6 +33,7 @@ export class ProyeccionesService {
       limit: params.limit ?? 20,
     };
     if (params.search) query['search'] = params.search;
+    if (params.empresaClienteId) query['empresaClienteId'] = params.empresaClienteId;
     if (params.estado) query['estado'] = params.estado;
     if (params.anioProyectado) query['anioProyectado'] = params.anioProyectado;
     if (params.mercado) query['mercado'] = params.mercado;
@@ -42,6 +45,59 @@ export class ProyeccionesService {
     }
 
     return this.http.get<{ data: Proyeccion[]; total: number }>(this.base, { params: query });
+  }
+
+  exportar(params: {
+    search?: string;
+    empresaClienteId?: number;
+    estado?: EstadoProyeccion;
+    anioProyectado?: number;
+    mercado?: string;
+    filtroEliminados?: FiltroEliminados;
+  } = {}, onError?: (message: string) => void): void {
+    const query: Record<string, string> = {};
+    if (params.search?.trim()) query['search'] = params.search.trim();
+    if (params.empresaClienteId) query['empresaClienteId'] = String(params.empresaClienteId);
+    if (params.estado) query['estado'] = params.estado;
+    if (params.anioProyectado) query['anioProyectado'] = String(params.anioProyectado);
+    if (params.mercado) query['mercado'] = params.mercado;
+    if (params.filtroEliminados && params.filtroEliminados !== 'activos') {
+      query['filtroEliminados'] = params.filtroEliminados;
+    }
+
+    this.http
+      .get(`${this.base}/export`, { params: query, responseType: 'blob', observe: 'response' })
+      .subscribe({
+        next: async (response) => {
+          const blob = response.body;
+          if (!blob || blob.size === 0) {
+            onError?.('La exportación no devolvió datos.');
+            return;
+          }
+
+          const contentType = response.headers.get('Content-Type') ?? '';
+          if (contentType.includes('application/json')) {
+            const text = await blob.text();
+            try {
+              const json = JSON.parse(text) as { message?: string };
+              onError?.(json.message ?? 'No fue posible exportar las proyecciones.');
+            } catch {
+              onError?.('No fue posible exportar las proyecciones.');
+            }
+            return;
+          }
+
+          const fecha = new Date().toISOString().slice(0, 10);
+          await descargarBlob(blob, `proyecciones-${fecha}.xlsx`);
+        },
+        error: async (err: HttpErrorResponse) => {
+          const message = await parseBlobErrorMessage(
+            err,
+            'No fue posible exportar las proyecciones.',
+          );
+          onError?.(message);
+        },
+      });
   }
 
   getById(id: number): Observable<{ proyeccion: Proyeccion }> {

@@ -14,7 +14,23 @@
   </header>
 
   <div class="filters">
-    <input type="search" placeholder="Buscar por empresa, código u objeto..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keyup.enter)="onFilter()" />
+    <div class="filters__empresa">
+      <app-searchable-select
+        [options]="clienteOptions()"
+        [ngModel]="empresaClienteId()"
+        (ngModelChange)="onEmpresaChange($event)"
+        placeholder="Todas las empresas"
+        searchPlaceholder="Buscar empresa..."
+        [minOptionsForSearch]="0"
+      />
+    </div>
+    <input
+      type="search"
+      placeholder="Buscar por código..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      (keyup.enter)="onFilter()"
+    />
     <select [ngModel]="estado()" (ngModelChange)="estado.set($event); onFilter()">
       <option value="">Todos los estados</option>
       @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
@@ -41,7 +57,17 @@
       </select>
     }
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
+    <button type="button" class="btn-secondary" [disabled]="exportando()" (click)="exportar()">
+      {{ exportando() ? 'Exportando...' : 'Exportar' }}
+    </button>
   </div>
+
+  @if (exportError()) {
+    <p class="error">{{ exportError() }}</p>
+  }
 
   @if (loading()) {
     <p>Cargando...</p>
@@ -79,7 +105,13 @@
               <td><a [routerLink]="['/proyecciones', p.id]">Ver detalle</a></td>
             </tr>
           } @empty {
-            <tr><td colspan="11">No hay proyecciones registradas.</td></tr>
+            <tr><td colspan="11">
+              @if (tieneFiltrosActivos()) {
+                No se encontraron proyecciones con los filtros seleccionados.
+              } @else {
+                No hay proyecciones registradas.
+              }
+            </td></tr>
           }
         </tbody>
       </table>

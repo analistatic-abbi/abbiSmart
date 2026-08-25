@@ -53,6 +53,11 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
+        path: 'analitica',
+        loadComponent: () =>
+          import('./features/analitica/analitica.component').then((m) => m.AnaliticaComponent),
+      },
+      {
         path: 'calendario',
         loadComponent: () =>
           import('./features/calendario/calendario-unificado.component').then(

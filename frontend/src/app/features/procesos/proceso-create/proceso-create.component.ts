@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CatalogosService } from '../../../core/services/catalogos.service';
 import { ContactosService } from '../../../core/services/contactos.service';
 import { ProcesosService } from '../../../core/services/procesos.service';
@@ -48,6 +48,7 @@ export class ProcesoCreateComponent implements OnInit {
   private readonly contactos = inject(ContactosService);
   private readonly procesos = inject(ProcesosService);
   private readonly parametros = inject(ParametrosService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -87,6 +88,20 @@ export class ProcesoCreateComponent implements OnInit {
   protected readonly showConfirmVacios = signal(false);
 
   ngOnInit(): void {
+    const empresaClienteId = Number(
+      this.route.snapshot.queryParamMap.get('empresaClienteId'),
+    );
+    if (Number.isInteger(empresaClienteId) && empresaClienteId > 0) {
+      this.store.paso1.update((paso) => ({
+        ...paso,
+        empresaClienteId,
+        empresaOtro: '',
+        usarOtro: false,
+        contactoIds: [],
+      }));
+      this.loadContactosCliente(empresaClienteId);
+    }
+
     this.catalogos.getDepartamentos().subscribe((r) => this.departamentos.set(r.data));
     this.catalogos.getClientes().subscribe((r) => this.clientes.set(r.data));
     this.catalogos.getCapabilitiesSesion().subscribe({

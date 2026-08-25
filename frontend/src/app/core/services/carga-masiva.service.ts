@@ -25,22 +25,40 @@ export class CargaMasivaService {
     return this.http.get<{ data: CargaMasivaLog[] }>(`${this.base}/logs`);
   }
 
-  importClientes(file: File): Observable<CargaMasivaResult & { message: string }> {
-    const form = new FormData();
-    form.append('file', file);
-    return this.http.post<CargaMasivaResult & { message: string }>(`${this.base}/clientes`, form);
+  importClientes(
+    file: File,
+    dryRun = false,
+  ): Observable<CargaMasivaResult & { message: string }> {
+    return this.importFile('clientes', file, dryRun);
   }
 
-  importContactos(file: File): Observable<CargaMasivaResult & { message: string }> {
-    const form = new FormData();
-    form.append('file', file);
-    return this.http.post<CargaMasivaResult & { message: string }>(`${this.base}/contactos`, form);
+  importContactos(
+    file: File,
+    dryRun = false,
+  ): Observable<CargaMasivaResult & { message: string }> {
+    return this.importFile('contactos', file, dryRun);
   }
 
-  importProyecciones(file: File): Observable<CargaMasivaResult & { message: string }> {
+  importProyecciones(
+    file: File,
+    dryRun = false,
+  ): Observable<CargaMasivaResult & { message: string }> {
+    return this.importFile('proyecciones', file, dryRun);
+  }
+
+  private importFile(
+    endpoint: 'clientes' | 'contactos' | 'proyecciones',
+    file: File,
+    dryRun: boolean,
+  ): Observable<CargaMasivaResult & { message: string }> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.post<CargaMasivaResult & { message: string }>(`${this.base}/proyecciones`, form);
+    const params = dryRun ? new HttpParams().set('dryRun', 'true') : undefined;
+    return this.http.post<CargaMasivaResult & { message: string }>(
+      `${this.base}/${endpoint}`,
+      form,
+      { params },
+    );
   }
 
   revertirCarga(

@@ -23,6 +23,12 @@ export class KamQueryDto extends PaginationQueryDto {
   @MaxLength(255)
   search?: string;
 
+  @ApiPropertyOptional({ description: 'Filtrar por empresa (cliente registrado)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  empresaClienteId?: number;
+
   @ApiPropertyOptional({ enum: EstadoKamRonda })
   @IsOptional()
   estadoRonda?: EstadoKamRonda;

@@ -6,6 +6,17 @@
   font-weight: 600;
 }
 
+.filters__empresa {
+  flex: 0 1 240px;
+  min-width: 200px;
+  max-width: 280px;
+
+  app-searchable-select {
+    display: block;
+    width: 100%;
+  }
+}
+
 .filters label {
   display: flex;
   flex-direction: column;

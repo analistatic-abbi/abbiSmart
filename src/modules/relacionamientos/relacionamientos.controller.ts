@@ -50,9 +50,14 @@ export class RelacionamientosController {
   @ApiOperation({
     summary: 'Listar relacionamientos vencidos sin respuesta (REL-008)',
   })
-  async findVencidos(@CurrentUser() user: AuthUserPayload) {
+  async findVencidos(
+    @CurrentUser() user: AuthUserPayload,
+    @Query('clienteId', new ParseIntPipe({ optional: true }))
+    clienteId?: number,
+  ) {
     const data = await this.relacionamientosService.findVencidos(
       user.paisSesionId!,
+      clienteId,
     );
 
     return {

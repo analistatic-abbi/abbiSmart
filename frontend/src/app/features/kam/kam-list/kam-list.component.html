@@ -8,9 +8,19 @@
   </header>
 
   <div class="filters">
+    <div class="filters__empresa">
+      <app-searchable-select
+        [options]="clienteOptions()"
+        [ngModel]="empresaClienteId()"
+        (ngModelChange)="onEmpresaChange($event)"
+        placeholder="Todas las empresas"
+        searchPlaceholder="Buscar empresa..."
+        [minOptionsForSearch]="0"
+      />
+    </div>
     <input
       type="search"
-      placeholder="Buscar proceso, objeto o cliente..."
+      placeholder="Buscar por proceso, código u objeto..."
       [ngModel]="search()"
       (ngModelChange)="search.set($event)"
       (keyup.enter)="onFilter()"
@@ -38,7 +48,17 @@
       }
     </button>
     <button type="button" class="btn-secondary" (click)="onFilter()">Filtrar</button>
+    @if (tieneFiltrosActivos()) {
+      <button type="button" class="btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+    }
+    <button type="button" class="btn-secondary" [disabled]="exportando()" (click)="exportar()">
+      {{ exportando() ? 'Exportando...' : 'Exportar' }}
+    </button>
   </div>
+
+  @if (exportError()) {
+    <p class="error">{{ exportError() }}</p>
+  }
 
   @if (loading()) {
     <p>Cargando...</p>

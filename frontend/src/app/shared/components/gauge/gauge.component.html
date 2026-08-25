@@ -1,0 +1,49 @@
+<article class="gauge" [class.gauge--empty]="!tieneMeta()">
+  <header class="gauge__header">
+    <h3>{{ titulo() }}</h3>
+    <span>{{ subtitulo() }}</span>
+  </header>
+
+  <svg class="gauge__svg" viewBox="0 0 200 130" role="img" [attr.aria-label]="titulo() + ' ' + subtitulo()">
+    <path
+      class="gauge__track"
+      [attr.d]="'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 1 ' + (cx + radius) + ' ' + cy"
+      fill="none"
+      stroke-width="14"
+      stroke-linecap="round"
+    />
+    @if (tieneMeta()) {
+      <path
+        class="gauge__arc"
+        [attr.d]="'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 1 ' + (cx + radius) + ' ' + cy"
+        fill="none"
+        stroke-width="14"
+        stroke-linecap="round"
+        [attr.stroke-dasharray]="dashFilled() + ' ' + trackLength"
+      />
+      <line
+        class="gauge__needle"
+        [attr.x1]="cx"
+        [attr.y1]="cy"
+        [attr.x2]="needle().x"
+        [attr.y2]="needle().y"
+      />
+      <circle class="gauge__pivot" [attr.cx]="cx" [attr.cy]="cy" r="6" />
+    }
+
+    <text class="gauge__value" [attr.x]="cx" y="78" text-anchor="middle">
+      {{ valorAbreviado() }}
+    </text>
+    @if (porcentajeLabel(); as pct) {
+      <text class="gauge__pct" [attr.x]="cx" y="98" text-anchor="middle">{{ pct }}</text>
+    }
+  </svg>
+
+  @if (!tieneMeta()) {
+    <p class="gauge__empty">{{ emptyMessage() }}</p>
+  } @else if (metaCompleta()) {
+    <p class="gauge__meta" [title]="valorCompleto() + ' de ' + metaCompleta()">
+      Meta {{ metaCompleta() }}
+    </p>
+  }
+</article>

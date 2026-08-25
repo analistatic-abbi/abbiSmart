@@ -31,9 +31,17 @@
           </div>
         }
 
-        <p class="login-faq-panel__footer">
-          ¿Necesita acceso al sistema? Contacte a su administrador.
-        </p>
+        <div class="login-faq-panel__footer">
+          <p>¿Necesita acceso al sistema? Contacte a su administrador.</p>
+          <p>
+            Si no encontró respuesta aquí, registre su solicitud en el HelpDesk TIC para que le agenden un
+            ticket de soporte.
+          </p>
+          <button type="button" class="login-faq-panel__helpdesk" (click)="openHelpDesk()">
+            <span class="material-symbols-outlined">open_in_new</span>
+            Ir al HelpDesk TIC
+          </button>
+        </div>
       </div>
     </aside>
   }

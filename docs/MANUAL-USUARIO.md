@@ -1,6 +1,6 @@
 # Manual de Usuario — Sistema de Gestión de Licitaciones ABBI
 
-**Versión del documento:** 1.0  
+**Versión del documento:** 2.0  
 **Producto:** ABBI Bid Management — *construyendo progreso*  
 **Ámbito:** Operaciones de licitaciones públicas en **Colombia** y **Perú**
 
@@ -14,29 +14,30 @@
 4. [Roles y permisos](#4-roles-y-permisos)
 5. [Inicio de sesión y cuenta](#5-inicio-de-sesión-y-cuenta)
 6. [Panel de Control](#6-panel-de-control)
-7. [Calendario unificado](#7-calendario-unificado)
-8. [Procesos](#8-procesos)
-9. [Validación](#9-validación)
-10. [Mi bandeja personal](#10-mi-bandeja-personal)
-11. [Notificaciones](#11-notificaciones)
-12. [CRM — Clientes](#12-crm--clientes)
-13. [CRM — Contactos](#13-crm--contactos)
-14. [CRM — Relacionamientos](#14-crm--relacionamientos)
-15. [KAM (Key Account Management)](#15-kam-key-account-management)
-16. [Formatos de encuesta KAM](#16-formatos-de-encuesta-kam)
-17. [Proyecciones](#17-proyecciones)
-18. [Asignación de mercado y efectividad](#18-asignación-de-mercado-y-efectividad)
-19. [Parámetros financieros](#19-parámetros-financieros)
-20. [Formatos de calificación](#20-formatos-de-calificación)
-21. [Usuarios](#21-usuarios)
-22. [Países y configuración por país](#22-países-y-configuración-por-país)
-23. [Carga masiva](#23-carga-masiva)
-24. [Solicitudes de eliminación](#24-solicitudes-de-eliminación)
-25. [Auditoría](#25-auditoría)
-26. [Centro de soporte](#26-centro-de-soporte)
-27. [Uso en dispositivos móviles](#27-uso-en-dispositivos-móviles)
-28. [Preguntas frecuentes](#28-preguntas-frecuentes)
-29. [Glosario](#29-glosario)
+7. [Analítica](#7-analítica)
+8. [Calendario unificado](#8-calendario-unificado)
+9. [Procesos](#9-procesos)
+10. [Validación](#10-validación)
+11. [Mi bandeja personal](#11-mi-bandeja-personal)
+12. [Notificaciones](#12-notificaciones)
+13. [CRM — Clientes](#13-crm--clientes)
+14. [CRM — Contactos](#14-crm--contactos)
+15. [CRM — Relacionamientos](#15-crm--relacionamientos)
+16. [KAM (Key Account Management)](#16-kam-key-account-management)
+17. [Formatos de encuesta KAM](#17-formatos-de-encuesta-kam)
+18. [Proyecciones](#18-proyecciones)
+19. [Asignación de mercado y efectividad](#19-asignación-de-mercado-y-efectividad)
+20. [Parámetros financieros](#20-parámetros-financieros)
+21. [Formatos de calificación](#21-formatos-de-calificación)
+22. [Usuarios](#22-usuarios)
+23. [Países y configuración por país](#23-países-y-configuración-por-país)
+24. [Carga masiva](#24-carga-masiva)
+25. [Solicitudes de eliminación](#25-solicitudes-de-eliminación)
+26. [Auditoría](#26-auditoría)
+27. [Centro de soporte](#27-centro-de-soporte)
+28. [Uso en dispositivos móviles](#28-uso-en-dispositivos-móviles)
+29. [Preguntas frecuentes](#29-preguntas-frecuentes)
+30. [Glosario](#30-glosario)
 
 ---
 
@@ -118,7 +119,7 @@ Organizado en secciones colapsables:
 
 | Sección | Módulos |
 |---|---|
-| **Inicio** | Panel de Control, Calendario, Procesos |
+| **Inicio** | Panel de Control, Analítica, Calendario, Procesos |
 | **Operación** | Validación, Mi bandeja, Notificaciones |
 | **CRM** | Clientes, Contactos, Relacionamientos |
 | **KAM** | KAM, Calendario KAM, Formatos de encuesta |
@@ -253,7 +254,153 @@ Pulse **Filtrar** para aplicar. Use **Limpiar** para restablecer.
 
 ---
 
-## 7. Calendario unificado
+## 7. Analítica
+
+**Menú:** Inicio → **Analítica**
+
+### 7.1 Propósito
+
+Módulo de inteligencia de negocio que consolida indicadores clave (KPIs), gráficos comparativos y velocímetros de avance frente a metas anuales. Permite analizar la operación desde tres perspectivas: **Procesos**, **Proyecciones** y **CRM**.
+
+### 7.2 Pestañas
+
+El módulo se organiza en tres pestañas que cambian los KPIs y gráficos mostrados:
+
+| Pestaña | Enfoque |
+|---|---|
+| **Procesos** | Estado de procesos, embudo comercial, cierres próximos y avance frente a metas anuales |
+| **Proyecciones** | Proyecciones por estado (General vs Objetivo), por mercado y efectividad |
+| **CRM** | Relacionamientos por canal, resultado, segmento de cliente, estado de respuesta y actividad |
+
+### 7.3 Filtros
+
+#### Selector de año
+
+Disponible en las pestañas **Procesos** y **Proyecciones**. Filtra los datos por año fiscal. Use las flechas **◀ ▶** para cambiar de año.
+
+#### Filtro de fechas (Desde / Hasta)
+
+Disponible en todas las pestañas. Permite acotar los datos a un rango de fechas específico:
+
+- **Procesos:** filtra por fecha de apertura del proceso
+- **Proyecciones:** filtra por fecha estimada de publicación
+- **CRM:** filtra por fecha del mensaje de relacionamiento
+
+Al seleccionar una fecha, los datos se recargan automáticamente. Use **Limpiar** para quitar los filtros de fecha.
+
+> **Nota:** Los velocímetros de metas anuales no se ven afectados por el filtro de fechas; utilizan únicamente el año seleccionado.
+
+### 7.4 Indicadores clave (KPIs)
+
+Cada pestaña muestra tarjetas de KPI en la parte superior. Al hacer clic en una tarjeta, se navega al módulo correspondiente.
+
+**Procesos:**
+
+| KPI | Descripción |
+|---|---|
+| Procesos activos | Total de procesos no cerrados ni descartados |
+| Cierres próx. 30 días | Procesos con fecha de cierre en los próximos 30 días |
+| Validaciones pendientes | Procesos pendientes de validación |
+| Adjudicados (embudo) | Procesos en estado Adjudicado |
+
+**Proyecciones:**
+
+| KPI | Descripción |
+|---|---|
+| Proyecciones activas | Total de proyecciones no cerradas ni publicadas |
+| Valor venta (año) | Suma del valor de venta proyectado |
+| Valor facturación (año) | Suma del valor de facturación proyectado |
+| % ganadas Objetivo | Porcentaje de ganadas sobre materializadas (mercado Objetivo) |
+
+**CRM:**
+
+| KPI | Descripción |
+|---|---|
+| Clientes activos | Total de clientes no eliminados |
+| Contactos activos | Total de contactos activos |
+| Relacionamientos | Total de relacionamientos |
+| Relacionamientos vencidos | Sin respuesta dentro del plazo |
+| Reuniones programadas | Relacionamientos con reunión agendada |
+
+### 7.5 Pestaña Procesos — Gráficos y velocímetros
+
+#### Velocímetros de metas anuales
+
+Cuatro velocímetros semicirculares muestran el avance frente a la meta del año:
+
+| Velocímetro | Descripción |
+|---|---|
+| **Adjudicación Real** | Monto real adjudicado vs meta de adjudicación |
+| **Adjudicación Proyectada** | Monto proyectado de adjudicación vs meta |
+| **Facturación Real** | Monto real facturado vs meta de facturación |
+| **Facturación Proyectada** | Monto proyectado de facturación vs meta |
+
+Cada velocímetro muestra:
+- El valor abreviado (ej: $1.2 mil mill.)
+- El porcentaje de avance frente a la meta
+- La aguja indicadora de posición
+
+Si no se ha definido meta para el año, el velocímetro muestra: *«Defina la meta del año»*.
+
+#### Definir metas anuales (solo Administrador)
+
+Los usuarios con rol **Administrador** ven un formulario junto a los velocímetros para definir o actualizar las metas del año:
+
+1. Ingrese **Meta adjudicación** y **Meta facturación** (valores mayores que cero)
+2. Pulse **Guardar metas**
+3. Los velocímetros se actualizan automáticamente
+
+#### Embudo comercial
+
+Gráfico de embudo que muestra la progresión de oportunidades:
+
+Proyecciones activas → En proceso → En validación → Presentado/Subsanación → Adjudicado
+
+Clic en una etapa del embudo → navega al listado correspondiente.
+
+#### Cierres próximos por ventana
+
+Gráfico de barras con procesos cuya fecha de cierre cae en las ventanas:
+- **0–30 días**
+- **31–60 días**
+- **61–90 días**
+
+#### Distribución por estado y segmento
+
+- **Donut de procesos por estado:** toggle para incluir/excluir cerrados y descartados
+- **Pie de procesos por segmento**
+
+Clic en un segmento del gráfico → navega al listado filtrado.
+
+### 7.6 Pestaña Proyecciones — Gráficos
+
+| Gráfico | Tipo | Descripción |
+|---|---|---|
+| **Proyecciones por estado** | Barras | Comparativo General vs Objetivo por estado (Lejano, Próximo, Sale este mes) |
+| **Efectividad de mercado** | Barras | % de ganadas sobre materializadas, General vs Objetivo. Enlace a **Ver detalle** |
+| **Proyecciones por mercado** | Pie | Distribución por tipo de mercado asignado |
+
+### 7.7 Pestaña CRM — Gráficos
+
+| Gráfico | Tipo | Descripción |
+|---|---|---|
+| **Relacionamientos por canal** | Pie | Distribución por canal (Correo, Llamada, Mensaje, Presencial) |
+| **Relacionamientos por resultado** | Donut | Distribución por resultado (Reunión programada, Referido, Ninguno) |
+| **Clientes por segmento** | Pie | Distribución de clientes por segmento |
+| **Estado de respuesta** | Donut | Con respuesta, Pendientes, Vencidos |
+| **Actividad de relacionamiento** | Barras | Relacionamientos por ventana temporal (últimos 30, 31–60, 61–90 días) |
+
+### 7.8 Interactividad
+
+- Todos los gráficos incluyen animación al renderizarse
+- Los gráficos de pie/donut muestran leyenda al pie
+- Clic en segmentos de gráficos de proceso navega al listado filtrado
+- Tooltips al pasar el cursor sobre segmentos o barras
+- Compatible con modo oscuro
+
+---
+
+## 8. Calendario unificado
 
 **Menú:** Inicio → **Calendario**
 
@@ -290,11 +437,11 @@ Active o desactive:
 
 ---
 
-## 8. Procesos
+## 9. Procesos
 
 **Menú:** Inicio → **Procesos**
 
-### 8.1 Lista de procesos
+### 28.1 Lista de procesos
 
 **Título:** Panel de procesos
 
@@ -333,7 +480,7 @@ Active o desactive:
 
 **Badge adicional:** **Devuelto** — el validador solicitó correcciones.
 
-### 8.2 Crear un proceso
+### 28.2 Crear un proceso
 
 
 Asistente en **3 pasos**:
@@ -364,7 +511,7 @@ Asistente en **3 pasos**:
 
 **Navegación:** **Anterior** / **Siguiente** / **Crear proceso**
 
-### 8.3 Detalle de un proceso
+### 9.3 Detalle de un proceso
 
 
 **Acciones del encabezado:**
@@ -412,7 +559,7 @@ Al cerrar sin adjudicación: Precio no competitivo, Incumplimiento de indicador 
 
 ---
 
-## 9. Validación
+## 10. Validación
 
 **Menú:** Operación → **Validación**  
 **Roles:** Administrador, Supervisor del Sistema, Validador
@@ -454,7 +601,7 @@ Admin y Supervisor ven la revisión en **solo lectura**.
 
 ---
 
-## 10. Mi bandeja personal
+## 11. Mi bandeja personal
 
 **Menú:** Operación → **Mi bandeja**
 
@@ -469,20 +616,20 @@ Espacio personal donde el usuario fija los registros que más le importan, agrup
 - **Vencidos**
 - **Procesos**, **Proyecciones**, **Relacionamientos**, **KAMs**
 
-### 10.3 Cómo fijar un ítem
+### 11.3 Cómo fijar un ítem
 
 1. Abra el detalle de un proceso, proyección, relacionamiento o KAM
 2. Pulse **Fijar en mi bandeja**
 3. El ítem aparecerá en **Mi bandeja**
 4. Para desfijar, pulse **Fijado** (icono activo)
 
-### 10.4 Grupos y urgencia
+### 11.4 Grupos y urgencia
 
 Los ítems se organizan por tipo y subgrupo de urgencia (alta, media, baja, vencido). Clic en una tarjeta → navega al detalle.
 
 ---
 
-## 11. Notificaciones
+## 12. Notificaciones
 
 **Menú:** Operación → **Notificaciones**
 
@@ -503,7 +650,7 @@ Los ítems se organizan por tipo y subgrupo de urgencia (alta, media, baja, venc
 
 ---
 
-## 12. CRM — Clientes
+## 13. CRM — Clientes
 
 **Menú:** CRM → **Clientes**
 
@@ -526,7 +673,7 @@ Los ítems se organizan por tipo y subgrupo de urgencia (alta, media, baja, venc
 
 **Acciones:** **Cancelar**, **Guardar**
 
-### 12.3 Vista 360 del cliente
+### 13.3 Vista 360 del cliente
 
 
 **KPIs:** Procesos activos, Cuantía activa, Proyecciones abiertas, Relacionamientos vencidos, Contactos
@@ -546,7 +693,7 @@ Los ítems se organizan por tipo y subgrupo de urgencia (alta, media, baja, venc
 
 ---
 
-## 13. CRM — Contactos
+## 14. CRM — Contactos
 
 **Menú:** CRM → **Contactos**
 
@@ -573,7 +720,7 @@ Los ítems se organizan por tipo y subgrupo de urgencia (alta, media, baja, venc
 
 ---
 
-## 14. CRM — Relacionamientos
+## 15. CRM — Relacionamientos
 
 **Menú:** CRM → **Relacionamientos**
 
@@ -586,7 +733,7 @@ Registra interacciones comerciales con contactos: correos, llamadas, mensajes, v
 - **Todos** — listado completo con filtros
 - **Vencidos** — relacionamientos sin respuesta dentro del plazo
 
-### 14.3 Filtros (vista Todos)
+### 18.3 Filtros (vista Todos)
 
 - Fechas de mensaje (desde / hasta)
 - Búsqueda libre
@@ -596,7 +743,7 @@ Registra interacciones comerciales con contactos: correos, llamadas, mensajes, v
 **Canales:** Correo, Llamada, Mensaje, Presencial  
 **Resultados:** Reunión programada, Referido a tercero, Ninguno
 
-### 14.4 Crear relacionamiento
+### 16.4 Crear relacionamiento
 
 | Campo | Notas |
 |---|---|
@@ -606,7 +753,7 @@ Registra interacciones comerciales con contactos: correos, llamadas, mensajes, v
 | Fecha mensaje | Cuándo ocurrió |
 | Fecha de alerta sin respuesta | Cuándo notificar si no hay respuesta |
 
-### 14.5 Detalle
+### 16.5 Detalle
 
 **Secciones:**
 
@@ -621,7 +768,7 @@ Si es **Referido a tercero** → registrar datos del contacto referido
 
 ---
 
-## 15. KAM (Key Account Management)
+## 16. KAM (Key Account Management)
 
 **Menú:** KAM → **KAM**
 
@@ -686,7 +833,7 @@ Muestra reuniones KAM agendadas. Use **Ir a lista KAM** para volver al listado.
 
 ---
 
-## 16. Formatos de encuesta KAM
+## 17. Formatos de encuesta KAM
 
 **Menú:** KAM → **Formatos de encuesta**  
 **Roles:** Administrador, Supervisor del Sistema, Operador
@@ -716,7 +863,7 @@ Acciones: **Ver / editar**, **Clonar**, **Activar** / **Desactivar**
 
 ---
 
-## 17. Proyecciones
+## 18. Proyecciones
 
 **Menú:** Planeación → **Proyecciones**
 
@@ -751,7 +898,7 @@ Registra oportunidades futuras de licitación antes de convertirse en procesos f
 | Empresa / Cliente | Igual que en procesos |
 | Segmento, Objeto | Descripción |
 
-### 17.4 Detalle
+### 18.4 Detalle
 
 **Acciones:** **Fijar en mi bandeja**, **Cerrar** (Admin/Supervisor)
 
@@ -761,14 +908,14 @@ Registra oportunidades futuras de licitación antes de convertirse en procesos f
 
 Campos editables (escritura): año, fecha, valores, objeto. Mercado y días faltantes son calculados.
 
-### 17.5 Calendario de proyecciones
+### 18.5 Calendario de proyecciones
 
 
 Vista calendario de fechas estimadas de publicación.
 
 ---
 
-## 18. Asignación de mercado y efectividad
+## 19. Asignación de mercado y efectividad
 
 ### 18.1 Asignar mercado
 
@@ -797,7 +944,7 @@ Muestra métricas comparativas **General vs Objetivo** y gráfico de % ganadas.
 
 ---
 
-## 19. Parámetros financieros
+## 20. Parámetros financieros
 
 **Menú:** Configuración → **Parámetros**
 
@@ -821,7 +968,7 @@ Otros roles pueden **consultar** pero no modificar.
 
 ---
 
-## 20. Formatos de calificación
+## 21. Formatos de calificación
 
 **Menú:** Configuración → **Formatos de calificación**  
 **Roles:** Administrador (solo visible si el país tiene **calificación por puntos** habilitada)
@@ -842,7 +989,7 @@ Los formatos activos se usan en el detalle de procesos para evaluación por punt
 
 ---
 
-## 21. Usuarios
+## 22. Usuarios
 
 **Menú:** Administración → **Usuarios**  
 **Rol:** Administrador
@@ -865,7 +1012,7 @@ Los formatos activos se usan en el detalle de procesos para evaluación por punt
 | **Desbloquear cuenta** | Si está bloqueada |
 | **Desactivar usuario** | Deshabilitar acceso |
 
-### 21.3 Crear usuario
+### 22.3 Crear usuario
 
 | Campo | Notas |
 |---|---|
@@ -876,7 +1023,7 @@ Los formatos activos se usan en el detalle de procesos para evaluación por punt
 
 ---
 
-## 22. Países y configuración por país
+## 23. Países y configuración por país
 
 **Menú:** Administración → **Países**  
 **Rol:** Administrador
@@ -935,7 +1082,7 @@ Filtro por tipo. Estados: **Activo** / **Inactivo**
 
 ---
 
-## 23. Carga masiva
+## 24. Carga masiva
 
 **Menú:** Administración → **Carga masiva**  
 **Roles:** Administrador, Supervisor del Sistema, Operador
@@ -950,7 +1097,7 @@ Importa registros masivamente desde archivos CSV o XLSX.
 - **Contactos**
 - **Proyecciones**
 
-### 23.3 Procedimiento
+### 24.3 Procedimiento
 
 1. Seleccione la **Entidad**
 2. Pulse **Descargar plantilla CSV** para ver el formato esperado
@@ -961,7 +1108,7 @@ Importa registros masivamente desde archivos CSV o XLSX.
    - **Corrija estas filas en su archivo** (errores por fila)
    - **Historial de cargas**
 
-### 23.4 Revertir importación
+### 24.4 Revertir importación
 
 Solo **Administrador** puede **Eliminar todo lo importado** o **Eliminar importados** de una carga anterior.
 
@@ -969,7 +1116,7 @@ Si hay dependencias vinculadas, debe confirmar: *«Confirmo eliminar aunque exis
 
 ---
 
-## 24. Solicitudes de eliminación
+## 25. Solicitudes de eliminación
 
 **Menú:** Administración → **Solicitudes eliminación**  
 **Rol:** Administrador
@@ -991,7 +1138,7 @@ Vacío: *«No hay solicitudes pendientes.»*
 
 ---
 
-## 25. Auditoría
+## 26. Auditoría
 
 **Menú:** Administración → **Auditoría**  
 **Rol:** Administrador
@@ -1015,7 +1162,7 @@ Incluye paginación estándar.
 
 ---
 
-## 26. Centro de soporte
+## 27. Centro de soporte
 
 Acceso: menú lateral → **Soporte**
 
@@ -1031,7 +1178,7 @@ El botón **?** en la pantalla de login abre un panel de preguntas frecuentes co
 
 ---
 
-## 27. Uso en dispositivos móviles
+## 28. Uso en dispositivos móviles
 
 El sistema puede usarse desde celular o tableta.
 
@@ -1052,7 +1199,7 @@ El sistema puede usarse desde celular o tableta.
 
 ---
 
-## 28. Preguntas frecuentes
+## 29. Preguntas frecuentes
 
 ### ¿Cómo accedo al sistema?
 Use el correo corporativo registrado por su administrador y la contraseña definida al activar la cuenta.
@@ -1078,6 +1225,15 @@ Abra el detalle y pulse **Fijar en mi bandeja**.
 ### ¿Por qué no puedo editar una encuesta KAM?
 Las encuestas solo se editan si tiene permiso de escritura y la ronda está en estado **Pendiente**.
 
+### ¿Cómo defino las metas anuales?
+Solo el **Administrador** puede definir metas. Vaya a **Analítica** → pestaña **Procesos**, ingrese los valores de meta de adjudicación y facturación, y pulse **Guardar metas**.
+
+### ¿Qué significan los velocímetros en Analítica?
+Muestran el avance (real y proyectado) frente a las metas anuales de adjudicación y facturación. Si no hay meta definida, el velocímetro mostrará *«Defina la meta del año»*.
+
+### ¿Cómo filtro los gráficos por rango de fechas?
+En **Analítica**, use los campos **Desde** y **Hasta** debajo de las pestañas. Los datos se recargan automáticamente al seleccionar una fecha. Los velocímetros no se afectan por este filtro.
+
 ### ¿Quién puede eliminar registros?
 Solo el **Administrador** elimina directamente. Operadores y Supervisores **solicitan eliminación**.
 
@@ -1086,7 +1242,7 @@ A la bandeja de entrada del correo electrónico registrado en su cuenta. Revise 
 
 ---
 
-## 29. Glosario
+## 30. Glosario
 
 | Término | Definición |
 |---|---|
@@ -1101,6 +1257,9 @@ A la bandeja de entrada del correo electrónico registrado en su cuenta. Revise 
 | **Calificación por puntos** | Evaluación numérica de procesos según formatos |
 | **Mercado General/Objetivo** | Clasificación estratégica de proyecciones |
 | **Carga masiva** | Importación de registros desde CSV/XLSX |
+| **Analítica** | Módulo de inteligencia de negocio con KPIs, gráficos y velocímetros |
+| **Meta anual** | Objetivo de adjudicación o facturación definido por año y país |
+| **Velocímetro (gauge)** | Indicador semicircular que muestra avance frente a una meta |
 | **Auditoría** | Registro de acciones para trazabilidad |
 | **RFI** | Request for Information — tipo de instrumento |
 | **Indicador financiero** | Métrica evaluada contra parámetros (KTNO, PN, ROE, etc.) |
@@ -1113,12 +1272,13 @@ Si es nuevo en el sistema, este recorrido le ayuda a familiarizarse con las func
 
 1. Inicie sesión y seleccione su país de trabajo
 2. Revise el **Panel de Control** para ver el estado general
-3. Explore **Procesos** y abra el detalle de uno
-4. Visite **Mi bandeja** y fije un registro que le interese
-5. Consulte el **Calendario** para ver fechas próximas
-6. Revise **Clientes** y la vista completa de un cliente
-7. Si su rol lo permite, cree un **Relacionamiento** o una **Proyección**
-8. Configure **Notificaciones** y el **Centro de soporte** si necesita ayuda
+3. Visite **Analítica** para explorar KPIs, gráficos y velocímetros de metas
+4. Explore **Procesos** y abra el detalle de uno
+5. Visite **Mi bandeja** y fije un registro que le interese
+6. Consulte el **Calendario** para ver fechas próximas
+7. Revise **Clientes** y la vista completa de un cliente
+8. Si su rol lo permite, cree un **Relacionamiento** o una **Proyección**
+9. Configure **Notificaciones** y el **Centro de soporte** si necesita ayuda
 
 Según su rol, también tendrá acceso a **Validación**, **KAM**, **Administración** u otras secciones descritas en este manual.
 

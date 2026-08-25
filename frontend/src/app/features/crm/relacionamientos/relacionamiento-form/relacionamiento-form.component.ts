@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ContactosService } from '../../../../core/services/contactos.service';
 import { RelacionamientosService } from '../../../../core/services/relacionamientos.service';
 import {
@@ -21,6 +21,7 @@ import { confirmarCreacion } from '../../../../core/utils/confirm-dialog.util';
   styleUrl: './relacionamiento-form.component.scss',
 })
 export class RelacionamientoFormComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly relacionamientos = inject(RelacionamientosService);
   private readonly contactos = inject(ContactosService);
@@ -46,7 +47,33 @@ export class RelacionamientoFormComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.contactos.list({ limit: 200 }).subscribe((r) => this.contactosList.set(r.data));
+    const clienteId = Number(this.route.snapshot.queryParamMap.get('clienteId'));
+    const contactoId = Number(this.route.snapshot.queryParamMap.get('contactoId'));
+    const contactoPrefill =
+      Number.isInteger(contactoId) && contactoId > 0 ? contactoId : null;
+
+    if (Number.isInteger(clienteId) && clienteId > 0) {
+      this.contactos.listByCliente(clienteId).subscribe({
+        next: (r) => {
+          this.contactosList.set(r.data);
+          if (contactoPrefill && r.data.some((contacto) => contacto.id === contactoPrefill)) {
+            this.contactoId.set(contactoPrefill);
+          }
+        },
+        error: () => this.contactosList.set([]),
+      });
+      return;
+    }
+
+    this.contactos.list({ limit: 200 }).subscribe({
+      next: (r) => {
+        this.contactosList.set(r.data);
+        if (contactoPrefill && r.data.some((contacto) => contacto.id === contactoPrefill)) {
+          this.contactoId.set(contactoPrefill);
+        }
+      },
+      error: () => this.contactosList.set([]),
+    });
   }
 
   protected guardar(): void {
