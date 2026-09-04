@@ -9,64 +9,32 @@
     <p class="error">{{ error() }}</p>
   } @else {
     @if (resumen(); as r) {
-      <div class="cards">
-        <article class="card card--highlight">
-          <span class="card__label">Total fijados</span>
-          <strong class="card__value">{{ r.totalFijados }}</strong>
-        </article>
-        <article class="card card--urgent">
-          <span class="card__label">Urgentes (≤ 7 días)</span>
-          <strong class="card__value">{{ r.urgentes }}</strong>
-        </article>
-        <article class="card card--overdue">
-          <span class="card__label">Vencidos</span>
-          <strong class="card__value">{{ r.vencidos }}</strong>
-        </article>
-        <article class="card">
-          <span class="card__label">Procesos</span>
-          <strong class="card__value">{{ r.totalProcesos }}</strong>
-        </article>
-        <article class="card">
-          <span class="card__label">Proyecciones</span>
-          <strong class="card__value">{{ r.totalProyecciones }}</strong>
-        </article>
-        <article class="card">
-          <span class="card__label">Relacionamientos</span>
-          <strong class="card__value">{{ r.totalRelacionamientos }}</strong>
-        </article>
-        <article class="card">
-          <span class="card__label">KAMs</span>
-          <strong class="card__value">{{ r.totalKams }}</strong>
-        </article>
-      </div>
-
-      @if (r.porUrgencia.length > 0) {
-        <section class="panel resumen-panel">
-          <h2>Por urgencia</h2>
-          <div class="segment-grid">
-            @for (item of r.porUrgencia; track item.clave) {
-              <div class="segment-item">
-                <span>{{ urgenciaLabel(item.clave) }}</span>
-                <strong>{{ item.total }}</strong>
-              </div>
-            }
+      <section class="resumen-kpis">
+        <div class="kpi-bar kpi-bar--general">
+          <div class="kpi-bar__item kpi-bar__item--total">
+            <span class="kpi-bar__label">Total fijados</span>
+            <strong class="kpi-bar__value">{{ r.totalFijados }}</strong>
           </div>
-        </section>
-      }
-
-      @if (r.porEstadoProcesos.length > 0) {
-        <section class="panel resumen-panel">
-          <h2>Procesos fijados por estado</h2>
-          <div class="segment-grid">
-            @for (item of r.porEstadoProcesos; track item.clave) {
-              <div class="segment-item">
-                <span>{{ item.clave }}</span>
-                <strong>{{ item.total }}</strong>
-              </div>
-            }
+          <div class="kpi-bar__item kpi-bar__item--urgent">
+            <span class="kpi-bar__label">Urgentes</span>
+            <strong class="kpi-bar__value">{{ r.urgentes }}</strong>
           </div>
-        </section>
-      }
+          <div class="kpi-bar__item kpi-bar__item--overdue">
+            <span class="kpi-bar__label">Vencidos</span>
+            <strong class="kpi-bar__value">{{ r.vencidos }}</strong>
+          </div>
+        </div>
+
+        <div class="kpi-bar kpi-bar--tipos">
+          <span class="kpi-bar__tipos-label">Por tipo</span>
+          <div class="kpi-bar__tipos-list">
+            <span class="kpi-pill">Procesos <strong>{{ r.totalProcesos }}</strong></span>
+            <span class="kpi-pill">Proyecciones <strong>{{ r.totalProyecciones }}</strong></span>
+            <span class="kpi-pill">Relacionamientos <strong>{{ r.totalRelacionamientos }}</strong></span>
+            <span class="kpi-pill">KAMs <strong>{{ r.totalKams }}</strong></span>
+          </div>
+        </div>
+      </section>
     }
 
     <div class="bandeja-grid">
