@@ -17,21 +17,27 @@
       </div>
       <div class="actions">
         @if (puedeEscribir()) {
-          <a class="btn-secondary" [routerLink]="['/crm/clientes', c.id, 'editar']">Editar</a>
-          <a class="btn-primary" [routerLink]="['/crm/contactos/nuevo']" [queryParams]="{ clienteId: c.id }">Nuevo contacto</a>
-          <a class="btn-secondary" routerLink="/procesos/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nuevo proceso</a>
-          <a class="btn-secondary" routerLink="/proyecciones/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nueva proyección</a>
-          <a class="btn-secondary" routerLink="/crm/relacionamientos/nuevo" [queryParams]="{ clienteId: c.id }">Nuevo relacionamiento</a>
+          <div class="actions__row" aria-label="Crear">
+            <a class="btn-primary" [routerLink]="['/crm/contactos/nuevo']" [queryParams]="{ clienteId: c.id }">Nuevo contacto</a>
+            <a class="btn-secondary" routerLink="/procesos/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nuevo proceso</a>
+            <a class="btn-secondary" routerLink="/proyecciones/nuevo" [queryParams]="{ empresaClienteId: c.id }">Nueva proyección</a>
+            <a class="btn-secondary" routerLink="/crm/relacionamientos/nuevo" [queryParams]="{ clienteId: c.id }">Nuevo relacionamiento</a>
+          </div>
         }
-        <a class="btn-secondary" routerLink="/kam" [queryParams]="{ empresaClienteId: c.id }">Ver KAM</a>
-        @if (puedeReasignar()) {
-          <button type="button" class="btn-secondary" (click)="abrirReasignar()">Reasignar procesos</button>
-        }
-        @if (puedeEliminarDirecto() || puedeSolicitarEliminacion()) {
-          <button type="button" class="btn-danger" (click)="abrirEliminar()">
-            {{ puedeEliminarDirecto() ? 'Eliminar' : 'Solicitar eliminación' }}
-          </button>
-        }
+        <div class="actions__row actions__row--manage" aria-label="Gestionar">
+          @if (puedeEscribir()) {
+            <a class="btn-secondary" [routerLink]="['/crm/clientes', c.id, 'editar']">Editar</a>
+          }
+          <a class="btn-secondary" routerLink="/kam" [queryParams]="{ empresaClienteId: c.id }">Ver KAM</a>
+          @if (puedeReasignar()) {
+            <button type="button" class="btn-secondary" (click)="abrirReasignar()">Reasignar procesos</button>
+          }
+          @if (puedeEliminarDirecto() || puedeSolicitarEliminacion()) {
+            <button type="button" class="btn-danger" (click)="abrirEliminar()">
+              {{ puedeEliminarDirecto() ? 'Eliminar' : 'Solicitar eliminación' }}
+            </button>
+          }
+        </div>
       </div>
     </header>
 

@@ -13,34 +13,45 @@
   color: var(--color-on-surface-variant);
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.card {
-  background: var(--color-surface-container-lowest);
-  border: 1px solid var(--color-outline-variant);
-  border-radius: var(--radius-prime);
-  padding: 16px;
+.resumen-kpis {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 20px;
+}
 
-  &--highlight {
-    border-color: var(--color-primary-container);
+.kpi-bar {
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-prime);
+  background: var(--color-surface-container-lowest);
+}
+
+.kpi-bar--general {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kpi-bar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  min-width: 0;
+
+  &:not(:last-child) {
+    border-right: 1px solid var(--color-outline-variant);
+  }
+
+  &--total {
     background: var(--color-secondary-container);
   }
 
   &--urgent {
-    border-color: var(--color-warning-border, #f0ad4e);
     background: var(--color-warning-bg, #fff8e6);
   }
 
   &--overdue {
-    border-color: var(--color-error);
     background: color-mix(
       in srgb,
       var(--color-error) 8%,
@@ -49,37 +60,60 @@
   }
 }
 
-.card__label {
+.kpi-bar__label {
   font-size: 12px;
+  color: var(--color-on-surface-variant);
+  line-height: 1.2;
+}
+
+.kpi-bar__value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.kpi-bar--tipos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--color-surface-container-low);
+  flex-wrap: wrap;
+}
+
+.kpi-bar__tipos-label {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-on-surface-variant);
 }
 
-.card__value {
-  font-size: 24px;
-  color: var(--color-primary);
-}
-
-.resumen-panel {
-  margin-bottom: 20px;
-
-  h2 {
-    margin: 0 0 12px;
-    font-size: 16px;
-  }
-}
-
-.segment-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.segment-item {
+.kpi-bar__tipos-list {
   display: flex;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: var(--radius-prime);
-  background: var(--color-surface-container-low);
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.kpi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  white-space: nowrap;
+
+  strong {
+    font-size: 13px;
+    color: var(--color-on-surface);
+  }
 }
 
 .bandeja-grid {
@@ -262,29 +296,25 @@
     margin-bottom: 16px;
   }
 
-  .cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 16px;
+  .resumen-kpis {
+    gap: 6px;
+    margin-bottom: 14px;
   }
 
-  .card {
-    min-width: 0;
-    padding: 12px;
+  .kpi-bar__item {
+    padding: 8px 10px;
   }
 
-  .card__value {
-    font-size: 22px;
+  .kpi-bar__label {
+    font-size: 11px;
   }
 
-  .segment-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .kpi-bar__value {
+    font-size: 18px;
   }
 
-  .segment-item,
-  .evento-card {
-    min-height: 44px;
+  .kpi-bar--tipos {
+    padding: 8px 10px;
   }
 
   .bandeja-grid {
@@ -299,6 +329,10 @@
     font-size: 16px;
   }
 
+  .evento-card {
+    min-height: 44px;
+  }
+
   .evento-card__top {
     align-items: flex-start;
   }
@@ -310,8 +344,15 @@
   }
 }
 
-@media (max-width: 360px) {
-  .cards {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .kpi-bar__item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px;
+  }
+
+  .kpi-bar__value {
+    font-size: 17px;
   }
 }

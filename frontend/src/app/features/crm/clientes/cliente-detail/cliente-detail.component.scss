@@ -3,8 +3,22 @@
 
 .actions {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: min(100%, 720px);
+}
+
+.actions__row {
+  display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.actions__row--manage:not(:first-child) {
+  padding-top: 10px;
+  border-top: 1px solid var(--color-outline-variant);
 }
 
 .subtitle {
@@ -106,6 +120,12 @@
 @media (max-width: 768px) {
   .actions {
     width: 100%;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  .actions__row {
+    justify-content: stretch;
 
     > .btn-primary,
     > .btn-secondary,
@@ -162,7 +182,7 @@
 }
 
 @media (max-width: 480px) {
-  .actions {
+  .actions__row {
     flex-direction: column;
 
     > .btn-primary,
