@@ -490,13 +490,21 @@
     line-height: 1.55;
     color: rgba(255, 255, 255, 0.92);
 
-    &.is-revealed .login-aside__quote-text {
+    &.is-revealed {
       animation: login-quote-float 5.5s ease-in-out infinite;
     }
   }
 
   &__quote-text {
     display: inline-block;
+    transition:
+      opacity 320ms ease,
+      transform 320ms ease;
+
+    &.is-fading {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
   }
 }
 
@@ -1020,8 +1028,13 @@
     transition: none;
   }
 
+  .login-aside__quote {
+    animation: none !important;
+  }
+
   .login-aside__quote-text {
     animation: none !important;
+    transition: none !important;
     transform: none;
     opacity: 1;
   }

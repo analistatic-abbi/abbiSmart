@@ -20,6 +20,62 @@
   flex-wrap: wrap;
 }
 
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-prime);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  border: none;
+  background: var(--color-primary-container);
+  color: var(--color-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-emphasis);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-surface-container-low);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+}
+
 .page__status {
   color: var(--color-on-surface-variant);
 }
@@ -221,17 +277,32 @@
   }
 
   input {
-    min-height: 40px;
-    border: 1px solid var(--color-outline-variant);
+    width: 100%;
+    min-height: 44px;
+    padding: 12px;
+    border: 1px solid var(--color-input-border);
     border-radius: var(--radius-prime);
-    padding: 8px 12px;
-    background: var(--color-surface-container-lowest);
-    color: var(--color-on-surface);
+    background: var(--color-surface);
+    color: var(--color-emphasis);
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover:not(:disabled):not(:focus) {
+      border-color: var(--color-input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-input-border-focus);
+      box-shadow: 0 0 0 3px var(--color-focus-ring);
+    }
   }
 
   .btn-primary {
     margin-top: 4px;
-    align-self: flex-start;
+    align-self: stretch;
+    width: 100%;
   }
 }
 
