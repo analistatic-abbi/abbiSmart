@@ -8,15 +8,6 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM deps AS development
-COPY docker-entrypoint.dev.sh /usr/local/bin/docker-entrypoint.dev.sh
-RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.dev.sh \
-  && chmod +x /usr/local/bin/docker-entrypoint.dev.sh
-COPY . .
-EXPOSE 4200
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.dev.sh"]
-CMD ["npm", "run", "start:docker"]
-
 FROM deps AS build
 COPY . .
 RUN npm run build
