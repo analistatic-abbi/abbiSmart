@@ -3,3 +3,7 @@ dist
 .angular
 coverage
 README.md
+*.spec.ts
+proxy.conf.json
+proxy.conf.docker.json
+docker-entrypoint.dev.sh

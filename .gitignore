@@ -4,19 +4,26 @@ node_modules/
 # Build
 dist/
 build/
+frontend/dist/
+frontend/.angular/
+.angular/
 
-# Environment
+# Environment (never commit secrets)
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+!.env.docker.example
 
 # Logs
 logs/
 *.log
 npm-debug.log*
 
-# Coverage
+# Coverage / tests artifacts
 coverage/
+test/
 
 # IDE
 .idea/
@@ -31,8 +38,15 @@ Thumbs.db
 # Temp
 *.tsbuildinfo
 
-# Design exports (Stitch)
+# Design exports / dumps
 .stitch-export/
+esquema_actual.sql
+*.dump
 
-# Uploads locales (evidencias de tareas)
+# Docs generated / Word export leftovers
+docs/
+docs/MANUAL-USUARIO_archivos/
+postman/
+
+# Uploads locales (evidencias)
 uploads/
