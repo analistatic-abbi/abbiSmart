@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -41,10 +41,22 @@ export class LoginComponent implements OnInit, OnDestroy {
   protected readonly expandedFaq = signal<string | null>(null);
   protected readonly faqOpen = signal(false);
   protected readonly statYear = signal(2003);
+  protected readonly quoteVisible = signal(true);
+  protected readonly quoteIndex = signal(0);
+  protected readonly quotes = [
+    'Desde 2003 construyendo progreso, confianza, compromiso y resultados',
+    'Centraliza procesos, plazos y documentos en un solo lugar',
+    'Sigue cada licitación con trazabilidad y control en tiempo real',
+    'Coordina equipos, tareas y entregables sin perder de vista el cierre',
+    'Toma mejores decisiones con información completa y al día',
+  ] as const;
+  protected readonly currentQuote = computed(() => this.quotes[this.quoteIndex()]);
 
   private cancelCountUp: (() => void) | null = null;
   private statCounterStarted = false;
   private previousTheme: ThemeMode | null = null;
+  private quoteTimer: ReturnType<typeof setInterval> | null = null;
+  private quoteFadeTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.previousTheme = this.themeService.theme();
@@ -57,6 +69,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.faqOpen.set(true);
       }
     });
+
+    this.quoteTimer = setInterval(() => this.advanceQuote(), 10000);
   }
 
   protected toggleFaqPanel(): void {
@@ -92,8 +106,25 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.cancelCountUp = animateCountUp(1995, 2003, 900, (value) => this.statYear.set(value));
   }
 
+  private advanceQuote(): void {
+    this.quoteVisible.set(false);
+    this.quoteFadeTimer = setTimeout(() => {
+      this.quoteIndex.update((index) => (index + 1) % this.quotes.length);
+      this.quoteVisible.set(true);
+      this.quoteFadeTimer = null;
+    }, 320);
+  }
+
   ngOnDestroy(): void {
     this.cancelCountUp?.();
+    if (this.quoteTimer) {
+      clearInterval(this.quoteTimer);
+      this.quoteTimer = null;
+    }
+    if (this.quoteFadeTimer) {
+      clearTimeout(this.quoteFadeTimer);
+      this.quoteFadeTimer = null;
+    }
 
     if (this.previousTheme === 'dark') {
       this.themeService.set('dark');

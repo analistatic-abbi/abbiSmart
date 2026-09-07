@@ -187,8 +187,12 @@
         </div>
       </div>
       <p class="login-aside__quote scroll-reveal" [appScrollReveal]="600">
-        <span class="login-aside__quote-text">
-          "Desde 2003 construyendo progreso, confianza, compromiso y resultados"
+        <span
+          class="login-aside__quote-text"
+          [class.is-fading]="!quoteVisible()"
+          [attr.aria-live]="'polite'"
+        >
+          "{{ currentQuote() }}"
         </span>
       </p>
     </div>
