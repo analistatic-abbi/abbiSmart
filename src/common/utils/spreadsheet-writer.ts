@@ -1,24 +1,34 @@
+import ExcelJS from 'exceljs';
+
 export interface SpreadsheetSheet {
   name: string;
   rows: Array<Record<string, string | number | null | undefined>>;
 }
 
-export function buildWorkbookBuffer(sheets: SpreadsheetSheet[]): Buffer {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const XLSX = require('xlsx') as typeof import('xlsx');
-  const workbook = XLSX.utils.book_new();
+export async function buildWorkbookBuffer(sheets: SpreadsheetSheet[]): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
 
   for (const sheet of sheets) {
-    const worksheet = XLSX.utils.json_to_sheet(sheet.rows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name.slice(0, 31));
+    const worksheet = workbook.addWorksheet(sheet.name.slice(0, 31) || 'Hoja1');
+    const headers = sheet.rows.length
+      ? Object.keys(sheet.rows[0])
+      : [];
+
+    if (headers.length) {
+      worksheet.addRow(headers);
+      for (const row of sheet.rows) {
+        worksheet.addRow(headers.map((header) => row[header] ?? ''));
+      }
+    }
   }
 
-  return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
-export function buildSingleSheetBuffer(
+export async function buildSingleSheetBuffer(
   name: string,
   rows: Array<Record<string, string | number | null | undefined>>,
-): Buffer {
+): Promise<Buffer> {
   return buildWorkbookBuffer([{ name, rows }]);
 }

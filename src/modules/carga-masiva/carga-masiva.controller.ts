@@ -20,11 +20,12 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { assertUploadContent } from '../../common/upload/assert-upload-content';
+import { spreadsheetUploadOptions } from '../../common/upload/upload-options';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import { CargaMasivaService } from './carga-masiva.service';
 
@@ -74,12 +75,7 @@ export class CargaMasivaController {
   @Post('clientes')
   @RequireWriteAccess()
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 2 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', spreadsheetUploadOptions()))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -100,6 +96,9 @@ export class CargaMasivaController {
     @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
+    if (file?.buffer?.length) {
+      assertUploadContent(file, 'spreadsheet');
+    }
     const { buffer, fileName } = this.readUpload(file, contentField, 'clientes.csv');
     const result = await this.cargaMasivaService.importClientes(
       fileName,
@@ -118,12 +117,7 @@ export class CargaMasivaController {
   @Post('contactos')
   @RequireWriteAccess()
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 2 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', spreadsheetUploadOptions()))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -144,6 +138,9 @@ export class CargaMasivaController {
     @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
+    if (file?.buffer?.length) {
+      assertUploadContent(file, 'spreadsheet');
+    }
     const { buffer, fileName } = this.readUpload(file, contentField, 'contactos.csv');
     const result = await this.cargaMasivaService.importContactos(
       fileName,
@@ -162,12 +159,7 @@ export class CargaMasivaController {
   @Post('proyecciones')
   @RequireWriteAccess()
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 2 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', spreadsheetUploadOptions()))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -188,6 +180,9 @@ export class CargaMasivaController {
     @Query('dryRun') dryRun: string | boolean | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
+    if (file?.buffer?.length) {
+      assertUploadContent(file, 'spreadsheet');
+    }
     const { buffer, fileName } = this.readUpload(
       file,
       contentField,

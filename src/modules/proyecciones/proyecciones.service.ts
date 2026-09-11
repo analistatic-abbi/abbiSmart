@@ -202,7 +202,7 @@ export class ProyeccionesService {
     }));
 
     return {
-      buffer: buildSingleSheetBuffer('Proyecciones', rows),
+      buffer: await buildSingleSheetBuffer('Proyecciones', rows),
       filename: `proyecciones-${fecha}.xlsx`,
       truncado: page.total > exportQuery.limit!,
     };

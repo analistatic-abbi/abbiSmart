@@ -1,6 +1,7 @@
+import { HttpStatus } from '@nestjs/common';
+import ExcelJS from 'exceljs';
 import { BusinessException } from '../exceptions/business.exception';
 import { ErrorCode } from '../exceptions/error-codes.enum';
-import { HttpStatus } from '@nestjs/common';
 
 function parseCsvLine(line: string): string[] {
   return line.split(',').map((cell) => cell.trim());
@@ -23,13 +24,31 @@ function parseCsv(content: string): string[][] {
     .filter((row) => row.some((cell) => cell.trim()));
 }
 
-async function parseXlsx(buffer: Buffer): Promise<string[][]> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const XLSX = require('xlsx') as typeof import('xlsx');
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
+function cellToString(value: ExcelJS.CellValue): string {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value).trim();
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === 'object') {
+    if ('text' in value && value.text != null) return String(value.text).trim();
+    if ('result' in value && value.result != null) return String(value.result).trim();
+    if ('richText' in value && Array.isArray(value.richText)) {
+      return value.richText.map((part) => part.text).join('').trim();
+    }
+  }
+  return String(value).trim();
+}
 
-  if (!sheetName) {
+async function parseXlsx(buffer: Buffer): Promise<string[][]> {
+  const workbook = new ExcelJS.Workbook();
+  // exceljs typings expect ArrayBuffer-like input; Node Buffer is compatible at runtime.
+  await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
+
+  const sheet = workbook.worksheets[0];
+  if (!sheet) {
     throw new BusinessException(
       ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
       'El archivo Excel no contiene hojas',
@@ -37,18 +56,16 @@ async function parseXlsx(buffer: Buffer): Promise<string[][]> {
     );
   }
 
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<string[]>(sheet, {
-    header: 1,
-    defval: '',
-    raw: false,
-  }) as string[][];
+  const rows: string[][] = [];
+  sheet.eachRow({ includeEmpty: false }, (row) => {
+    const values = Array.isArray(row.values) ? row.values.slice(1) : [];
+    const normalized = values.map((cell) => cellToString(cell as ExcelJS.CellValue));
+    if (normalized.some((cell) => cell)) {
+      rows.push(normalized);
+    }
+  });
 
-  const normalized = rows
-    .map((row) => row.map((cell) => String(cell ?? '').trim()))
-    .filter((row) => row.some((cell) => cell));
-
-  if (!normalized.length) {
+  if (!rows.length) {
     throw new BusinessException(
       ErrorCode.CARGA_MASIVA_FORMATO_INVALIDO,
       'El archivo Excel está vacío',
@@ -56,7 +73,7 @@ async function parseXlsx(buffer: Buffer): Promise<string[][]> {
     );
   }
 
-  return normalized;
+  return rows;
 }
 
 export async function readSpreadsheet(
@@ -65,7 +82,7 @@ export async function readSpreadsheet(
 ): Promise<string[][]> {
   const lower = fileName.toLowerCase();
 
-  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+  if (lower.endsWith('.xlsx')) {
     return parseXlsx(buffer);
   }
 

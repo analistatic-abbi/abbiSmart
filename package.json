@@ -13,6 +13,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:spreadsheet": "jest --testPathPattern=common/(utils|upload)",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
     "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down"
   },
@@ -33,19 +35,20 @@
     "cookie-parser": "^1.4.7",
     "country-state-city": "^3.2.1",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "helmet": "^8.3.0",
-    "joi": "^18.2.3",
+    "joi": "^18.2.9",
     "mariadb": "^3.5.3",
+    "multer": "2.3.0",
     "mysql2": "^3.23.1",
     "nestjs-pino": "^4.6.1",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^10.0.8",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^1.1.0",
-    "xlsx": "^0.18.5"
+    "typeorm": "^1.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -78,5 +81,8 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "overrides": {
+    "multer": "2.3.0"
   }
 }

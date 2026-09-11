@@ -302,7 +302,7 @@ export class ProcesosService {
     }));
 
     return {
-      buffer: buildSingleSheetBuffer('Procesos', rows),
+      buffer: await buildSingleSheetBuffer('Procesos', rows),
       filename: `procesos-${fecha}.xlsx`,
       truncado: page.total > exportQuery.limit!,
     };

@@ -118,7 +118,7 @@ export class ContactosService {
     }));
 
     return {
-      buffer: buildSingleSheetBuffer('Contactos', rows),
+      buffer: await buildSingleSheetBuffer('Contactos', rows),
       filename: `contactos-${fecha}.xlsx`,
       truncado: page.total > exportQuery.limit!,
     };

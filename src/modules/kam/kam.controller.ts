@@ -17,13 +17,14 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { Rol } from '../../common/enums/rol.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { assertUploadContents } from '../../common/upload/assert-upload-content';
+import { attachmentUploadOptions } from '../../common/upload/upload-options';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
   BitacoraRondaDto,
@@ -174,12 +175,7 @@ export class KamController {
 
   @Post(':id/rondas/:rondaId/correspondencia')
   @RequireWriteAccess()
-  @UseInterceptors(
-    FilesInterceptor('archivos', 20, {
-      storage: memoryStorage(),
-      limits: { fileSize: 10 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FilesInterceptor('archivos', 20, attachmentUploadOptions(20)))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Subir uno o varios archivos de correspondencia' })
   async subirCorrespondencia(
@@ -196,6 +192,8 @@ export class KamController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    assertUploadContents(lista, 'attachment');
 
     const data = await this.kamService.subirCorrespondencia(
       id,
