@@ -17,12 +17,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { EliminarEntidadQueryDto } from '../../common/dto/eliminar-query.dto';
 import { Rol } from '../../common/enums/rol.enum';
+import { assertUploadContent } from '../../common/upload/assert-upload-content';
+import { attachmentUploadOptions } from '../../common/upload/upload-options';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
   CambiarEstadoProcesoDto,
@@ -375,12 +376,7 @@ export class ProcesosController {
   @Patch(':id/tareas/:tareaId/completar')
   @RequireWriteAccess()
   @ApiConsumes('multipart/form-data', 'application/json')
-  @UseInterceptors(
-    FileInterceptor('archivo', {
-      storage: memoryStorage(),
-      limits: { fileSize: 10 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('archivo', attachmentUploadOptions(1)))
   @ApiOperation({
     summary:
       'Completar o editar tarea con evidencia escrita y/o archivo (SEG-002)',
@@ -392,6 +388,9 @@ export class ProcesosController {
     @UploadedFile() archivo: Express.Multer.File | undefined,
     @CurrentUser() actor: AuthUserPayload,
   ) {
+    if (archivo?.buffer?.length) {
+      assertUploadContent(archivo, 'attachment');
+    }
     const tarea = await this.procesosService.completarTarea(
       id,
       tareaId,

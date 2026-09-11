@@ -14,13 +14,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Rol } from '../../common/enums/rol.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
+import { assertUploadContent } from '../../common/upload/assert-upload-content';
+import { spreadsheetUploadOptions } from '../../common/upload/upload-options';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
   EvaluarCalificacionesDto,
@@ -75,12 +76,7 @@ export class FormatosCalificacionController {
   @Roles(Rol.ADMINISTRADOR)
   @RequireWriteAccess()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 2 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', spreadsheetUploadOptions()))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -106,6 +102,8 @@ export class FormatosCalificacionController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    assertUploadContent(file, 'spreadsheet');
 
     const data = await this.formatosCalificacionService.importFromSpreadsheet(
       body.nombre.trim(),

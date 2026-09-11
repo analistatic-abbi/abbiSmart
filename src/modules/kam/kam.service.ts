@@ -241,7 +241,7 @@ export class KamService {
     }));
 
     return {
-      buffer: buildSingleSheetBuffer('KAM', rows),
+      buffer: await buildSingleSheetBuffer('KAM', rows),
       filename: `kam-${fecha}.xlsx`,
       truncado: page.total > exportQuery.limit!,
     };

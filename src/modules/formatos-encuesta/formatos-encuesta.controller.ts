@@ -14,11 +14,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { memoryStorage } from 'multer';
 import { RequireWriteAccess } from '../../common/decorators/require-write-access.decorator';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ErrorCode } from '../../common/exceptions/error-codes.enum';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { assertUploadContent } from '../../common/upload/assert-upload-content';
+import { spreadsheetUploadOptions } from '../../common/upload/upload-options';
 import type { AuthUserPayload } from '../auth/interfaces/auth-user-payload.interface';
 import {
   ClonarFormatoEncuestaDto,
@@ -81,12 +82,7 @@ export class FormatosEncuestaController {
   @Post('import')
   @RequireWriteAccess()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 2 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', spreadsheetUploadOptions()))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -111,6 +107,8 @@ export class FormatosEncuestaController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    assertUploadContent(file, 'spreadsheet');
 
     const data = await this.formatosEncuestaService.importFromSpreadsheet(
       body.nombre.trim(),

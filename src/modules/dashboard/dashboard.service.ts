@@ -520,7 +520,7 @@ export class DashboardService {
     ];
 
     return {
-      buffer: buildWorkbookBuffer(sheets),
+      buffer: await buildWorkbookBuffer(sheets),
       filename: `dashboard-${fecha}.xlsx`,
     };
   }
