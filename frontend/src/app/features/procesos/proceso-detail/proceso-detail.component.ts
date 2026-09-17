@@ -118,6 +118,10 @@ export class ProcesoDetailComponent implements OnInit {
 
   protected readonly editandoFechas = signal(false);
   protected readonly fechasForm = signal<FechasForm>(this.emptyFechasForm());
+  protected readonly editandoCuantia = signal(false);
+  protected readonly cuantiaDraft = signal<number | null>(null);
+  protected readonly cuantiaGuardando = signal(false);
+  protected readonly cuantiaError = signal<string | null>(null);
   protected readonly fechasError = signal<string | null>(null);
   protected readonly historialFechas = signal<AuditLog[]>([]);
   protected readonly historialFechasLoading = signal(false);
@@ -686,6 +690,79 @@ export class ProcesoDetailComponent implements OnInit {
   protected cancelarEdicionFechas(): void {
     this.fechasError.set(null);
     this.editandoFechas.set(false);
+  }
+
+  protected iniciarEdicionCuantia(): void {
+    const proceso = this.proceso();
+    if (!proceso || !this.puedeEscribir()) return;
+
+    const valor = Number(proceso.cuantia);
+    this.cuantiaDraft.set(Number.isFinite(valor) ? valor : null);
+    this.cuantiaError.set(null);
+    this.editandoCuantia.set(true);
+  }
+
+  protected cancelarEdicionCuantia(): void {
+    this.editandoCuantia.set(false);
+    this.cuantiaError.set(null);
+    this.cuantiaDraft.set(null);
+  }
+
+  protected onCuantiaDraftChange(value: string | number | null): void {
+    if (value === null || value === undefined || value === '') {
+      this.cuantiaDraft.set(null);
+      return;
+    }
+
+    const parsed = typeof value === 'number' ? value : Number(value);
+    this.cuantiaDraft.set(Number.isFinite(parsed) ? parsed : null);
+  }
+
+  protected guardarCuantia(): void {
+    const cuantia = this.cuantiaDraft();
+    if (cuantia === null || cuantia === undefined || Number.isNaN(cuantia)) {
+      this.cuantiaError.set('Ingrese una cuantía válida (puede ser 0).');
+      return;
+    }
+
+    if (cuantia < 0) {
+      this.cuantiaError.set('La cuantía no puede ser negativa.');
+      return;
+    }
+
+    const [entero = ''] = Math.abs(cuantia).toLocaleString('fullwide', {
+      useGrouping: false,
+      maximumFractionDigits: 20,
+    }).split('.');
+    if (entero.length > 16) {
+      this.cuantiaError.set(
+        'La cuantía no puede superar 9.999.999.999.999.999,99 (máximo 16 dígitos enteros).',
+      );
+      return;
+    }
+
+    void confirmarGuardado(
+      this.confirmDialog,
+      '¿Desea actualizar la cuantía del proceso?',
+    ).then((ok) => {
+      if (!ok) return;
+
+      this.cuantiaGuardando.set(true);
+      this.cuantiaError.set(null);
+
+      this.procesos.update(this.procesoId, { cuantia }).subscribe({
+        next: (response) => {
+          this.cuantiaGuardando.set(false);
+          this.editandoCuantia.set(false);
+          this.proceso.set(response.proceso);
+          this.toast.success(mensajeExitoApi(response, 'Cuantía actualizada correctamente.'));
+        },
+        error: (err) => {
+          this.cuantiaGuardando.set(false);
+          this.cuantiaError.set(mensajeErrorApi(err, 'No fue posible actualizar la cuantía.'));
+        },
+      });
+    });
   }
 
   protected updateFecha(campo: keyof FechasForm, valor: string): void {

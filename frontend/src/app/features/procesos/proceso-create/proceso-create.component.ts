@@ -156,6 +156,16 @@ export class ProcesoCreateComponent implements OnInit {
     }
   }
 
+  protected onCuantiaChange(value: string | number | null): void {
+    if (value === null || value === undefined || value === '') {
+      this.updatePaso1('cuantia', null);
+      return;
+    }
+
+    const parsed = typeof value === 'number' ? value : Number(value);
+    this.updatePaso1('cuantia', Number.isFinite(parsed) ? parsed : null);
+  }
+
   protected toggleContacto(contactoId: number, checked: boolean): void {
     this.store.paso1.update((p) => {
       const current = new Set(p.contactoIds);

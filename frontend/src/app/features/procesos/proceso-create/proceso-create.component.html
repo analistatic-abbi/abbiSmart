@@ -101,9 +101,9 @@
           min="0"
           step="0.01"
           [ngModel]="store.paso1().cuantia"
-          (ngModelChange)="updatePaso1('cuantia', $event ? +$event : null)"
+          (ngModelChange)="onCuantiaChange($event)"
         />
-        <small class="field-hint">Máximo 16 dígitos enteros (ej. 2.870.613.000)</small>
+        <small class="field-hint">Máximo 16 dígitos enteros (ej. 2.870.613.000). Puede ser 0.</small>
       </label>
 
       <label class="full">Objeto <textarea rows="2" [ngModel]="store.paso1().objeto" (ngModelChange)="updatePaso1('objeto', $event)" placeholder="Descripción del objeto contractual"></textarea></label>
