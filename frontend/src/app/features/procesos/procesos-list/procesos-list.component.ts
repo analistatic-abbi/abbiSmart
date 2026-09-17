@@ -223,7 +223,7 @@ export class ProcesosListComponent implements OnInit {
   protected readonly badgeClass = (estado: string) => claseBadgeEstadoProceso(estado);
 
   protected formatCuantia(proceso: ProcesoListItem): string {
-    if (!proceso.cuantia) {
+    if (proceso.cuantia == null || proceso.cuantia === '') {
       return '—';
     }
 
@@ -235,7 +235,7 @@ export class ProcesosListComponent implements OnInit {
   }
 
   protected cuantiaTitle(proceso: ProcesoListItem): string {
-    if (!proceso.cuantia) {
+    if (proceso.cuantia == null || proceso.cuantia === '') {
       return '';
     }
 

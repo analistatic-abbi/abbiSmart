@@ -137,6 +137,13 @@ export class ProcesosService {
     return this.http.post<{ proceso: Proceso }>(this.base, payload);
   }
 
+  update(
+    id: number,
+    payload: { cuantia?: number; objeto?: string | null; link?: string; experiencia?: boolean; observacion?: string | null },
+  ): Observable<{ proceso: Proceso; message?: string }> {
+    return this.http.patch<{ proceso: Proceso; message?: string }>(`${this.base}/${id}`, payload);
+  }
+
   updateFechas(id: number, fechas: Record<string, string | null>): Observable<{ proceso: Proceso }> {
     return this.http.patch<{ proceso: Proceso }>(`${this.base}/${id}/fechas`, fechas);
   }

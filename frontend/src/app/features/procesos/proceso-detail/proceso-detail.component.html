@@ -168,7 +168,51 @@
 
         <div><span>Instrumento</span><strong>{{ p.tipoInstrumento }}</strong></div>
 
-        <div><span>Cuantía</span><strong [title]="formatCuantiaTitle(p.cuantia)">{{ formatCuantia(p.cuantia, p.moneda) }}</strong></div>
+        <div class="cuantia-field">
+          <span>Cuantía</span>
+          @if (editandoCuantia()) {
+            <div class="cuantia-edit">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                [ngModel]="cuantiaDraft()"
+                (ngModelChange)="onCuantiaDraftChange($event)"
+                [disabled]="cuantiaGuardando()"
+              />
+              <div class="cuantia-edit__actions">
+                <button
+                  type="button"
+                  class="btn-primary btn-sm"
+                  [disabled]="cuantiaGuardando()"
+                  (click)="guardarCuantia()"
+                >
+                  {{ cuantiaGuardando() ? 'Guardando...' : 'Guardar' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary btn-sm"
+                  [disabled]="cuantiaGuardando()"
+                  (click)="cancelarEdicionCuantia()"
+                >
+                  Cancelar
+                </button>
+              </div>
+              @if (cuantiaError()) {
+                <p class="error">{{ cuantiaError() }}</p>
+              }
+            </div>
+          } @else {
+            <div class="cuantia-view">
+              <strong [title]="formatCuantiaTitle(p.cuantia)">{{ formatCuantia(p.cuantia, p.moneda) }}</strong>
+              @if (puedeEscribir()) {
+                <button type="button" class="btn-secondary btn-sm" (click)="iniciarEdicionCuantia()">
+                  Editar
+                </button>
+              }
+            </div>
+          }
+        </div>
 
         <div><span>Plazo</span><strong>{{ p.plazoEjecucionMeses }} meses</strong></div>
 
